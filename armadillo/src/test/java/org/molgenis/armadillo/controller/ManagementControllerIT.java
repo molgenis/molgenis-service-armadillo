@@ -99,6 +99,11 @@ class ManagementControllerIT {
     return tempDir.toAbsolutePath().toString();
   }
 
+  @DynamicPropertySource
+  static void armadilloProperties(DynamicPropertyRegistry registry) {
+    registry.add("armadillo.armadillo-mode", () -> "DEV");
+  }
+
   @TestBean(methodName = "rebootScriptRunnerOverride")
   RebootScriptRunner rebootScriptRunner;
 
@@ -549,7 +554,7 @@ class ManagementControllerIT {
             + armadilloHome
             + " -v "
             + version
-            + " -m PROD -i "
+            + " -m DEV -i "
             + javaProcessId
             + " "
             + extraArg;

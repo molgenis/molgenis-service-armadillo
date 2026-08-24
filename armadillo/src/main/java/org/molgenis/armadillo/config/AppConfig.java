@@ -22,6 +22,11 @@ public class AppConfig {
   }
 
   @Bean
+  String armadilloMode(@Value("${armadillo.armadillo-mode:PROD}") String armadilloMode) {
+    return armadilloMode;
+  }
+
+  @Bean
   String jarHome(
       @Value("${armadillo.armadillo-mode:PROD}") String armadilloMode,
       @Value("${armadillo.armadillo-home:/usr/share/armadillo/application}") String armadilloHome) {
