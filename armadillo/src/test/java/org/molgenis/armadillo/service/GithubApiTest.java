@@ -63,13 +63,13 @@ class GithubApiTest {
   }
 
   @Test
-  void getReleaseTag_requestsCorrectUrl() throws Exception {
+  void getReleaseVersion_requestsCorrectUrl() throws Exception {
     ArgumentCaptor<HttpRequest> requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
     when(httpClient.<String>send(requestCaptor.capture(), any())).thenReturn(response);
     when(response.statusCode()).thenReturn(200);
     when(response.body()).thenReturn("{\"tag_name\":\"v5.15.0\"}");
 
-    JsonElement result = githubApi.getReleaseTag("v5.15.0");
+    JsonElement result = githubApi.getReleaseVersion("v5.15.0");
 
     assertEquals("v5.15.0", result.getAsJsonObject().get("tag_name").getAsString());
     assertEquals(
@@ -82,6 +82,6 @@ class GithubApiTest {
     when(httpClient.<String>send(any(), any())).thenReturn(response);
     when(response.statusCode()).thenReturn(500);
 
-    assertThrows(ResponseStatusException.class, () -> githubApi.getReleaseTag("v1.0.0"));
+    assertThrows(ResponseStatusException.class, () -> githubApi.getReleaseVersion("v1.0.0"));
   }
 }

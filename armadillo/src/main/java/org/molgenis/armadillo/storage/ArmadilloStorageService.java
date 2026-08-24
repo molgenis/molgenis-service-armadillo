@@ -311,15 +311,13 @@ public class ArmadilloStorageService {
   }
 
   public void saveWorkspace(InputStream is, Principal principal, String id) {
-    // Load root dir
-    File drive = new File("/");
-    long usableSpace = drive.getUsableSpace();
     try {
       moveWorkspacesIfInOldBucket(principal);
       ArmadilloWorkspace workspace = storageService.getWorkSpace(is);
 
       long fileSize = workspace.getSize();
-      if (usableSpace > fileSize * 2L) {
+
+      if (DiskSpaceChecker.fitsOnDisk(fileSize)) {
         trySaveWorkspace(workspace, principal, id);
       } else {
         throw new StorageException(

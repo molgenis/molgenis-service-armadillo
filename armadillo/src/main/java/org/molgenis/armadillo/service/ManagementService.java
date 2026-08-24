@@ -56,6 +56,7 @@ public class ManagementService {
   private final GithubApi githubApi;
   private final UpdateScriptDownloader updateScriptDownloader;
   private final OidcDetails currentOidcDetails;
+  private FileService fileService;
 
   @Autowired
   public ManagementService(
@@ -76,6 +77,7 @@ public class ManagementService {
       @Autowired JarDownloader jarDownloader,
       @Autowired GithubApi githubApi,
       @Autowired UpdateScriptDownloader updateScriptDownloader,
+      @Autowired FileService fileService,
       @Qualifier("jarHome") String jarHome,
       ConfigFile configFile) {
     this.buildProperties = buildProperties;
@@ -88,6 +90,7 @@ public class ManagementService {
     this.updateScriptDownloader = updateScriptDownloader;
     currentOidcDetails =
         OidcDetails.create(issuerUri, clientId, clientSecret, deviceIssuerUri, deviceClientId);
+    this.fileService = fileService;
   }
 
   public void softRestartApplication() {
@@ -226,6 +229,10 @@ public class ManagementService {
         .filter(file -> !file.isDirectory())
         .map(File::getName)
         .collect(Collectors.toSet());
+  }
+
+  public Boolean doesJarFit(String version) throws IOException, InterruptedException {
+    return jarDownloader.doesJarFit(version);
   }
 
   public Boolean isValidJar(String version) throws IOException, InterruptedException {

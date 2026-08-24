@@ -25,12 +25,34 @@ public class GithubApi {
     this.httpClient = httpClient;
   }
 
-  public JsonElement getReleaseTag(String tag) throws IOException, InterruptedException {
+  private JsonElement getReleaseTag(String tag) throws IOException, InterruptedException {
     return getReleaseFromGithub(TAG_URL + tag);
+  }
+
+  private String getTagFromVersion(String version) {
+    return version.startsWith("v") ? version : "v" + version;
+  }
+
+  public JsonElement getReleaseVersion(String version) throws IOException, InterruptedException {
+    return getReleaseTag(getTagFromVersion(version));
   }
 
   public JsonElement getLastRelease() throws IOException, InterruptedException {
     return getReleaseFromGithub(RELEASE_URL);
+  }
+
+  public String getFromJarAsset(String version, String key)
+      throws IOException, InterruptedException {
+    return String.valueOf(
+            getReleaseVersion(version)
+                .getAsJsonObject()
+                .get("assets")
+                .getAsJsonArray()
+                .get(0)
+                .getAsJsonObject()
+                .get(key))
+        .replace("sha256:", "")
+        .replace("\"", "");
   }
 
   private JsonElement getReleaseFromGithub(String url) throws IOException, InterruptedException {
