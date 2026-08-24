@@ -1,1 +1,0 @@
-/Users/mkslofstra/git/molgenis-service-armadillo/scripts/install/armadillo-reboot.sh
