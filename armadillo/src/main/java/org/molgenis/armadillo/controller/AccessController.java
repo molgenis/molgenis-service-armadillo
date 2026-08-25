@@ -325,7 +325,7 @@ public class AccessController {
       Principal principal, @Valid @RequestBody RequestAccessBody requestAccessBody) {
     String requestId = requestAccessBody.getRequestId();
     String tablePath = requestAccessBody.getTable();
-    String variables = requestAccessBody.getVariables().toString();
+    String variables = String.join(",", requestAccessBody.getVariables());
     String user = requestAccessBody.getUser();
     auditor.audit(
         () -> {
