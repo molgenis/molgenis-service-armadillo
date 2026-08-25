@@ -61,7 +61,7 @@
                 <!-- Placeholder for file upload for uploading complete project in future -->
               </div>
               <div class="col-6 p-0 mb-3" v-show="selectedFolder !== ''">
-                <FileUpload
+                <DataUpload
                   class="mb-2"
                   :project="projectId"
                   :object="selectedFolder"
@@ -69,7 +69,7 @@
                   @upload_error="showErrorMessage"
                   uniqueClass="project-file-upload"
                   :preselectedItem="selectedFile"
-                ></FileUpload>
+                ></DataUpload>
                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                   <button
                     class="btn btn-primary me-md-2"
@@ -271,7 +271,7 @@ import {
 import { defineComponent, onMounted, Ref, ref } from "vue";
 import { StringArray, ProjectsExplorerData } from "@/types/types";
 import { useRoute, useRouter } from "vue-router";
-import FileUpload from "@/components/FileUpload.vue";
+import DataUpload from "@/components/DataUpload.vue";
 import FileExplorer from "@/components/FileExplorer.vue";
 import DataPreviewTable from "@/components/DataPreviewTable.vue";
 import { processErrorMessages } from "@/helpers/errorProcessing";
@@ -280,14 +280,13 @@ import MetaDataPreview from "@/components/MetaDataPreview.vue";
 
 export default defineComponent({
   name: "ProjectsExplorer",
-  emits: ["triggerUploadFile"],
   components: {
     ButtonGroup,
     ConfirmationDialog,
     FeedbackMessage,
     ListGroup,
     LoadingSpinner,
-    FileUpload,
+    DataUpload,
     FileExplorer,
     FolderInput,
     DataPreviewTable,
@@ -486,15 +485,9 @@ export default defineComponent({
     cancelNewFolder() {
       this.createNewFolder = false;
     },
-    onUploadSuccess({
-      object,
-      filename,
-    }: {
-      object: string;
-      filename: string;
-    }) {
+    onUploadSuccess({ filename }: { filename: string }) {
       this.reloadProject();
-      this.successMessage = `Successfully uploaded file [${filename}] into directory [${object}] of project: [${this.projectId}]`;
+      this.successMessage = `Successfully uploaded file [${filename}] into directory [${this.selectedFolder}] of project: [${this.projectId}]`;
     },
     showSelectedFolderIcon(item: string) {
       return item === this.selectedFolder;
