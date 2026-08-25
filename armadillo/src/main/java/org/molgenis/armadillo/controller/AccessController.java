@@ -339,18 +339,15 @@ public class AccessController {
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
                 format(
-                    "Project for request id [ %s ] already exists. Please remove this project before approving this request.",
+                    "Project for request id [ %s ] already exists. Please remove this project before approving the request.",
                     requestId));
           }
           storage.upsertProject(requestId);
           String[] projectFolderTable = getProjectFolderTableFromPath(tablePath, requestId);
+          String objectName = projectFolderTable[1] + "/" + projectFolderTable[2];
           try {
             storage.createLinkedObject(
-                projectFolderTable[0],
-                projectFolderTable[1] + "/" + projectFolderTable[2],
-                projectFolderTable[1] + "/" + projectFolderTable[2],
-                requestId,
-                variables);
+                projectFolderTable[0], objectName, objectName, requestId, variables);
             metadata.permissionsAdd(user, requestId);
           } catch (IOException e) {
             throw new ResponseStatusException(
@@ -361,7 +358,7 @@ public class AccessController {
           }
         },
         principal,
-        "REQUEST_ACCESS",
+        APPROVE_ACCESS_REQUEST,
         Map.of(
             "REQUEST_ID",
             requestAccessBody.getRequestId(),
@@ -378,7 +375,7 @@ public class AccessController {
     String[] projectFolderTable = tablePath.split("/");
     if (projectFolderTable.length != 3) {
       throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST,
+          HttpStatus.NOT_ACCEPTABLE,
           format(
               "Cannot fulfill request [%s] because [%s] should consist of project, "
                   + "folder, table in format:\n"

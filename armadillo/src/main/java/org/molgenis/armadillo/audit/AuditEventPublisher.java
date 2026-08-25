@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class AuditEventPublisher implements ApplicationEventPublisherAware {
 
+  public static final String APPROVE_ACCESS_REQUEST = "APPROVE_ACCESS_REQUEST";
   public static final String SELECT_PROFILE = "SELECT_PROFILE";
   public static final String PROFILES = "PROFILES";
   public static final String GET_ASSIGNED_SYMBOLS = "GET_ASSIGNED_SYMBOLS";
