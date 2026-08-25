@@ -39,7 +39,7 @@ class UpdateScriptDownloaderTest {
     String url = downloader.getUpdateScriptUrl(version);
     assertEquals(
         "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/"
-            + "9f0c9b53e773ac54940d29d160712c6e61a485b6/scripts/install/armadillo-reboot.sh",
+            + "70429b0a4ebdb579fdfd66df9bacae3a67866135/scripts/install/armadillo-reboot.sh",
         url);
   }
 
@@ -61,7 +61,7 @@ class UpdateScriptDownloaderTest {
     String url = downloader.getUpdateScriptUrl("dev");
     assertEquals(
         "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/"
-            + "9f0c9b53e773ac54940d29d160712c6e61a485b6/scripts/install/armadillo-reboot.sh",
+            + "70429b0a4ebdb579fdfd66df9bacae3a67866135/scripts/install/armadillo-reboot.sh",
         url);
   }
 

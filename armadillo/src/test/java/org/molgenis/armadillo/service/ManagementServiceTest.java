@@ -298,15 +298,15 @@ class ManagementServiceTest {
     String updateScriptUrl = service.getUpdateScriptUrl("v5.0.1");
     assertThat(updateScriptUrl)
         .isEqualTo(
-            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/9f0c9b53e773ac54940d29d160712c6e61a485b6/scripts/install/armadillo-reboot.sh");
+            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/70429b0a4ebdb579fdfd66df9bacae3a67866135/scripts/install/armadillo-reboot.sh");
   }
 
   @Test
   void getUpdateScriptUrlAfterMerge() {
-    String updateScriptUrl = service.getUpdateScriptUrl("v5.15.1");
+    String updateScriptUrl = service.getUpdateScriptUrl("v5.17.1");
     assertThat(updateScriptUrl)
         .isEqualTo(
-            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/refs/tags/v5.15.1/scripts/install/armadillo-reboot.sh");
+            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/refs/tags/v5.17.1/scripts/install/armadillo-reboot.sh");
   }
 
   @Test
@@ -314,7 +314,7 @@ class ManagementServiceTest {
     String updateScriptUrl = service.getUpdateScriptUrl("dev");
     assertThat(updateScriptUrl)
         .isEqualTo(
-            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/9f0c9b53e773ac54940d29d160712c6e61a485b6/scripts/install/armadillo-reboot.sh");
+            "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/70429b0a4ebdb579fdfd66df9bacae3a67866135/scripts/install/armadillo-reboot.sh");
   }
 
   @Test
