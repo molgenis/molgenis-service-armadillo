@@ -453,6 +453,8 @@ export function downloadUpdater(version: string) {
 
 export function startUpdate(version: string) {
   return post("/manage/app/update?version=" + version);
+}
+
 function downloadURI(blob: Blob, fileName: string) {
   const aElement = document.createElement("a");
   const objectUrl = URL.createObjectURL(blob);
