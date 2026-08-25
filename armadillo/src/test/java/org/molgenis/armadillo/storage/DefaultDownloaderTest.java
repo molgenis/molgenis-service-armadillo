@@ -172,6 +172,11 @@ class DefaultJarDownloaderTest {
   }
 
   @Test
+  void isValidJar_returnsTrue_whenSnapshot() throws Exception {
+    assertThat(jarDownloader.isValidJar("molgenis-armadillo-5.16.1-SNAPSHOT.jar")).isTrue();
+  }
+
+  @Test
   void doesJarFit_delegatesToDiskSpaceChecker() throws Exception {
     when(githubApi.getFromJarAsset(VERSION, "size")).thenReturn("123456");
 

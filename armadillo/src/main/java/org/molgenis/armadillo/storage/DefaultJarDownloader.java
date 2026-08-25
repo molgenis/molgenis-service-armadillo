@@ -89,6 +89,14 @@ public class DefaultJarDownloader implements JarDownloader {
   @Override
   public boolean isValidJar(String version) throws IOException, InterruptedException {
     boolean isValid = false;
+    // this is mainly for dev testing, would be really convenient if we can easily switch to
+    // versions build on local
+    // computer, these versions cannot be downloaded, so customers will not encounter this, meaning
+    // that if the jar is
+    // corrupt, the person that used the broken jar, can fix it themselves.
+    if (version.contains("SNAPSHOT")) {
+      return true;
+    }
     String jarName = getJarFromVersion(version);
     String jarSha = getJarSha(jarHome + "/" + jarName);
     String githubSha = githubApi.getFromJarAsset(version, "digest").replace("sha256:", "");
