@@ -26,7 +26,8 @@ import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 import org.molgenis.armadillo.model.Workspace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.MediaType;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.*;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -265,9 +266,12 @@ public class ArmadilloStorageService {
     return USER_PREFIX + principal.getName();
   }
 
+  public static String getUserBucketIdentifierFromUserId(String userId) {
+    return USER_PREFIX + userId.replace("@", "__at__");
+  }
+
   static String getUserBucketName(Principal principal) {
-    String userIdentifier = getUser(principal).replace("@", "__at__");
-    return USER_PREFIX + userIdentifier;
+    return getUserBucketIdentifierFromUserId(getUser(principal));
   }
 
   private static Workspace toWorkspace(ObjectMetadata item) {
@@ -278,11 +282,11 @@ public class ArmadilloStorageService {
         .build();
   }
 
-  private void trySaveWorkspace(ArmadilloWorkspace workspace, Principal principal, String id) {
+  private void trySaveWorkspace(ArmadilloWorkspace workspace, String userId, String id) {
     try {
       storageService.save(
           workspace.createInputStream(),
-          getUserBucketName(principal),
+          userId,
           getWorkspaceObjectName(id),
           APPLICATION_OCTET_STREAM);
     } catch (StorageException e) {
@@ -310,9 +314,21 @@ public class ArmadilloStorageService {
     }
   }
 
-  public void saveWorkspace(InputStream is, Principal principal, String id) {
+  public void saveWorkspaceForCurrentUser(InputStream is, Principal principal, String id) {
     try {
       moveWorkspacesIfInOldBucket(principal);
+      String userId = getUserBucketName(principal);
+      saveWorkspace(is, userId, id);
+    } catch (StorageException | FileNotFoundException e) {
+      throw new StorageException(e.getMessage().replace("load", "save"));
+    }
+  }
+
+  public void saveWorkspace(InputStream is, String userId, String id) {
+    // Load root dir
+    File drive = new File("/");
+    long usableSpace = drive.getUsableSpace();
+    try {
       ArmadilloWorkspace workspace = storageService.getWorkSpace(is);
 
       long fileSize = workspace.getSize();
@@ -325,7 +341,7 @@ public class ArmadilloStorageService {
                 "Can't save workspace: workspace too big (%s), not enough space left on device. Try to make your workspace smaller and/or contact the administrator to increase diskspace.",
                 getHumanReadableByteCount(fileSize)));
       }
-    } catch (StorageException | FileNotFoundException e) {
+    } catch (StorageException e) {
       throw new StorageException(e.getMessage().replace("load", "save"));
     }
   }
@@ -337,6 +353,12 @@ public class ArmadilloStorageService {
   @PreAuthorize("hasAnyRole('ROLE_SU')")
   public void removeWorkspaceByStringUserId(String userId, String id) {
     storageService.delete(USER_PREFIX + userId, getWorkspaceObjectName(id));
+  }
+
+  @PreAuthorize("hasAnyRole('ROLE_SU')")
+  public InputStream downloadWorkspaceByStringUserId(String userId, String id) {
+    return storageService.load(
+        getUserBucketIdentifierFromUserId(userId), getWorkspaceObjectName(id));
   }
 
   public void saveSystemFile(InputStream is, String name, MediaType mediaType) {
@@ -383,6 +405,11 @@ public class ArmadilloStorageService {
     return Files.size(filePath);
   }
 
+  public long getWorkspaceFileSizeIfObjectExists(String userId, String id) throws IOException {
+    return getFileSizeIfObjectExists(
+        getUserBucketIdentifierFromUserId(userId), getWorkspaceObjectName(id));
+  }
+
   @PreAuthorize("hasRole('ROLE_SU')")
   public List<Map<String, String>> getPreview(String project, String object) {
     throwIfUnknown(project, object);
@@ -409,6 +436,49 @@ public class ArmadilloStorageService {
   public FileInfo getInfo(String project, String object) {
     throwIfUnknown(project, object);
     return storageService.getInfo(SHARED_PREFIX + project, object);
+  }
+
+  HttpHeaders getHttpHeaders(ContentDisposition contentDisposition, long fileSize) {
+    HttpHeaders httpHeaders = new HttpHeaders();
+    httpHeaders.setContentDisposition(contentDisposition);
+    httpHeaders.setContentLength(fileSize);
+    httpHeaders.setContentType(APPLICATION_OCTET_STREAM);
+    return httpHeaders;
+  }
+
+  ResponseEntity<InputStreamResource> getFile(
+      InputStream inputStream, ContentDisposition contentDisposition, long fileSize) {
+    InputStreamResource inputStreamResource = new InputStreamResource(inputStream);
+    HttpHeaders httpHeaders = getHttpHeaders(contentDisposition, fileSize);
+    return new ResponseEntity<>(inputStreamResource, httpHeaders, HttpStatus.OK);
+  }
+
+  public ResponseEntity<InputStreamResource> downloadUserWorkspace(
+      String userId, String workspaceId) {
+    try {
+      InputStream inputStream = downloadWorkspaceByStringUserId(userId, workspaceId);
+      long fileSize = getWorkspaceFileSizeIfObjectExists(userId, workspaceId);
+      ContentDisposition contentDisposition =
+          ContentDisposition.attachment().filename(workspaceId + RDATA_EXT).build();
+      return getFile(inputStream, contentDisposition, fileSize);
+    } catch (IOException e) {
+      throw new FileProcessingException();
+    }
+  }
+
+  public ResponseEntity<InputStreamResource> getObject(String project, String object) {
+    try {
+      var inputStream = loadObject(project, object);
+      var objectParts = object.split("/");
+      var fileName = objectParts[objectParts.length - 1];
+      ContentDisposition contentDisposition =
+          ContentDisposition.attachment().filename(fileName).build();
+      var fileSize =
+          getFileSizeIfObjectExists(ArmadilloStorageService.SHARED_PREFIX + project, object);
+      return getFile(inputStream, contentDisposition, fileSize);
+    } catch (IOException e) {
+      throw new FileProcessingException();
+    }
   }
 
   @PreAuthorize("hasRole('ROLE_SU')")

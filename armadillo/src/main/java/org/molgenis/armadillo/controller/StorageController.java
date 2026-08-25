@@ -7,7 +7,6 @@ import static org.molgenis.armadillo.storage.ArmadilloStorageService.LINK_FILE;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 import static org.springframework.http.ResponseEntity.noContent;
 import static org.springframework.http.ResponseEntity.notFound;
@@ -452,31 +451,10 @@ public class StorageController {
     }
   }
 
-  private ResponseEntity<InputStreamResource> getObject(String project, String object) {
-    try {
-      var inputStream = storage.loadObject(project, object);
-      var objectParts = object.split("/");
-      var fileName = objectParts[objectParts.length - 1];
-      InputStreamResource inputStreamResource = new InputStreamResource(inputStream);
-      ContentDisposition contentDisposition =
-          ContentDisposition.attachment().filename(fileName).build();
-      var fileSize =
-          storage.getFileSizeIfObjectExists(
-              ArmadilloStorageService.SHARED_PREFIX + project, object);
-      HttpHeaders httpHeaders = new HttpHeaders();
-      httpHeaders.setContentDisposition(contentDisposition);
-      httpHeaders.setContentLength(fileSize);
-      httpHeaders.setContentType(APPLICATION_OCTET_STREAM);
-      return new ResponseEntity<>(inputStreamResource, httpHeaders, HttpStatus.OK);
-    } catch (IOException e) {
-      throw new FileProcessingException();
-    }
-  }
-
   private ResponseEntity<InputStreamResource> auditDownloadObject(
       String project, String object, Principal principal, String type) {
     return auditor.audit(
-        () -> getObject(project, object),
+        () -> storage.getObject(project, object),
         principal,
         type,
         Map.of(PROJECT, project, OBJECT, object));

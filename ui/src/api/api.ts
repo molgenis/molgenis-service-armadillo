@@ -453,4 +453,59 @@ export function downloadUpdater(version: string) {
 
 export function startUpdate(version: string) {
   return post("/manage/app/update?version=" + version);
+function downloadURI(blob: Blob, fileName: string) {
+  const aElement = document.createElement("a");
+  const objectUrl = URL.createObjectURL(blob);
+  aElement.href = objectUrl;
+  aElement.download = fileName;
+  document.body.appendChild(aElement);
+  aElement.click();
+  URL.revokeObjectURL(objectUrl);
+  document.body.removeChild(aElement);
+}
+
+export function createDownloadUrlForUserWorkspace(
+  user: string,
+  workspace: string
+) {
+  return `/workspaces/download/${user.replace("user-", "")}/${workspace}`;
+}
+
+export function createFileNameForUserWorkspace(
+  user: string,
+  workspace: string
+) {
+  return user + "-" + workspace + ".RData";
+}
+
+export async function downloadWorkspace(workspace: string, user: string) {
+  const url = createDownloadUrlForUserWorkspace(user, workspace);
+  const fileName = createFileNameForUserWorkspace(user, workspace);
+  return fetch(url, { method: "GET", mode: "cors" })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(
+          `Downloading workspace [${workspace}] for user [${user}] failed`
+        );
+      }
+      return response.blob();
+    })
+    .then((blob) => {
+      downloadURI(blob, fileName);
+    })
+    .catch(() => {
+      return Promise.reject(
+        `Downloading workspace [${workspace}] for user [${user}] failed!`
+      );
+    });
+}
+
+export async function uploadWorkspace(
+  fileToUpload: File,
+  userId: string,
+  workspaceId: string
+) {
+  let formData = new FormData();
+  formData.append("file", fileToUpload);
+  return postFormData(`/workspaces/upload/${userId}/${workspaceId}`, formData);
 }
