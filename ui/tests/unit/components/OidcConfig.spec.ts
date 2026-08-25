@@ -1,7 +1,8 @@
 import { mount, VueWrapper } from "@vue/test-utils";
 import { nextTick } from "vue";
 import OidcConfig from "@/components/OidcConfig.vue";
-import FormInput from "@/components/FormInput.vue";
+
+window.scrollTo = jest.fn();
 
 const defaultProps = {
   presetServerUri: "https://auth.example.com",

@@ -44,7 +44,7 @@ class UpdateScriptDownloaderTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"v5.15.0", "5.15.1", "6.0.0"})
+  @ValueSource(strings = {"v5.17.0", "5.17.1", "6.0.0"})
   void getUpdateScriptUrl_usesTagForNewerVersions(String version) {
     String url = downloader.getUpdateScriptUrl(version);
     String expectedVersion = version.replace("v", "");
@@ -77,7 +77,7 @@ class UpdateScriptDownloaderTest {
                   FileDownloader.downloadFile(
                       eq(
                           "https://raw.githubusercontent.com/molgenis/molgenis-service-armadillo/"
-                              + "refs/tags/v5.15.1/scripts/install/armadillo-reboot.sh"),
+                              + "refs/tags/v5.17.1/scripts/install/armadillo-reboot.sh"),
                       anyString()))
           .thenAnswer(
               interceptor -> {
@@ -85,7 +85,7 @@ class UpdateScriptDownloaderTest {
                 return null;
               });
 
-      downloader.downloadUpdateScript("v5.15.1");
+      downloader.downloadUpdateScript("v5.17.1");
 
       assertTrue(called.get());
       assertTrue(tempDir.resolve("armadillo-reboot.sh").toFile().canExecute());
