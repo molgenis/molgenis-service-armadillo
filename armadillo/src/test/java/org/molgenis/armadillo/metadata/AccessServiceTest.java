@@ -445,8 +445,7 @@ class AccessServiceTest {
       when(storage.hasProject("request1")).thenReturn(false);
 
       RequestData requestData =
-          RequestData.create(
-              "sourceProject/folder/table1.parquet", new ArrayList<>(List.of("var1", "var2")));
+          RequestData.create("sourceProject/folder/table1.parquet", "var1,var2");
 
       ArrayList<RequestData> requests = new ArrayList<>();
       requests.add(requestData);
@@ -474,8 +473,7 @@ class AccessServiceTest {
           .when(storage)
           .createLinkedObject(anyString(), anyString(), anyString(), anyString(), anyString());
 
-      RequestData requestData =
-          RequestData.create("sourceProject/folder/table1", new ArrayList<>(List.of("var1")));
+      RequestData requestData = RequestData.create("sourceProject/folder/table1", "var1");
       ArrayList<RequestData> requests = new ArrayList<>();
       requests.add(requestData);
 
@@ -490,8 +488,7 @@ class AccessServiceTest {
       AccessService service = newService(null);
       when(storage.hasProject("request1")).thenReturn(false);
 
-      RequestData requestData =
-          RequestData.create("onlyOneSegment", new ArrayList<>(List.of("var1")));
+      RequestData requestData = RequestData.create("onlyOneSegment", "var1");
       ArrayList<RequestData> requests = new ArrayList<>();
       requests.add(requestData);
 
@@ -505,9 +502,7 @@ class AccessServiceTest {
       AccessService service = newService(null);
       when(storage.hasProject("request1")).thenReturn(false);
 
-      RequestData requestData =
-          RequestData.create(
-              "sourceProject/folder/table1.parquet", new ArrayList<>(List.of("var1")));
+      RequestData requestData = RequestData.create("sourceProject/folder/table1.parquet", "var1");
       ArrayList<RequestData> requests = new ArrayList<>();
       requests.add(requestData);
 

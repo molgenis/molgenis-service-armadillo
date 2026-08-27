@@ -273,9 +273,7 @@ class AccessControllerTest {
   @WithMockUser(roles = "SU")
   void requestAccess_POST() throws Exception {
     var requestData = new ArrayList<RequestData>();
-    requestData.add(
-        RequestData.create(
-            "sourceProject/folder1/table1", new ArrayList<>(Set.of("var1", "var2"))));
+    requestData.add(RequestData.create("sourceProject/folder1/table1", "var1,var2"));
     var body = RequestAccessBody.create("chefkesRequest", "petra@email.com", requestData);
 
     mockMvc
@@ -311,8 +309,7 @@ class AccessControllerTest {
     when(armadilloStorage.hasProject("bofkesProject")).thenReturn(true);
 
     var requestData = new ArrayList<RequestData>();
-    requestData.add(
-        RequestData.create("sourceProject/folder1/table1", new ArrayList<>(Set.of("var1"))));
+    requestData.add(RequestData.create("sourceProject/folder1/table1", "var1"));
     var body = RequestAccessBody.create("bofkesProject", "petra@email.com", requestData);
 
     mockMvc
@@ -334,7 +331,7 @@ class AccessControllerTest {
   void requestAccess_POST_InvalidTablePath() throws Exception {
     var requestData = new ArrayList<RequestData>();
     // only 2 segments instead of the required 3 (project/folder/table)
-    requestData.add(RequestData.create("sourceProject/table1", new ArrayList<>(Set.of("var1"))));
+    requestData.add(RequestData.create("sourceProject/table1", "var1"));
     var body = RequestAccessBody.create("chefkesRequest", "petra@email.com", requestData);
 
     mockMvc
@@ -357,9 +354,7 @@ class AccessControllerTest {
   @WithMockUser(roles = "SU")
   void requestAccess_POST_StripsParquetExtension() throws Exception {
     var requestData = new ArrayList<RequestData>();
-    requestData.add(
-        RequestData.create(
-            "sourceProject/folder1/table1.parquet", new ArrayList<>(Set.of("var1"))));
+    requestData.add(RequestData.create("sourceProject/folder1/table1.parquet", "var1"));
     var body = RequestAccessBody.create("chefkesRequest", "petra@email.com", requestData);
 
     mockMvc

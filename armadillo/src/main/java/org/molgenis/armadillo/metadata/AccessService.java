@@ -359,7 +359,7 @@ public class AccessService {
   private void addTableToRequest(String requestId, String user, RequestData requestData)
       throws IOException {
     String tablePath = requestData.getTable();
-    String variables = String.join(",", requestData.getVariables());
+    String variables = requestData.getVariables();
     String[] projectFolderTable = getProjectFolderTableFromPath(tablePath, requestId);
     String objectName = projectFolderTable[1] + "/" + projectFolderTable[2];
     storage.createLinkedObject(projectFolderTable[0], objectName, objectName, requestId, variables);

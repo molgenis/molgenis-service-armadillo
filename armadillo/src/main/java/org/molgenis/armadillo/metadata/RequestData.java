@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 import jakarta.validation.constraints.NotEmpty;
-import java.util.ArrayList;
 
 @AutoValue
 public abstract class RequestData {
@@ -17,11 +16,11 @@ public abstract class RequestData {
 
   @JsonProperty("variables")
   @NotEmpty
-  public abstract ArrayList<String> getVariables();
+  public abstract String getVariables();
 
   @JsonCreator
   public static RequestData create(
-      @JsonProperty("table") String table, @JsonProperty("variables") ArrayList<String> variables) {
+      @JsonProperty("table") String table, @JsonProperty("variables") String variables) {
     return new AutoValue_RequestData(table, variables);
   }
 }
