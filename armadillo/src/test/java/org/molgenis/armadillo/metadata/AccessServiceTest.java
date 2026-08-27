@@ -4,12 +4,16 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -25,6 +29,7 @@ import org.molgenis.armadillo.exceptions.UnknownUserException;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Unit tests for {@link AccessService}. The only mocked collaborators are {@link
@@ -416,5 +421,101 @@ class AccessServiceTest {
     assertThat(metadata.getPermissions())
         .extracting(ProjectPermission::getEmail)
         .contains("u@example.com");
+  }
+
+  @Nested
+  class ApproveAccessRequest {
+
+    @Test
+    void throwsWhenProjectForRequestAlreadyExists() {
+      AccessService service = newService(null);
+      when(storage.hasProject("request1")).thenReturn(true);
+
+      assertThatThrownBy(
+              () -> service.approveAccessRequest("request1", new ArrayList<>(), "user@example.com"))
+          .isInstanceOf(ResponseStatusException.class)
+          .hasMessageContaining("already exists");
+
+      verify(storage, never()).upsertProject("request1");
+    }
+
+    @Test
+    void createsLinkedObjectsAndGrantsPermissionOnSuccess() throws Exception {
+      AccessService service = newService(null);
+      when(storage.hasProject("request1")).thenReturn(false);
+
+      RequestData requestData =
+          RequestData.create(
+              "sourceProject/folder/table1.parquet", new ArrayList<>(List.of("var1", "var2")));
+
+      ArrayList<RequestData> requests = new ArrayList<>();
+      requests.add(requestData);
+
+      service.approveAccessRequest("request1", requests, "user@example.com");
+
+      verify(storage, times(1)).upsertProject("request1");
+      verify(storage, times(1))
+          .createLinkedObject(
+              eq("sourceProject"),
+              eq("folder/table1"),
+              eq("folder/table1"),
+              eq("request1"),
+              eq("var1,var2"));
+      assertThat(service.permissionsList())
+          .anyMatch(
+              p -> p.getEmail().equals("user@example.com") && p.getProject().equals("request1"));
+    }
+
+    @Test
+    void wrapsDownstreamFailurePerTableAsBadRequest() throws Exception {
+      AccessService service = newService(null);
+      when(storage.hasProject("request1")).thenReturn(false);
+      org.mockito.Mockito.doThrow(new IOException("boom"))
+          .when(storage)
+          .createLinkedObject(anyString(), anyString(), anyString(), anyString(), anyString());
+
+      RequestData requestData =
+          RequestData.create("sourceProject/folder/table1", new ArrayList<>(List.of("var1")));
+      ArrayList<RequestData> requests = new ArrayList<>();
+      requests.add(requestData);
+
+      assertThatThrownBy(
+              () -> service.approveAccessRequest("request1", requests, "user@example.com"))
+          .isInstanceOf(ResponseStatusException.class)
+          .hasMessageContaining("Cannot create and approve request");
+    }
+
+    @Test
+    void throwsWhenTablePathHasWrongSegmentCount() {
+      AccessService service = newService(null);
+      when(storage.hasProject("request1")).thenReturn(false);
+
+      RequestData requestData =
+          RequestData.create("onlyOneSegment", new ArrayList<>(List.of("var1")));
+      ArrayList<RequestData> requests = new ArrayList<>();
+      requests.add(requestData);
+
+      assertThatThrownBy(
+              () -> service.approveAccessRequest("request1", requests, "user@example.com"))
+          .isInstanceOf(ResponseStatusException.class);
+    }
+
+    @Test
+    void stripsParquetExtensionFromTableName() throws Exception {
+      AccessService service = newService(null);
+      when(storage.hasProject("request1")).thenReturn(false);
+
+      RequestData requestData =
+          RequestData.create(
+              "sourceProject/folder/table1.parquet", new ArrayList<>(List.of("var1")));
+      ArrayList<RequestData> requests = new ArrayList<>();
+      requests.add(requestData);
+
+      service.approveAccessRequest("request1", requests, "user@example.com");
+
+      verify(storage)
+          .createLinkedObject(
+              anyString(), eq("folder/table1"), eq("folder/table1"), anyString(), anyString());
+    }
   }
 }
