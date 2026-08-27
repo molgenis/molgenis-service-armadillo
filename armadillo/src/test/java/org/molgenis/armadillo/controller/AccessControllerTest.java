@@ -1,8 +1,7 @@
 package org.molgenis.armadillo.controller;
 
 import static java.util.Collections.emptySet;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
@@ -15,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.google.gson.Gson;
+import java.util.ArrayList;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,12 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
-import org.molgenis.armadillo.metadata.AccessLoader;
-import org.molgenis.armadillo.metadata.AccessMetadata;
-import org.molgenis.armadillo.metadata.AccessService;
-import org.molgenis.armadillo.metadata.ProjectDetails;
-import org.molgenis.armadillo.metadata.ProjectPermission;
-import org.molgenis.armadillo.metadata.UserDetails;
+import org.molgenis.armadillo.metadata.*;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -272,5 +267,111 @@ class AccessControllerTest {
         .getProjects()
         .put("bofkesProject", ProjectDetails.create("bofkesProject", Set.of("bofke@email.com")));
     verify(accessLoader).save(expected);
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void requestAccess_POST() throws Exception {
+    var requestData = new ArrayList<RequestData>();
+    requestData.add(
+        RequestData.create(
+            "sourceProject/folder1/table1", new ArrayList<>(Set.of("var1", "var2"))));
+    var body = RequestAccessBody.create("chefkesRequest", "petra@email.com", requestData);
+
+    mockMvc
+        .perform(
+            post("/access/request/approve")
+                .content(new Gson().toJson(body))
+                .contentType(APPLICATION_JSON)
+                .with(csrf()))
+        .andExpect(status().isNoContent());
+
+    verify(armadilloStorage).hasProject("chefkesRequest");
+    verify(armadilloStorage).upsertProject("chefkesRequest");
+    verify(armadilloStorage)
+        .createLinkedObject(
+            "sourceProject", "folder1/table1", "folder1/table1", "chefkesRequest", "var1,var2");
+
+    var expected = createExampleSettings();
+    expected
+        .getUsers()
+        .put(
+            "petra@email.com",
+            UserDetails.create("petra@email.com", null, null, null, null, emptySet()));
+    expected
+        .getProjects()
+        .put("chefkesRequest", ProjectDetails.create("chefkesRequest", emptySet()));
+    expected.getPermissions().add(ProjectPermission.create("petra@email.com", "chefkesRequest"));
+    verify(accessLoader).save(expected);
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void requestAccess_POST_ProjectAlreadyExists() throws Exception {
+    when(armadilloStorage.hasProject("bofkesProject")).thenReturn(true);
+
+    var requestData = new ArrayList<RequestData>();
+    requestData.add(
+        RequestData.create("sourceProject/folder1/table1", new ArrayList<>(Set.of("var1"))));
+    var body = RequestAccessBody.create("bofkesProject", "petra@email.com", requestData);
+
+    mockMvc
+        .perform(
+            post("/access/request/approve")
+                .content(new Gson().toJson(body))
+                .contentType(APPLICATION_JSON)
+                .with(csrf()))
+        .andExpect(status().isBadRequest());
+
+    verify(armadilloStorage, never()).upsertProject(anyString());
+    verify(armadilloStorage, never())
+        .createLinkedObject(anyString(), anyString(), anyString(), anyString(), anyString());
+    verify(accessLoader, never()).save(org.mockito.ArgumentMatchers.any());
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void requestAccess_POST_InvalidTablePath() throws Exception {
+    var requestData = new ArrayList<RequestData>();
+    // only 2 segments instead of the required 3 (project/folder/table)
+    requestData.add(RequestData.create("sourceProject/table1", new ArrayList<>(Set.of("var1"))));
+    var body = RequestAccessBody.create("chefkesRequest", "petra@email.com", requestData);
+
+    mockMvc
+        .perform(
+            post("/access/request/approve")
+                .content(new Gson().toJson(body))
+                .contentType(APPLICATION_JSON)
+                .with(csrf()))
+        .andExpect(status().isBadRequest());
+
+    // project is created before the per-table loop runs...
+    verify(armadilloStorage).upsertProject("chefkesRequest");
+    // ...but the malformed path means we never get to linking or granting permissions
+    verify(armadilloStorage, never())
+        .createLinkedObject(anyString(), anyString(), anyString(), anyString(), anyString());
+    verify(accessLoader, never()).save(org.mockito.ArgumentMatchers.any());
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void requestAccess_POST_StripsParquetExtension() throws Exception {
+    var requestData = new ArrayList<RequestData>();
+    requestData.add(
+        RequestData.create(
+            "sourceProject/folder1/table1.parquet", new ArrayList<>(Set.of("var1"))));
+    var body = RequestAccessBody.create("chefkesRequest", "petra@email.com", requestData);
+
+    mockMvc
+        .perform(
+            post("/access/request/approve")
+                .content(new Gson().toJson(body))
+                .contentType(APPLICATION_JSON)
+                .with(csrf()))
+        .andExpect(status().isNoContent());
+
+    verify(armadilloStorage)
+        .createLinkedObject(
+            "sourceProject", "folder1/table1", "folder1/table1", "chefkesRequest", "var1");
   }
 }
