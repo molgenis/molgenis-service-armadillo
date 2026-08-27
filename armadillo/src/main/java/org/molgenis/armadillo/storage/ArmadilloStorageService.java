@@ -332,7 +332,8 @@ public class ArmadilloStorageService {
       ArmadilloWorkspace workspace = storageService.getWorkSpace(is);
 
       long fileSize = workspace.getSize();
-      if (usableSpace > fileSize * 2L) {
+
+      if (DiskSpaceChecker.fitsOnDisk(fileSize)) {
         trySaveWorkspace(workspace, userId, id);
       } else {
         throw new StorageException(

@@ -10,6 +10,7 @@ import * as _api from "@/api/api";
 const api = _api as any;
 
 jest.mock("@/api/api");
+window.scrollTo = jest.fn();
 
 describe("Workspaces", () => {
     let testData: WorkspacesType;
