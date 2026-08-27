@@ -15,6 +15,10 @@ const routes = [
     redirect: "/projects",
   },
   {
+    path: "/projects-explorer",
+    redirect: "/projects",
+  },
+  {
     path: "/users",
     name: "users",
     component: Users,
