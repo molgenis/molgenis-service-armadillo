@@ -1,10 +1,12 @@
 package org.molgenis.armadillo.metadata;
 
+import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static java.util.Objects.requireNonNull;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -13,14 +15,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import org.jspecify.annotations.NonNull;
 import org.molgenis.armadillo.exceptions.UnknownProjectException;
 import org.molgenis.armadillo.exceptions.UnknownUserException;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @PreAuthorize("hasRole('ROLE_SU')")
@@ -322,5 +327,61 @@ public class AccessService {
         .filter(project -> !settings.getProjects().containsKey(project))
         .map(project -> ProjectDetails.create(project, emptySet()))
         .forEach(this::projectsUpsert);
+  }
+
+  public void approveAccessRequest(
+      String requestId, ArrayList<RequestData> requestData, String user) {
+    if (storage.hasProject(requestId)) {
+      // This is deliberate. We don't want to approve a project that already exists, because
+      // that is risking exposure of unrequested data to the requestee.
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST,
+          format(
+              "Project for request id [ %s ] already exists. Please remove this project before approving the request.",
+              requestId));
+    }
+    storage.upsertProject(requestId);
+
+    requestData.forEach(
+        (requestedTableData) -> {
+          try {
+            addTableToRequest(requestId, user, requestedTableData);
+          } catch (Exception e) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                format(
+                    "Cannot create and approve request [%s] for table [%s] and user [%s] because: %s",
+                    requestId, requestedTableData.getTable(), user, e));
+          }
+        });
+  }
+
+  private void addTableToRequest(String requestId, String user, RequestData requestData)
+      throws IOException {
+    String tablePath = requestData.getTable();
+    String variables = String.join(",", requestData.getVariables());
+    String[] projectFolderTable = getProjectFolderTableFromPath(tablePath, requestId);
+    String objectName = projectFolderTable[1] + "/" + projectFolderTable[2];
+    storage.createLinkedObject(projectFolderTable[0], objectName, objectName, requestId, variables);
+    permissionsAdd(user, requestId);
+  }
+
+  private static String @NonNull [] getProjectFolderTableFromPath(
+      String tablePath, String requestId) {
+    String[] projectFolderTable = tablePath.split("/");
+    if (projectFolderTable.length != 3) {
+      throw new ResponseStatusException(
+          HttpStatus.NOT_ACCEPTABLE,
+          format(
+              "Cannot fulfill request [%s] because [%s] should consist of project, "
+                  + "folder, table in format:\n"
+                  + "projectId/folderId/tableId \n"
+                  + "Length of current table path is [%s], should be 3.",
+              requestId, tablePath, projectFolderTable.length));
+    } else {
+      // remove parquet extension, if provided
+      projectFolderTable[2] = projectFolderTable[2].replace(".parquet", "");
+    }
+    return projectFolderTable;
   }
 }

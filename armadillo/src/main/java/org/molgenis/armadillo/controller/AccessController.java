@@ -1,6 +1,5 @@
 package org.molgenis.armadillo.controller;
 
-import static java.lang.String.format;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
@@ -16,17 +15,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.io.IOException;
 import java.security.Principal;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import org.jspecify.annotations.NonNull;
+import java.util.*;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.metadata.*;
-import org.molgenis.armadillo.storage.ArmadilloStorageService;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,7 +28,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 @Tag(name = "access", description = "Access API to manage users, projects, and permissions")
 @RestController
@@ -48,13 +39,10 @@ public class AccessController {
 
   private final AccessService metadata;
   private final AuditEventPublisher auditor;
-  private final ArmadilloStorageService storage;
 
-  public AccessController(
-      AccessService metadataService, AuditEventPublisher auditor, ArmadilloStorageService storage) {
+  public AccessController(AccessService metadataService, AuditEventPublisher auditor) {
     this.metadata = metadataService;
     this.auditor = auditor;
-    this.storage = storage;
   }
 
   @Operation(summary = "Get all metadata")
@@ -324,38 +312,11 @@ public class AccessController {
   public void requestAccess(
       Principal principal, @Valid @RequestBody RequestAccessBody requestAccessBody) {
     String requestId = requestAccessBody.getRequestId();
-    String tablePath = requestAccessBody.getTable();
-    String variables = String.join(",", requestAccessBody.getVariables());
+    ArrayList<RequestData> requestData = requestAccessBody.getData();
     String user = requestAccessBody.getUser();
     auditor.audit(
         () -> {
-          System.out.printf(
-              "Request [%s]: Approving access for user [%s] to table [%s], requested variables: [%s]%n",
-              requestId, user, tablePath, variables);
-
-          if (storage.hasProject(requestId)) {
-            // This is deliberate. We don't want to approve a project that already exists, because
-            // that is risking exposure of unrequested data to the requestee.
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                format(
-                    "Project for request id [ %s ] already exists. Please remove this project before approving the request.",
-                    requestId));
-          }
-          storage.upsertProject(requestId);
-          String[] projectFolderTable = getProjectFolderTableFromPath(tablePath, requestId);
-          String objectName = projectFolderTable[1] + "/" + projectFolderTable[2];
-          try {
-            storage.createLinkedObject(
-                projectFolderTable[0], objectName, objectName, requestId, variables);
-            metadata.permissionsAdd(user, requestId);
-          } catch (IOException e) {
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                format(
-                    "Cannot create and approve request [%s] for table [%s] and user [%s] because: %s",
-                    requestId, tablePath, user, e));
-          }
+          metadata.approveAccessRequest(requestId, requestData, user);
         },
         principal,
         APPROVE_ACCESS_REQUEST,
@@ -364,28 +325,7 @@ public class AccessController {
             requestAccessBody.getRequestId(),
             USER,
             requestAccessBody.getUser(),
-            TABLE,
-            requestAccessBody.getTable(),
-            "variables",
-            requestAccessBody.getVariables()));
-  }
-
-  private static String @NonNull [] getProjectFolderTableFromPath(
-      String tablePath, String requestId) {
-    String[] projectFolderTable = tablePath.split("/");
-    if (projectFolderTable.length != 3) {
-      throw new ResponseStatusException(
-          HttpStatus.NOT_ACCEPTABLE,
-          format(
-              "Cannot fulfill request [%s] because [%s] should consist of project, "
-                  + "folder, table in format:\n"
-                  + "projectId/folderId/tableId \n"
-                  + "Length of current table path is [%s], should be 3.",
-              requestId, tablePath, projectFolderTable.length));
-    } else {
-      // remove parquet extension, if provided
-      projectFolderTable[2] = projectFolderTable[2].replace(".parquet", "");
-    }
-    return projectFolderTable;
+            "REQUEST_DATA",
+            requestAccessBody.getData()));
   }
 }
