@@ -54,7 +54,9 @@
                   {{ variable }}
                 </li>
               </ul>
-              <span v-else></span>
+              <span v-else
+                >{{ table.variables.split(",").length }} variables</span
+              >
             </td>
           </tr>
         </table>
