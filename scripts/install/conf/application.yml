@@ -19,6 +19,7 @@ armadillo:
 
     - name: donkey
       image: datashield/rock-tulip-donkey:latest
+      auto-start: false
       port: 6312
       package-whitelist:
         - dsBase
