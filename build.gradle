@@ -136,26 +136,15 @@ tasks.register('ci', WriteProperties) {
     property 'TAG_NAME', tagName
 }
 
-// Docker build and push tasks using Docker CLI (Gradle 9 compatible)
+
+if (tagName.endsWith('-SNAPSHOT')) {
+    imageName = 'docker.io/molgenis/molgenis-armadillo-snapshot'
+    tagName = "${tagName}-${getGitHash()}"
+}
+
 tasks.register('dockerBuild', Exec) {
     dependsOn bootJar
-
-    description = 'Build Docker image using Docker CLI'
-
-    doFirst {
-        def jar = bootJar.archiveFile.get().asFile
-        def jarRelativePath = "build/libs/${jar.name}"
-
-        logger.lifecycle("Building Docker image: ${imageName}:${tagName}")
-        logger.lifecycle("Using JAR file: ${jar}")
-        logger.lifecycle("Docker JAR path: ${jarRelativePath}")
-        logger.lifecycle("JAR exists: ${jar.exists()}")
-
-        if (!jar.exists()) {
-            throw new GradleException("JAR file does not exist: ${jar}")
-        }
-    }
-
+    doFirst { /* ... */ }
     commandLine 'docker', 'build',
             '--build-arg', "JAR_FILE=build/libs/${bootJar.archiveFileName.get()}",
             '-t', "${imageName}:${tagName}",
