@@ -466,6 +466,7 @@ public class ArmadilloStorageService {
     }
   }
 
+  @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public ResponseEntity<InputStreamResource> getObject(String project, String object) {
     try {
       var inputStream = loadObject(project, object);
