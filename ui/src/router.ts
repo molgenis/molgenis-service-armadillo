@@ -10,7 +10,6 @@ import RemoteFiles from "@/views/RemoteFiles.vue";
 import System from "@/views/System.vue";
 import Request from "@/views/Request.vue";
 
-
 const routes = [
   {
     path: "/",
