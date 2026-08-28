@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 import jakarta.validation.constraints.NotEmpty;
-import java.util.ArrayList;
+import java.util.List;
 
 @AutoValue
 public abstract class RequestAccessBody {
@@ -14,7 +14,7 @@ public abstract class RequestAccessBody {
 
   @JsonProperty("data")
   @NotEmpty
-  public abstract ArrayList<RequestData> getData();
+  public abstract List<RequestData> getData();
 
   @JsonProperty("user")
   @NotEmpty
@@ -24,7 +24,7 @@ public abstract class RequestAccessBody {
   public static RequestAccessBody create(
       @JsonProperty("requestId") String requestId,
       @JsonProperty("user") String user,
-      @JsonProperty("data") ArrayList<RequestData> data) {
+      @JsonProperty("data") List<RequestData> data) {
     return new AutoValue_RequestAccessBody(requestId, data, user);
   }
 }

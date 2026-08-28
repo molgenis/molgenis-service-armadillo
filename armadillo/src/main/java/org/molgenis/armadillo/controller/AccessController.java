@@ -312,7 +312,7 @@ public class AccessController {
   public void requestAccess(
       Principal principal, @Valid @RequestBody RequestAccessBody requestAccessBody) {
     String requestId = requestAccessBody.getRequestId();
-    ArrayList<RequestData> requestData = requestAccessBody.getData();
+    List<RequestData> requestData = requestAccessBody.getData();
     String user = requestAccessBody.getUser();
     auditor.audit(
         () -> {

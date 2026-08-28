@@ -329,8 +329,7 @@ public class AccessService {
         .forEach(this::projectsUpsert);
   }
 
-  public void approveAccessRequest(
-      String requestId, ArrayList<RequestData> requestData, String user) {
+  public void approveAccessRequest(String requestId, List<RequestData> requestData, String user) {
     if (storage.hasProject(requestId)) {
       // This is deliberate. We don't want to approve a project that already exists, because
       // that is risking exposure of unrequested data to the requestee.
