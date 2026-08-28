@@ -7,10 +7,28 @@ armadillo:
 
   profiles:
     - name: default
-      image: datashield/rock-base:latest
+      image: datashield/molgenis-rock-base:latest
       port: 6311
       package-whitelist:
         - dsBase
+      function-blacklist: [ ]
+      options:
+        datashield:
+          # the seed can only be 9 digits
+          seed: @SEED@
+
+    - name: donkey
+      image: datashield/rock-tulip-donkey:latest
+      port: 6312
+      package-whitelist:
+        - dsBase
+        - dsMTLBase
+        - dsMediation
+        - dsOmics
+        - dsTidyverse
+        - resource
+        - dsSurvival
+        - dsExposome
       function-blacklist: [ ]
       options:
         datashield:
