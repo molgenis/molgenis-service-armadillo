@@ -45,7 +45,7 @@ allprojects {
     version = version.replace("v","")
 }
 
-ext['tomcat.version'] = '10.1.55'
+ext['tomcat.version'] = '10.1.59'
 
 if(getGitNameRef().contains("tags/") && !getGitNameRef().contains("~")) {
     def x = getGitNameRef().replace("tags/", "")
