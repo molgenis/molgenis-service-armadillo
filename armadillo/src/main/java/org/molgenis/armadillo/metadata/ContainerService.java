@@ -4,17 +4,25 @@ import static java.util.Objects.requireNonNull;
 import static org.molgenis.armadillo.container.ActiveContainerNameAccessor.DEFAULT;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.molgenis.armadillo.container.*;
 import org.molgenis.armadillo.exceptions.DefaultContainerDeleteException;
+import org.molgenis.armadillo.exceptions.InvalidFabWhitelistEntryException;
+import org.molgenis.armadillo.exceptions.NotFlowerSuperexecContainerException;
 import org.molgenis.armadillo.exceptions.UnknownContainerException;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,6 +31,13 @@ import org.springframework.stereotype.Service;
 @Service
 @PreAuthorize("hasRole('ROLE_SU')")
 public class ContainerService {
+
+  private static final Pattern FAB_HASH_PATTERN = Pattern.compile("^[a-fA-F0-9]{64}$");
+  private static final Pattern FAB_ID_PATTERN = Pattern.compile("^[\\w-]+/[\\w-]+$");
+
+  private static final ObjectMapper FAB_WHITELIST_YAML_MAPPER =
+      new ObjectMapper(new YAMLFactory())
+          .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
 
   private final ContainersLoader loader;
   private final InitialContainerConfigs initialContainer;
@@ -73,28 +88,41 @@ public class ContainerService {
   }
 
   public void upsert(ContainerConfig containerConfig) {
+    store(keepStoredFabWhitelist(containerConfig));
+  }
 
+  private void store(ContainerConfig containerConfig) {
     String containerName = containerConfig.getName();
 
     if (containerConfig instanceof FlowerSupernodeContainerConfig supernode) {
       createPlaceholderFiles(supernode);
-    } else if (containerConfig instanceof FlowerSuperexecContainerConfig superexec) {
-      createPlaceholderFiles(superexec);
     }
 
     settings.getContainers().put(containerName, containerConfig);
 
     flushContainerBeans(containerName);
     save();
+
+    // Written after saving, so a failed write leaves the app blocked rather than allowed.
+    if (containerConfig instanceof FlowerSuperexecContainerConfig superexec) {
+      writeFabWhitelistFile(superexec);
+    }
+  }
+
+  // The whitelist changes only through addFabWhitelistEntry. A general container
+  // save, such as from the UI, does not include it, so keep the stored one.
+  private ContainerConfig keepStoredFabWhitelist(ContainerConfig containerConfig) {
+    if (containerConfig instanceof FlowerSuperexecContainerConfig superexec
+        && settings.getContainers().get(superexec.getName())
+            instanceof FlowerSuperexecContainerConfig stored) {
+      return superexec.toBuilder().fabWhitelist(stored.getFabWhitelist()).build();
+    }
+    return containerConfig;
   }
 
   private void createPlaceholderFiles(FlowerSupernodeContainerConfig config) {
     createFileIfNotExists(config.getCaCertPath());
     createFileIfNotExists(config.getAuthPrivateKeyPath());
-  }
-
-  private void createPlaceholderFiles(FlowerSuperexecContainerConfig config) {
-    createFileIfNotExists(config.getFabWhitelistPath());
   }
 
   private void createFileIfNotExists(String pathStr) {
@@ -106,6 +134,63 @@ public class ContainerService {
       Files.createFile(path);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to create placeholder file: " + path, e);
+    }
+  }
+
+  private void writeFabWhitelistFile(FlowerSuperexecContainerConfig config) {
+    Path path = Path.of(config.getFabWhitelistPath());
+    try {
+      Files.createDirectories(path.toAbsolutePath().getParent());
+      FAB_WHITELIST_YAML_MAPPER.writeValue(path.toFile(), config.getFabWhitelist());
+    } catch (IOException e) {
+      throw new IllegalStateException(
+          "Failed to write FAB whitelist file: " + config.getFabWhitelistPath(), e);
+    }
+  }
+
+  public void addFabWhitelistEntry(
+      String containerName, String fabId, String fabVersion, String fabHash) {
+    ContainerConfig existing = getByName(containerName);
+
+    if (!(existing instanceof FlowerSuperexecContainerConfig superexec)) {
+      throw new NotFlowerSuperexecContainerException(containerName);
+    }
+
+    validateFabHash(fabHash);
+    validateFabId(fabId);
+    validateFabVersion(fabVersion);
+    // Flower's hashes are lower case and the SuperExec plugin compares them exactly.
+    String normalisedHash = fabHash.toLowerCase(Locale.ROOT);
+
+    List<WhitelistedApp> updatedWhitelist =
+        superexec.getFabWhitelist().stream()
+            .filter(
+                entry ->
+                    !(entry.fabId().equals(fabId)
+                        && Objects.equals(entry.fabVersion(), fabVersion)))
+            .collect(Collectors.toCollection(ArrayList::new));
+    updatedWhitelist.add(new WhitelistedApp(fabId, fabVersion, normalisedHash));
+
+    store(superexec.toBuilder().fabWhitelist(updatedWhitelist).build());
+  }
+
+  private void validateFabHash(String fabHash) {
+    if (!FAB_HASH_PATTERN.matcher(fabHash).matches()) {
+      throw new InvalidFabWhitelistEntryException(
+          "fabHash must be a 64-character hexadecimal SHA-256 hash, got: " + fabHash);
+    }
+  }
+
+  private void validateFabId(String fabId) {
+    if (!FAB_ID_PATTERN.matcher(fabId).matches()) {
+      throw new InvalidFabWhitelistEntryException(
+          "fabId must look like 'publisher/name', got: " + fabId);
+    }
+  }
+
+  private void validateFabVersion(String fabVersion) {
+    if (fabVersion == null || fabVersion.isBlank()) {
+      throw new InvalidFabWhitelistEntryException("fabVersion must not be blank");
     }
   }
 

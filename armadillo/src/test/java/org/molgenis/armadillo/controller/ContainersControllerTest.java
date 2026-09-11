@@ -3,6 +3,7 @@ package org.molgenis.armadillo.controller;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static org.hamcrest.Matchers.hasItem;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
@@ -10,16 +11,19 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.container.*;
 import org.molgenis.armadillo.metadata.*;
@@ -216,6 +220,80 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
     mockMvc
         .perform(put("/containers").content(json).contentType(APPLICATION_JSON).with(csrf()))
         .andExpect(status().isNoContent()); // Should now return 204
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void addFabWhitelistEntry_POST(@TempDir Path tempDir) throws Exception {
+    runAsSystem(
+        () ->
+            containerService.upsert(
+                FlowerSuperexecContainerConfig.builder()
+                    .name("flower-clientapp-1")
+                    .image("flwr/superexec:1.32.1")
+                    .fabWhitelistPath(tempDir.resolve("fab-whitelist.yaml").toString())
+                    .build()));
+
+    String json =
+        "{\"fabId\":\"publisher/app\",\"fabVersion\":\"1.0.0\",\"fabHash\":\""
+            + "a".repeat(64)
+            + "\"}";
+
+    mockMvc
+        .perform(
+            post("/containers/flower-clientapp-1/fab-whitelist")
+                .content(json)
+                .contentType(APPLICATION_JSON)
+                .with(csrf()))
+        .andExpect(status().isNoContent());
+
+    var updated =
+        (FlowerSuperexecContainerConfig)
+            runAsSystem(() -> containerService.getByName("flower-clientapp-1"));
+    assertEquals(
+        List.of(new WhitelistedApp("publisher/app", "1.0.0", "a".repeat(64))),
+        updated.getFabWhitelist());
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void addFabWhitelistEntry_POST_rejectsInvalidEntry(@TempDir Path tempDir) throws Exception {
+    runAsSystem(
+        () ->
+            containerService.upsert(
+                FlowerSuperexecContainerConfig.builder()
+                    .name("flower-clientapp-1")
+                    .image("flwr/superexec:1.32.1")
+                    .fabWhitelistPath(tempDir.resolve("fab-whitelist.yaml").toString())
+                    .build()));
+
+    String json =
+        "{\"fabId\":\"not-an-app-id\",\"fabVersion\":\"1.0.0\",\"fabHash\":\"not-a-hash\"}";
+
+    mockMvc
+        .perform(
+            post("/containers/flower-clientapp-1/fab-whitelist")
+                .content(json)
+                .contentType(APPLICATION_JSON)
+                .with(csrf()))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @WithMockUser(roles = "SU")
+  void addFabWhitelistEntry_POST_unknownContainer() throws Exception {
+    String json =
+        "{\"fabId\":\"publisher/app\",\"fabVersion\":\"1.0.0\",\"fabHash\":\""
+            + "a".repeat(64)
+            + "\"}";
+
+    mockMvc
+        .perform(
+            post("/containers/does-not-exist/fab-whitelist")
+                .content(json)
+                .contentType(APPLICATION_JSON)
+                .with(csrf()))
+        .andExpect(status().isNotFound());
   }
 
   @Test

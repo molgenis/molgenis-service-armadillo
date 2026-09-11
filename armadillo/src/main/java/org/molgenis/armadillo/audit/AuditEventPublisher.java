@@ -65,6 +65,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String LIST_CONTAINERS_STATUS = "LIST_CONTAINERS_STATUS";
   public static final String UPSERT_CONTAINER = "UPSERT_CONTAINER";
   public static final String DELETE_CONTAINER = "DELETE_CONTAINER";
+  public static final String ADD_FAB_WHITELIST_ENTRY = "ADD_FAB_WHITELIST_ENTRY";
   public static final String GET_CONTAINER = "GET_CONTAINER";
   public static final String START_CONTAINER = "START_CONTAINER";
   public static final String STOP_CONTAINER = "STOP_CONTAINER";
@@ -96,6 +97,9 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String SYMBOL = "symbol";
   public static final String PROJECT = "project";
   public static final String CONTAINER = "container";
+  public static final String FAB_ID = "fabId";
+  public static final String FAB_VERSION = "fabVersion";
+  public static final String FAB_HASH = "fabHash";
   public static final String OBJECT = "object";
   public static final String EMAIL = "email";
   public static final String MESSAGE = "message";
