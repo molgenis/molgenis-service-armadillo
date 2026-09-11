@@ -51,6 +51,9 @@ public class DockerService {
   private static final String CONTAINER_CREDENTIALS = "/app/credentials";
   private static final String CONTAINER_FAB_WHITELIST = "/app/fab-whitelist.yaml";
   private static final String CONTAINER_APPIO_ADDRESS = "0.0.0.0:9094";
+  // Overrides the image's own entrypoint, so only an image shipping the FAB-whitelist-enforcing
+  // SuperExec can run as a clientapp container; the stock flower-superexec fails to start.
+  private static final String SUPEREXEC_ENTRYPOINT = "armadillo-flwr-superexec";
   private static final String FLOWER_NETWORK_NAME = "flower-network";
 
   private final DockerClient dockerClient;
@@ -378,6 +381,7 @@ public class DockerService {
               "--clientappio-api-address", CONTAINER_APPIO_ADDRESS,
               "--isolation", "process"));
     } else if (config instanceof FlowerSuperexecContainerConfig) {
+      cmd.withEntrypoint(SUPEREXEC_ENTRYPOINT);
       args.addAll(List.of("--fab-whitelist", CONTAINER_FAB_WHITELIST));
     }
 

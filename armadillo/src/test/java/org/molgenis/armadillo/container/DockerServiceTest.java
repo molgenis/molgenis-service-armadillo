@@ -1310,6 +1310,7 @@ class DockerServiceTest {
     var args = List.of(cmdCaptor.getValue());
     assertTrue(args.containsAll(List.of("--root-certificates", "--auth-supernode-private-key")));
     assertFalse(args.contains("--trusted-entities"));
+    verify(cmd, never()).withEntrypoint(any(String[].class));
   }
 
   @Test
@@ -1339,6 +1340,7 @@ class DockerServiceTest {
     verify(cmd).withCmd(cmdCaptor.capture());
     assertArrayEquals(
         new String[] {"--fab-whitelist", "/app/fab-whitelist.yaml"}, cmdCaptor.getValue());
+    verify(cmd).withEntrypoint("armadillo-flwr-superexec");
   }
 
   @Test
