@@ -26,6 +26,7 @@ import org.molgenis.armadillo.container.VanillaContainerUpdater;
 import org.molgenis.armadillo.container.WhitelistedApp;
 import org.molgenis.armadillo.exceptions.DefaultContainerDeleteException;
 import org.molgenis.armadillo.exceptions.InvalidFabWhitelistEntryException;
+import org.molgenis.armadillo.exceptions.NotFlowerSuperexecContainerException;
 import org.molgenis.armadillo.exceptions.UnknownContainerException;
 
 @ExtendWith(MockitoExtension.class)
@@ -500,7 +501,7 @@ class ContainerServiceTest {
   }
 
   @Test
-  void upsert_ofExistingSuperexecContainerDoesNotOverwriteFabWhitelistFile(@TempDir Path tempDir)
+  void upsert_ofExistingSuperexecContainerKeepsFabWhitelist(@TempDir Path tempDir)
       throws java.io.IOException {
     var containerService = containerServiceWithDefault(ContainersMetadata.create());
     Path fabWhitelist = tempDir.resolve("fab-whitelist.yaml");
@@ -521,7 +522,52 @@ class ContainerServiceTest {
             .fabWhitelistPath(fabWhitelist.toString())
             .build());
 
+    var updated = (FlowerSuperexecContainerConfig) containerService.getByName("flower-clientapp-1");
+    assertEquals(
+        List.of(new WhitelistedApp("publisher/app", "1.0.0", "a".repeat(64))),
+        updated.getFabWhitelist());
     assertEquals(before, Files.readString(fabWhitelist));
+  }
+
+  @Test
+  void upsert_withNewFabWhitelistPathWritesWhitelistThere(@TempDir Path tempDir)
+      throws java.io.IOException {
+    var containerService = containerServiceWithDefault(ContainersMetadata.create());
+    containerService.upsert(
+        FlowerSuperexecContainerConfig.builder()
+            .name("flower-clientapp-1")
+            .image("flwr/superexec:1.32.1")
+            .fabWhitelistPath(tempDir.resolve("old.yaml").toString())
+            .build());
+    containerService.addFabWhitelistEntry(
+        "flower-clientapp-1", "publisher/app", "1.0.0", "a".repeat(64));
+
+    Path newPath = tempDir.resolve("new/fab-whitelist.yaml");
+    containerService.upsert(
+        FlowerSuperexecContainerConfig.builder()
+            .name("flower-clientapp-1")
+            .image("flwr/superexec:1.32.1")
+            .fabWhitelistPath(newPath.toString())
+            .build());
+
+    assertTrue(Files.readString(newPath).contains("fab_hash: \"" + "a".repeat(64) + "\""));
+  }
+
+  @Test
+  void addFabWhitelistEntry_storesHashInLowerCase(@TempDir Path tempDir) {
+    var containerService = containerServiceWithDefault(ContainersMetadata.create());
+    containerService.upsert(
+        FlowerSuperexecContainerConfig.builder()
+            .name("flower-clientapp-1")
+            .image("flwr/superexec:1.32.1")
+            .fabWhitelistPath(tempDir.resolve("fab-whitelist.yaml").toString())
+            .build());
+
+    containerService.addFabWhitelistEntry(
+        "flower-clientapp-1", "publisher/app", "1.0.0", "A".repeat(64));
+
+    var updated = (FlowerSuperexecContainerConfig) containerService.getByName("flower-clientapp-1");
+    assertEquals("a".repeat(64), updated.getFabWhitelist().get(0).fabHash());
   }
 
   @Test
@@ -672,7 +718,7 @@ class ContainerServiceTest {
 
     String fabHash = "a".repeat(64);
     assertThrows(
-        IllegalArgumentException.class,
+        NotFlowerSuperexecContainerException.class,
         () -> containerService.addFabWhitelistEntry("default", "publisher/app", "1.0.0", fabHash));
   }
 

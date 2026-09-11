@@ -4,6 +4,9 @@ import static java.util.Objects.requireNonNull;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.ADD_FAB_WHITELIST_ENTRY;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.CONTAINER;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_CONTAINER;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.FAB_HASH;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.FAB_ID;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.FAB_VERSION;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_CONTAINER;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_CONTAINERS;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_CONTAINERS_STATUS;
@@ -247,7 +250,15 @@ public class ContainersController {
         },
         principal,
         ADD_FAB_WHITELIST_ENTRY,
-        Map.of(CONTAINER, name));
+        Map.of(
+            CONTAINER,
+            name,
+            FAB_ID,
+            request.fabId(),
+            FAB_VERSION,
+            request.fabVersion(),
+            FAB_HASH,
+            request.fabHash()));
   }
 
   @Operation(

@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 import org.molgenis.armadillo.container.*;
 import org.molgenis.armadillo.exceptions.DefaultContainerDeleteException;
 import org.molgenis.armadillo.exceptions.InvalidFabWhitelistEntryException;
+import org.molgenis.armadillo.exceptions.NotFlowerSuperexecContainerException;
 import org.molgenis.armadillo.exceptions.UnknownContainerException;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -86,28 +88,41 @@ public class ContainerService {
   }
 
   public void upsert(ContainerConfig containerConfig) {
+    store(keepStoredFabWhitelist(containerConfig));
+  }
 
+  private void store(ContainerConfig containerConfig) {
     String containerName = containerConfig.getName();
 
     if (containerConfig instanceof FlowerSupernodeContainerConfig supernode) {
       createPlaceholderFiles(supernode);
-    } else if (containerConfig instanceof FlowerSuperexecContainerConfig superexec) {
-      createPlaceholderFiles(superexec);
     }
 
     settings.getContainers().put(containerName, containerConfig);
 
     flushContainerBeans(containerName);
     save();
+
+    // Written after saving, so a failed write leaves the app blocked rather than allowed.
+    if (containerConfig instanceof FlowerSuperexecContainerConfig superexec) {
+      writeFabWhitelistFile(superexec);
+    }
+  }
+
+  // The whitelist changes only through addFabWhitelistEntry. A general container
+  // save, such as from the UI, does not include it, so keep the stored one.
+  private ContainerConfig keepStoredFabWhitelist(ContainerConfig containerConfig) {
+    if (containerConfig instanceof FlowerSuperexecContainerConfig superexec
+        && settings.getContainers().get(superexec.getName())
+            instanceof FlowerSuperexecContainerConfig stored) {
+      return superexec.toBuilder().fabWhitelist(stored.getFabWhitelist()).build();
+    }
+    return containerConfig;
   }
 
   private void createPlaceholderFiles(FlowerSupernodeContainerConfig config) {
     createFileIfNotExists(config.getCaCertPath());
     createFileIfNotExists(config.getAuthPrivateKeyPath());
-  }
-
-  private void createPlaceholderFiles(FlowerSuperexecContainerConfig config) {
-    createFileIfNotExists(config.getFabWhitelistPath());
   }
 
   private void createFileIfNotExists(String pathStr) {
@@ -123,9 +138,10 @@ public class ContainerService {
   }
 
   private void writeFabWhitelistFile(FlowerSuperexecContainerConfig config) {
+    Path path = Path.of(config.getFabWhitelistPath());
     try {
-      FAB_WHITELIST_YAML_MAPPER.writeValue(
-          Path.of(config.getFabWhitelistPath()).toFile(), config.getFabWhitelist());
+      Files.createDirectories(path.toAbsolutePath().getParent());
+      FAB_WHITELIST_YAML_MAPPER.writeValue(path.toFile(), config.getFabWhitelist());
     } catch (IOException e) {
       throw new IllegalStateException(
           "Failed to write FAB whitelist file: " + config.getFabWhitelistPath(), e);
@@ -137,13 +153,14 @@ public class ContainerService {
     ContainerConfig existing = getByName(containerName);
 
     if (!(existing instanceof FlowerSuperexecContainerConfig superexec)) {
-      throw new IllegalArgumentException(
-          "Container '" + containerName + "' is not a Flower clientapp container");
+      throw new NotFlowerSuperexecContainerException(containerName);
     }
 
     validateFabHash(fabHash);
     validateFabId(fabId);
     validateFabVersion(fabVersion);
+    // Flower's hashes are lower case and the SuperExec plugin compares them exactly.
+    String normalisedHash = fabHash.toLowerCase(Locale.ROOT);
 
     List<WhitelistedApp> updatedWhitelist =
         superexec.getFabWhitelist().stream()
@@ -152,12 +169,9 @@ public class ContainerService {
                     !(entry.fabId().equals(fabId)
                         && Objects.equals(entry.fabVersion(), fabVersion)))
             .collect(Collectors.toCollection(ArrayList::new));
-    updatedWhitelist.add(new WhitelistedApp(fabId, fabVersion, fabHash));
+    updatedWhitelist.add(new WhitelistedApp(fabId, fabVersion, normalisedHash));
 
-    FlowerSuperexecContainerConfig updated =
-        superexec.toBuilder().fabWhitelist(updatedWhitelist).build();
-    upsert(updated);
-    writeFabWhitelistFile(updated);
+    store(superexec.toBuilder().fabWhitelist(updatedWhitelist).build());
   }
 
   private void validateFabHash(String fabHash) {
