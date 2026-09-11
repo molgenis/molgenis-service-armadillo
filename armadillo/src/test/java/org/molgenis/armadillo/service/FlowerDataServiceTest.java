@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.container.FlowerDockerService;
 import org.molgenis.armadillo.container.FlowerSuperexecContainerConfig;
+import org.molgenis.armadillo.exceptions.NotFlowerSuperexecContainerException;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 
@@ -83,7 +84,7 @@ class FlowerDataServiceTest {
     when(containerService.getByName("default")).thenReturn(datashieldContainer);
 
     assertThrows(
-        IllegalArgumentException.class,
+        NotFlowerSuperexecContainerException.class,
         () -> flowerDataService.pushData("myproject", "train.parquet", "default"));
 
     verify(flowerDockerService, never()).copyDataToContainer(any(), any(), any(), any());

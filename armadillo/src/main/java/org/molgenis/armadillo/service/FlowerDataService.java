@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import org.molgenis.armadillo.container.FlowerDockerService;
 import org.molgenis.armadillo.container.FlowerSuperexecContainerConfig;
+import org.molgenis.armadillo.exceptions.NotFlowerSuperexecContainerException;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -36,8 +37,7 @@ public class FlowerDataService {
   public void pushData(String project, String resource, String containerName) {
     var config = runAsSystem(() -> containerService.getByName(containerName));
     if (!(config instanceof FlowerSuperexecContainerConfig)) {
-      throw new IllegalArgumentException(
-          "Container '" + containerName + "' is not a Flower clientapp container");
+      throw new NotFlowerSuperexecContainerException(containerName);
     }
     // "%2F" (not "_") stands in for "/" so "data/train" and "data_train" can't collide.
     String fileName = project + "_" + resource.replace("/", "%2F");
