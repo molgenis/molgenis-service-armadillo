@@ -5,21 +5,18 @@ import com.google.auto.value.AutoValue;
 import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
-import org.molgenis.armadillo.metadata.UpdateSchedule;
 
 @AutoValue
-@JsonTypeName("vanilla")
+@JsonTypeName("flower-supernode")
 // AutoValue requires redeclaring interface methods as abstract - suppress S1161 and S3038
 @SuppressWarnings({"java:S1161", "java:S3038"})
-public abstract class VanillaContainerConfig
-    implements ContainerConfig, UpdatableContainer, OpenContainer {
+public abstract class FlowerSupernodeContainerConfig
+    implements ContainerConfig, OpenContainer, FlowerContainer {
 
   @Override
-  @Nullable
   public abstract String getName();
 
   @Override
-  @Nullable
   public abstract String getImage();
 
   @Override
@@ -52,30 +49,28 @@ public abstract class VanillaContainerConfig
 
   @Override
   @Nullable
-  public abstract Boolean getAutoUpdate();
-
-  @Override
-  @Nullable
-  public abstract UpdateSchedule getUpdateSchedule();
-
-  @Override
-  @Nullable
   public abstract String getVersionId();
 
   @Override
   @Nullable
   public abstract String getCreationDate();
 
+  @Nullable
+  public abstract String getCaCertPath();
+
+  @Nullable
+  public abstract String getAuthPrivateKeyPath();
+
   @Override
   @JsonIgnore
   public String getType() {
-    return "vanilla";
+    return "flower-supernode";
   }
 
   @JsonCreator
-  public static VanillaContainerConfig create(
-      @JsonProperty("name") @Nullable String name,
-      @JsonProperty("image") @Nullable String image,
+  public static FlowerSupernodeContainerConfig create(
+      @JsonProperty("name") String name,
+      @JsonProperty("image") String image,
       @JsonProperty("host") @Nullable String host,
       @JsonProperty("port") @Nullable Integer port,
       @JsonProperty("imageSize") @Nullable Long imageSize,
@@ -83,10 +78,10 @@ public abstract class VanillaContainerConfig
       @JsonProperty("lastImageId") @Nullable String lastImageId,
       @JsonProperty("dockerArgs") @Nullable List<String> dockerArgs,
       @JsonProperty("dockerOptions") @Nullable Map<String, Object> dockerOptions,
-      @JsonProperty("autoUpdate") @Nullable Boolean autoUpdate,
-      @JsonProperty("updateSchedule") @Nullable UpdateSchedule updateSchedule,
       @JsonProperty("versionId") @Nullable String versionId,
-      @JsonProperty("creationDate") @Nullable String creationDate) {
+      @JsonProperty("creationDate") @Nullable String creationDate,
+      @JsonProperty("caCertPath") @Nullable String caCertPath,
+      @JsonProperty("authPrivateKeyPath") @Nullable String authPrivateKeyPath) {
 
     return builder()
         .name(name)
@@ -98,19 +93,15 @@ public abstract class VanillaContainerConfig
         .lastImageId(lastImageId)
         .dockerArgs(dockerArgs)
         .dockerOptions(dockerOptions)
-        .autoUpdate(autoUpdate)
-        .updateSchedule(updateSchedule)
         .versionId(versionId)
         .creationDate(creationDate)
+        .caCertPath(caCertPath)
+        .authPrivateKeyPath(authPrivateKeyPath)
         .build();
   }
 
-  public static VanillaContainerConfig createDefault() {
-    return builder().name("default").build();
-  }
-
-  public static VanillaContainerConfig.Builder builder() {
-    return new AutoValue_VanillaContainerConfig.Builder();
+  public static FlowerSupernodeContainerConfig.Builder builder() {
+    return new AutoValue_FlowerSupernodeContainerConfig.Builder();
   }
 
   public abstract Builder toBuilder();
@@ -118,9 +109,9 @@ public abstract class VanillaContainerConfig
   @AutoValue.Builder
   public abstract static class Builder {
 
-    public abstract Builder name(@Nullable String name);
+    public abstract Builder name(String name);
 
-    public abstract Builder image(@Nullable String image);
+    public abstract Builder image(String image);
 
     public abstract Builder host(@Nullable String host);
 
@@ -136,42 +127,25 @@ public abstract class VanillaContainerConfig
 
     public abstract Builder dockerOptions(@Nullable Map<String, Object> dockerOptions);
 
-    public abstract Builder autoUpdate(@Nullable Boolean autoUpdate);
-
-    public abstract Builder updateSchedule(@Nullable UpdateSchedule updateSchedule);
-
     public abstract Builder versionId(@Nullable String versionId);
 
     public abstract Builder creationDate(@Nullable String creationDate);
 
-    @Nullable
-    abstract String getImage();
+    public abstract Builder caCertPath(@Nullable String caCertPath);
+
+    public abstract Builder authPrivateKeyPath(@Nullable String authPrivateKeyPath);
 
     @Nullable
-    abstract String getHost();
+    abstract String getCaCertPath();
 
     @Nullable
-    abstract Integer getPort();
+    abstract String getAuthPrivateKeyPath();
 
-    @Nullable
-    abstract List<String> getDockerArgs();
+    abstract FlowerSupernodeContainerConfig autoBuild();
 
-    @Nullable
-    abstract Map<String, Object> getDockerOptions();
-
-    @Nullable
-    abstract Boolean getAutoUpdate();
-
-    abstract VanillaContainerConfig autoBuild();
-
-    public VanillaContainerConfig build() {
-      if (getImage() == null) image("library/r-base");
-      if (getHost() == null) host("localhost");
-      if (getPort() == null) port(6311);
-      if (getDockerArgs() == null) dockerArgs(List.of());
-      if (getDockerOptions() == null) dockerOptions(Map.of());
-      if (getAutoUpdate() == null) autoUpdate(false);
-
+    public FlowerSupernodeContainerConfig build() {
+      if (getCaCertPath() == null) caCertPath("data/system/flower/ca.crt");
+      if (getAuthPrivateKeyPath() == null) authPrivateKeyPath("data/system/flower/credentials");
       return autoBuild();
     }
   }

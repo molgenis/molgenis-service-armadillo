@@ -25,6 +25,13 @@ armadillo:
   # uncomment this to configure an oidc user as admin user
   # oidc-admin-user: user@yourdomain.org
 
+# uncomment and set this to Armadillo's own externally-reachable URL if you use Flower containers —
+# required for flower-superexec containers to call back into Armadillo (e.g. POST /flower/push-data).
+# Armadillo cannot share a docker network with the containers it manages, so this must be a real
+# network address, not a docker-internal hostname.
+#flower:
+#  armadillo-url: 'https://armadillo.yourdomain.org'
+
 # required settings:
 spring:
   security:
