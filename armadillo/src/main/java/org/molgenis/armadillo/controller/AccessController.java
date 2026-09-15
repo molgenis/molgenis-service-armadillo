@@ -1,19 +1,6 @@
 package org.molgenis.armadillo.controller;
 
-import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_PROJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.DELETE_USER;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.EMAIL;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_PROJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.GET_USER;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_ACCESS_DATA;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_PROJECTS;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.LIST_USERS;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.PERMISSIONS_ADD;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.PERMISSIONS_DELETE;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.PERMISSIONS_LIST;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.PROJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.UPSERT_PROJECT;
-import static org.molgenis.armadillo.audit.AuditEventPublisher.UPSERT_USER;
+import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -29,16 +16,9 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.security.Principal;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
-import org.molgenis.armadillo.metadata.AccessMetadata;
-import org.molgenis.armadillo.metadata.AccessService;
-import org.molgenis.armadillo.metadata.ProjectDetails;
-import org.molgenis.armadillo.metadata.ProjectPermission;
-import org.molgenis.armadillo.metadata.UserDetails;
+import org.molgenis.armadillo.metadata.*;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -316,5 +296,36 @@ public class AccessController {
   @ResponseStatus(NO_CONTENT)
   public void userDelete(Principal principal, @PathVariable String email) {
     auditor.audit(() -> metadata.userDelete(email), principal, DELETE_USER, Map.of(EMAIL, email));
+  }
+
+  @Operation(
+      summary = "Request approval endpoint for access to table variables",
+      description =
+          "Will create view of selected variables of selected table under projectname of provided requestID and grant access to project for specified user")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "204", description = "Access granted"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+      })
+  @PostMapping(path = "request/approve", produces = TEXT_PLAIN_VALUE)
+  @ResponseStatus(NO_CONTENT)
+  public void requestAccess(
+      Principal principal, @Valid @RequestBody RequestAccessBody requestAccessBody) {
+    String requestId = requestAccessBody.getRequestId();
+    List<RequestData> requestData = requestAccessBody.getData();
+    String user = requestAccessBody.getUser();
+    auditor.audit(
+        () -> {
+          metadata.approveAccessRequest(requestId, requestData, user);
+        },
+        principal,
+        APPROVE_ACCESS_REQUEST,
+        Map.of(
+            "REQUEST_ID",
+            requestAccessBody.getRequestId(),
+            USER,
+            requestAccessBody.getUser(),
+            "REQUEST_DATA",
+            requestAccessBody.getData()));
   }
 }
