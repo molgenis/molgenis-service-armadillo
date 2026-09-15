@@ -26,7 +26,7 @@ flowchart TD
 
     User --> Auth[Keycloak / LifeScience AAI]
 
-    Auth --> JH[JupyterHub - Central Analysis Server]
+    Auth --> JH[JupyterHub - CAS]
 
     JH --> P1[Default Analysis Profile]
     JH --> P2[Project Specific Profile]
