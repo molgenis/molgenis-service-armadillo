@@ -357,7 +357,7 @@ Projects adopting the Central Analysis Server benefit from:
 
 ## Armadillo
 
-- https://github.com/molgenis/armadillo
+- https://github.com/molgenis/molgenis-service-armadillo
 
 ## DataSHIELD
 
@@ -369,7 +369,7 @@ Projects adopting the Central Analysis Server benefit from:
 
 ---
 
-# Ask access to playgound
+# Ask access to playgound setup
 
 For testing the CAS you could ask access to our playground setup.
 Please mail support@molgenis.org
@@ -388,3 +388,4 @@ For project developers and operators, additional documentation is available cove
 - Backup and disaster recovery procedures
 
 Please contact the MOLGENIS infrastructure team for access to project-specific operational documentation.
+support@molgenis.org
