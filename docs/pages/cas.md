@@ -369,6 +369,12 @@ Projects adopting the Central Analysis Server benefit from:
 
 ---
 
+# Ask access to playgound
+
+For testing the CAS you could ask access to our playground setup.
+Please mail support@molgenis.org
+
+
 # Additional Technical Documentation
 
 For project developers and operators, additional documentation is available covering:
