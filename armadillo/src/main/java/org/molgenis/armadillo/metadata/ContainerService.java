@@ -89,15 +89,15 @@ public class ContainerService {
   }
 
   private void createPlaceholderFiles(FlowerSuperNodeContainerConfig config) {
-    createFileIfNotExists(config.getCaCertPath());
-    createFileIfNotExists(config.getAuthPrivateKeyPath());
+    createPlaceholderFileIfNotExists(config.getCaCertPath());
+    createPlaceholderFileIfNotExists(config.getAuthPrivateKeyPath());
   }
 
   private void createPlaceholderFiles(FlowerSuperExecContainerConfig config) {
-    createFileIfNotExists(config.getFabWhitelistPath());
+    createPlaceholderFileIfNotExists(config.getFabWhitelistPath());
   }
 
-  private void createFileIfNotExists(String pathStr) {
+  private void createPlaceholderFileIfNotExists(String pathStr) {
     if (pathStr == null) return;
     Path path = Path.of(pathStr);
     if (Files.exists(path)) return;
