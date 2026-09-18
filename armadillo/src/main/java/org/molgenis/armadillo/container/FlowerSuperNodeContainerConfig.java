@@ -10,7 +10,7 @@ import java.util.Map;
 @JsonTypeName("flower-supernode")
 // AutoValue requires redeclaring interface methods as abstract - suppress S1161 and S3038
 @SuppressWarnings({"java:S1161", "java:S3038"})
-public abstract class FlowerSupernodeContainerConfig extends AbstractFlowerContainerConfig {
+public abstract class FlowerSuperNodeContainerConfig extends AbstractFlowerContainerConfig {
 
   @Nullable
   public abstract String getCaCertPath();
@@ -25,7 +25,7 @@ public abstract class FlowerSupernodeContainerConfig extends AbstractFlowerConta
   }
 
   @JsonCreator
-  public static FlowerSupernodeContainerConfig create(
+  public static FlowerSuperNodeContainerConfig create(
       @JsonProperty("name") String name,
       @JsonProperty("image") String image,
       @JsonProperty("host") @Nullable String host,
@@ -57,8 +57,8 @@ public abstract class FlowerSupernodeContainerConfig extends AbstractFlowerConta
         .build();
   }
 
-  public static FlowerSupernodeContainerConfig.Builder builder() {
-    return new AutoValue_FlowerSupernodeContainerConfig.Builder();
+  public static FlowerSuperNodeContainerConfig.Builder builder() {
+    return new AutoValue_FlowerSuperNodeContainerConfig.Builder();
   }
 
   public abstract Builder toBuilder();
@@ -76,9 +76,9 @@ public abstract class FlowerSupernodeContainerConfig extends AbstractFlowerConta
     @Nullable
     abstract String getAuthPrivateKeyPath();
 
-    abstract FlowerSupernodeContainerConfig autoBuild();
+    abstract FlowerSuperNodeContainerConfig autoBuild();
 
-    public FlowerSupernodeContainerConfig build() {
+    public FlowerSuperNodeContainerConfig build() {
       if (getCaCertPath() == null) caCertPath("data/system/flower/ca.crt");
       if (getAuthPrivateKeyPath() == null) authPrivateKeyPath("data/system/flower/credentials");
       return autoBuild();

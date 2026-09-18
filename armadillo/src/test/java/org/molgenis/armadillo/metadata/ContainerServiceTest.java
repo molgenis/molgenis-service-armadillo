@@ -19,8 +19,8 @@ import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.container.ContainerScope;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.container.DefaultContainerFactory;
-import org.molgenis.armadillo.container.FlowerSuperexecContainerConfig;
-import org.molgenis.armadillo.container.FlowerSupernodeContainerConfig;
+import org.molgenis.armadillo.container.FlowerSuperExecContainerConfig;
+import org.molgenis.armadillo.container.FlowerSuperNodeContainerConfig;
 import org.molgenis.armadillo.container.VanillaContainerConfig;
 import org.molgenis.armadillo.container.VanillaContainerUpdater;
 import org.molgenis.armadillo.exceptions.DefaultContainerDeleteException;
@@ -386,7 +386,7 @@ class ContainerServiceTest {
     Path caCert = tempDir.resolve("ca.crt");
     Path credentials = tempDir.resolve("credentials");
     var config =
-        FlowerSupernodeContainerConfig.builder()
+        FlowerSuperNodeContainerConfig.builder()
             .name("flower-supernode")
             .image("flwr/supernode:1.32.1")
             .caCertPath(caCert.toString())
@@ -433,7 +433,7 @@ class ContainerServiceTest {
 
     Path fabWhitelist = tempDir.resolve("fab-whitelist.yaml");
     var config =
-        FlowerSuperexecContainerConfig.builder()
+        FlowerSuperExecContainerConfig.builder()
             .name("flower-clientapp-1")
             .image("flwr/superexec:1.32.1")
             .fabWhitelistPath(fabWhitelist.toString())

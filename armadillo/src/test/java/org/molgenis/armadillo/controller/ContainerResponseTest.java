@@ -9,7 +9,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.molgenis.armadillo.container.ContainerInfo;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
-import org.molgenis.armadillo.container.FlowerSuperexecContainerConfig;
+import org.molgenis.armadillo.container.FlowerSuperExecContainerConfig;
 import org.molgenis.armadillo.container.VanillaContainerConfig;
 import org.molgenis.armadillo.controller.ContainerResponse.DatashieldResponse;
 import org.molgenis.armadillo.controller.ContainerResponse.DefaultResponse;
@@ -91,7 +91,7 @@ class ContainerResponseTest {
   @Test
   void create_forFlowerContainerHasNullPort() {
     var config =
-        FlowerSuperexecContainerConfig.builder()
+        FlowerSuperExecContainerConfig.builder()
             .name("flower-clientapp-1")
             .image("flwr/superexec:1.32.1")
             .build();

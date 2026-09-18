@@ -10,7 +10,7 @@ import java.util.Map;
 @JsonTypeName("flower-superexec")
 // AutoValue requires redeclaring interface methods as abstract - suppress S1161 and S3038
 @SuppressWarnings({"java:S1161", "java:S3038"})
-public abstract class FlowerSuperexecContainerConfig extends AbstractFlowerContainerConfig {
+public abstract class FlowerSuperExecContainerConfig extends AbstractFlowerContainerConfig {
 
   @Nullable
   public abstract String getFabWhitelistPath();
@@ -22,7 +22,7 @@ public abstract class FlowerSuperexecContainerConfig extends AbstractFlowerConta
   }
 
   @JsonCreator
-  public static FlowerSuperexecContainerConfig create(
+  public static FlowerSuperExecContainerConfig create(
       @JsonProperty("name") String name,
       @JsonProperty("image") String image,
       @JsonProperty("host") @Nullable String host,
@@ -52,8 +52,8 @@ public abstract class FlowerSuperexecContainerConfig extends AbstractFlowerConta
         .build();
   }
 
-  public static FlowerSuperexecContainerConfig.Builder builder() {
-    return new AutoValue_FlowerSuperexecContainerConfig.Builder();
+  public static FlowerSuperExecContainerConfig.Builder builder() {
+    return new AutoValue_FlowerSuperExecContainerConfig.Builder();
   }
 
   public abstract Builder toBuilder();
@@ -68,9 +68,9 @@ public abstract class FlowerSuperexecContainerConfig extends AbstractFlowerConta
     @Nullable
     abstract String getFabWhitelistPath();
 
-    abstract FlowerSuperexecContainerConfig autoBuild();
+    abstract FlowerSuperExecContainerConfig autoBuild();
 
-    public FlowerSuperexecContainerConfig build() {
+    public FlowerSuperExecContainerConfig build() {
       if (getFabWhitelistPath() == null) {
         fabWhitelistPath("data/system/flower/" + getName() + "-fab-whitelist.yaml");
       }

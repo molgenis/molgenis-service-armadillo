@@ -61,13 +61,13 @@ class DockerServiceTest {
 
   @TempDir Path tempDir;
 
-  private FlowerSupernodeContainerConfig flowerSupernodeConfig(String name, List<String> args)
+  private FlowerSuperNodeContainerConfig flowerSupernodeConfig(String name, List<String> args)
       throws IOException {
     Path caCert = tempDir.resolve("ca.crt");
     Path credentials = tempDir.resolve("credentials");
     Files.writeString(caCert, "dummy-ca");
     Files.writeString(credentials, "dummy-key");
-    return FlowerSupernodeContainerConfig.builder()
+    return FlowerSuperNodeContainerConfig.builder()
         .name(name)
         .image("flwr/supernode:1.26.1")
         .dockerArgs(args)
@@ -76,11 +76,11 @@ class DockerServiceTest {
         .build();
   }
 
-  private FlowerSuperexecContainerConfig flowerSuperexecConfig(
+  private FlowerSuperExecContainerConfig flowerSuperexecConfig(
       String name, List<String> args, String fabWhitelistContent) throws IOException {
     Path fabWhitelist = tempDir.resolve("fab-whitelist.yaml");
     Files.writeString(fabWhitelist, fabWhitelistContent);
-    return FlowerSuperexecContainerConfig.builder()
+    return FlowerSuperExecContainerConfig.builder()
         .name(name)
         .image("flwr/superexec:1.32.1")
         .dockerArgs(args)
@@ -1380,7 +1380,7 @@ class DockerServiceTest {
     // allowEmpty must only waive the empty-file check, never the existence check — otherwise a
     // wrong/missing whitelist path would silently start a superexec with no enforcement mount.
     var config =
-        FlowerSuperexecContainerConfig.builder()
+        FlowerSuperExecContainerConfig.builder()
             .name("flower-clientapp-1")
             .image("flwr/superexec:1.32.1")
             .dockerArgs(List.of())
@@ -1393,7 +1393,7 @@ class DockerServiceTest {
   @Test
   void installImage_supernodeMissingCaCertThrows() {
     var config =
-        FlowerSupernodeContainerConfig.builder()
+        FlowerSuperNodeContainerConfig.builder()
             .name("flower-supernode")
             .image("flwr/supernode:1.26.1")
             .dockerArgs(List.of())
@@ -1412,7 +1412,7 @@ class DockerServiceTest {
     Files.writeString(credentials, "dummy-key");
 
     var config =
-        FlowerSupernodeContainerConfig.builder()
+        FlowerSuperNodeContainerConfig.builder()
             .name("flower-supernode")
             .image("flwr/supernode:1.26.1")
             .dockerArgs(List.of())
@@ -1429,7 +1429,7 @@ class DockerServiceTest {
     Files.writeString(caCert, "dummy-ca");
 
     var config =
-        FlowerSupernodeContainerConfig.builder()
+        FlowerSuperNodeContainerConfig.builder()
             .name("flower-supernode")
             .image("flwr/supernode:1.26.1")
             .dockerArgs(List.of())

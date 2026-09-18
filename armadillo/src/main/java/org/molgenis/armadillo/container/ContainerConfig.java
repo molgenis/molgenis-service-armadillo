@@ -10,8 +10,8 @@ import java.util.Map;
 @JsonSubTypes({
   @JsonSubTypes.Type(value = DatashieldContainerConfig.class, name = "ds"),
   @JsonSubTypes.Type(value = VanillaContainerConfig.class, name = "vanilla"),
-  @JsonSubTypes.Type(value = FlowerSupernodeContainerConfig.class, name = "flower-supernode"),
-  @JsonSubTypes.Type(value = FlowerSuperexecContainerConfig.class, name = "flower-superexec")
+  @JsonSubTypes.Type(value = FlowerSuperNodeContainerConfig.class, name = "flower-supernode"),
+  @JsonSubTypes.Type(value = FlowerSuperExecContainerConfig.class, name = "flower-superexec")
 })
 public interface ContainerConfig {
 

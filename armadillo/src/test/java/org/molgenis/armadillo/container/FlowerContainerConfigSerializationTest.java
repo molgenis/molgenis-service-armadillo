@@ -15,8 +15,8 @@ class FlowerContainerConfigSerializationTest {
 
   @Test
   void supernodeSerializesWithCorrectType() throws Exception {
-    FlowerSupernodeContainerConfig config =
-        FlowerSupernodeContainerConfig.builder()
+    FlowerSuperNodeContainerConfig config =
+        FlowerSuperNodeContainerConfig.builder()
             .name("flower-supernode")
             .image("flwr/supernode:1.26.1")
             .dockerArgs(
@@ -50,8 +50,8 @@ class FlowerContainerConfigSerializationTest {
 
   @Test
   void superexecSerializesWithCorrectType() throws Exception {
-    FlowerSuperexecContainerConfig config =
-        FlowerSuperexecContainerConfig.builder()
+    FlowerSuperExecContainerConfig config =
+        FlowerSuperExecContainerConfig.builder()
             .name("flower-project-1")
             .image("timmyjc/superexec-test:0.0.1")
             .dockerArgs(
@@ -94,7 +94,7 @@ class FlowerContainerConfigSerializationTest {
     ContainersMetadata metadata = OBJECT_MAPPER.readValue(json, ContainersMetadata.class);
     ContainerConfig config = metadata.getContainers().get("flower-supernode");
 
-    assertInstanceOf(FlowerSupernodeContainerConfig.class, config);
+    assertInstanceOf(FlowerSuperNodeContainerConfig.class, config);
     assertEquals("flower-supernode", config.getName());
     assertEquals("flwr/supernode:1.26.1", config.getImage());
     assertNull(config.getPort());
@@ -121,7 +121,7 @@ class FlowerContainerConfigSerializationTest {
     ContainersMetadata metadata = OBJECT_MAPPER.readValue(json, ContainersMetadata.class);
     ContainerConfig config = metadata.getContainers().get("flower-project-1");
 
-    assertInstanceOf(FlowerSuperexecContainerConfig.class, config);
+    assertInstanceOf(FlowerSuperExecContainerConfig.class, config);
     assertEquals("flower-project-1", config.getName());
     assertEquals("timmyjc/superexec-test:0.0.1", config.getImage());
     assertNull(config.getPort());
@@ -130,8 +130,8 @@ class FlowerContainerConfigSerializationTest {
 
   @Test
   void supernodeRoundTrips() throws Exception {
-    FlowerSupernodeContainerConfig original =
-        FlowerSupernodeContainerConfig.builder()
+    FlowerSuperNodeContainerConfig original =
+        FlowerSuperNodeContainerConfig.builder()
             .name("flower-supernode")
             .image("flwr/supernode:1.26.1")
             .dockerArgs(List.of("--insecure"))
@@ -143,16 +143,16 @@ class FlowerContainerConfigSerializationTest {
             .build();
 
     String json = OBJECT_MAPPER.writeValueAsString(original);
-    FlowerSupernodeContainerConfig deserialized =
-        OBJECT_MAPPER.readValue(json, FlowerSupernodeContainerConfig.class);
+    FlowerSuperNodeContainerConfig deserialized =
+        OBJECT_MAPPER.readValue(json, FlowerSuperNodeContainerConfig.class);
 
     assertEquals(original, deserialized);
   }
 
   @Test
   void superexecRoundTrips() throws Exception {
-    FlowerSuperexecContainerConfig original =
-        FlowerSuperexecContainerConfig.builder()
+    FlowerSuperExecContainerConfig original =
+        FlowerSuperExecContainerConfig.builder()
             .name("flower-project-1")
             .image("timmyjc/superexec-test:0.0.1")
             .dockerArgs(List.of("--insecure"))
@@ -164,19 +164,19 @@ class FlowerContainerConfigSerializationTest {
             .build();
 
     String json = OBJECT_MAPPER.writeValueAsString(original);
-    FlowerSuperexecContainerConfig deserialized =
-        OBJECT_MAPPER.readValue(json, FlowerSuperexecContainerConfig.class);
+    FlowerSuperExecContainerConfig deserialized =
+        OBJECT_MAPPER.readValue(json, FlowerSuperExecContainerConfig.class);
 
     assertEquals(original, deserialized);
   }
 
   @Test
   void flowerConfigsAreNotUpdatableContainers() {
-    FlowerSupernodeContainerConfig supernode =
-        FlowerSupernodeContainerConfig.builder().name("sn").image("flwr/supernode:1.26.1").build();
+    FlowerSuperNodeContainerConfig supernode =
+        FlowerSuperNodeContainerConfig.builder().name("sn").image("flwr/supernode:1.26.1").build();
 
-    FlowerSuperexecContainerConfig superexec =
-        FlowerSuperexecContainerConfig.builder()
+    FlowerSuperExecContainerConfig superexec =
+        FlowerSuperExecContainerConfig.builder()
             .name("se")
             .image("timmyjc/superexec-test:0.0.1")
             .build();
@@ -187,8 +187,8 @@ class FlowerContainerConfigSerializationTest {
 
   @Test
   void superexecDefaultsFabWhitelistPathToNameNamespacedFile() {
-    FlowerSuperexecContainerConfig config =
-        FlowerSuperexecContainerConfig.builder()
+    FlowerSuperExecContainerConfig config =
+        FlowerSuperExecContainerConfig.builder()
             .name("flower-project-1")
             .image("timmyjc/superexec-test:0.0.1")
             .build();
@@ -199,13 +199,13 @@ class FlowerContainerConfigSerializationTest {
 
   @Test
   void superexecDefaultFabWhitelistPathsDontCollideAcrossContainers() {
-    FlowerSuperexecContainerConfig projectOne =
-        FlowerSuperexecContainerConfig.builder()
+    FlowerSuperExecContainerConfig projectOne =
+        FlowerSuperExecContainerConfig.builder()
             .name("flower-project-1")
             .image("timmyjc/superexec-test:0.0.1")
             .build();
-    FlowerSuperexecContainerConfig projectTwo =
-        FlowerSuperexecContainerConfig.builder()
+    FlowerSuperExecContainerConfig projectTwo =
+        FlowerSuperExecContainerConfig.builder()
             .name("flower-project-2")
             .image("timmyjc/superexec-test:0.0.1")
             .build();
@@ -215,11 +215,11 @@ class FlowerContainerConfigSerializationTest {
 
   @Test
   void flowerConfigsImplementFlowerContainer() {
-    FlowerSupernodeContainerConfig supernode =
-        FlowerSupernodeContainerConfig.builder().name("sn").image("flwr/supernode:1.26.1").build();
+    FlowerSuperNodeContainerConfig supernode =
+        FlowerSuperNodeContainerConfig.builder().name("sn").image("flwr/supernode:1.26.1").build();
 
-    FlowerSuperexecContainerConfig superexec =
-        FlowerSuperexecContainerConfig.builder()
+    FlowerSuperExecContainerConfig superexec =
+        FlowerSuperExecContainerConfig.builder()
             .name("se")
             .image("timmyjc/superexec-test:0.0.1")
             .build();

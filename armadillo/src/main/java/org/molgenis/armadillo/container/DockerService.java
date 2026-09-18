@@ -312,7 +312,7 @@ public class DockerService {
   }
 
   private void configureEnv(CreateContainerCmd cmd, ContainerConfig config) {
-    if (config instanceof FlowerSuperexecContainerConfig) {
+    if (config instanceof FlowerSuperExecContainerConfig) {
       if (flowerArmadilloUrl == null || flowerArmadilloUrl.isEmpty()) {
         throw new IllegalStateException(
             "flower.armadillo-url is not configured — required so Flower clientapp containers"
@@ -334,10 +334,10 @@ public class DockerService {
   private void configureBindMounts(HostConfig hostConfig, ContainerConfig config) {
     List<Bind> binds = new java.util.ArrayList<>();
 
-    if (config instanceof FlowerSupernodeContainerConfig supernode) {
+    if (config instanceof FlowerSuperNodeContainerConfig supernode) {
       addBindMount(binds, supernode.getCaCertPath(), CONTAINER_CA_CERT, false);
       addBindMount(binds, supernode.getAuthPrivateKeyPath(), CONTAINER_CREDENTIALS, false);
-    } else if (config instanceof FlowerSuperexecContainerConfig superexec) {
+    } else if (config instanceof FlowerSuperExecContainerConfig superexec) {
       addBindMount(binds, superexec.getFabWhitelistPath(), CONTAINER_FAB_WHITELIST, true);
     }
 
@@ -373,14 +373,14 @@ public class DockerService {
   private void configureDockerCmd(CreateContainerCmd cmd, ContainerConfig config) {
     List<String> args = new java.util.ArrayList<>();
 
-    if (config instanceof FlowerSupernodeContainerConfig) {
+    if (config instanceof FlowerSuperNodeContainerConfig) {
       args.addAll(
           List.of(
               "--root-certificates", CONTAINER_CA_CERT,
               "--auth-supernode-private-key", CONTAINER_CREDENTIALS,
               "--clientappio-api-address", CONTAINER_APPIO_ADDRESS,
               "--isolation", "process"));
-    } else if (config instanceof FlowerSuperexecContainerConfig) {
+    } else if (config instanceof FlowerSuperExecContainerConfig) {
       cmd.withEntrypoint(SUPEREXEC_ENTRYPOINT);
       args.addAll(List.of("--fab-whitelist", CONTAINER_FAB_WHITELIST));
     }
