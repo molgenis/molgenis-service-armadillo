@@ -6,7 +6,7 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import java.io.IOException;
 import java.io.InputStream;
 import org.molgenis.armadillo.container.FlowerDockerService;
-import org.molgenis.armadillo.container.FlowerSuperexecContainerConfig;
+import org.molgenis.armadillo.container.FlowerSuperExecContainerConfig;
 import org.molgenis.armadillo.exceptions.NotFlowerSuperexecContainerException;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
@@ -36,7 +36,7 @@ public class FlowerDataService {
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
   public void pushData(String project, String resource, String containerName) {
     var config = runAsSystem(() -> containerService.getByName(containerName));
-    if (!(config instanceof FlowerSuperexecContainerConfig)) {
+    if (!(config instanceof FlowerSuperExecContainerConfig)) {
       throw new NotFlowerSuperexecContainerException(containerName);
     }
     // "%2F" (not "_") stands in for "/" so "data/train" and "data_train" can't collide.
