@@ -34,7 +34,6 @@
 
 <script lang="ts">
 import { defineComponent, onMounted, PropType, Ref, ref, watch } from "vue";
-import { useRoute } from "vue-router";
 import { StringArray } from "@/types/types";
 import { sortAlphabetically, isNonTableType } from "@/helpers/utils";
 import ListGroup from "./ListGroup.vue";
@@ -50,6 +49,14 @@ export default defineComponent({
       required: true,
       type: Function,
     },
+    selectedFolder: {
+      required: true,
+      type: String,
+    },
+    selectedFile: {
+      required: true,
+      type: String,
+    },
   },
   components: {
     ListGroup,
@@ -59,27 +66,8 @@ export default defineComponent({
     const fileComponent: Ref = ref({});
     const selectedFolder = ref("");
     const selectedFile = ref("");
-    const route = useRoute();
 
-    watch(
-      () => route.params.folderId,
-      (newVal) => {
-        selectedFolder.value = newVal as string;
-      }
-    );
-    watch(
-      () => route.params.fileId,
-      (newVal) => {
-        selectedFile.value = newVal as string;
-      }
-    );
     onMounted(() => {
-      if (route.params.folderId) {
-        selectedFolder.value = route.params.folderId as string;
-        if (route.params.fileId) {
-          selectedFile.value = route.params.fileId as string;
-        }
-      }
       watch(
         () => folderComponent.value?.selectedItem,
         (newVal) => {
@@ -104,15 +92,11 @@ export default defineComponent({
     return {
       folderComponent,
       fileComponent,
-      selectedFolder,
-      selectedFile,
     };
   },
   data() {
     return {
       newFolder: "",
-      selectedFolder: this.preSelectedFolder,
-      selectedFile: this.preSelectedFile,
       createNewFolder: false,
     };
   },

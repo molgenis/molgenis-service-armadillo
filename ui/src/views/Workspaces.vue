@@ -9,7 +9,7 @@
         ></FeedbackMessage>
         <ConfirmationDialog
           v-if="isDeleteTriggered"
-          :record="`${workspacesToDelete.join(', ')}`"
+          :record="`${selectedWorkspaces.join(', ')}`"
           action="delete"
           recordType="workspaces"
           :additionalMessage="`for user [${selectedUser}]`"
@@ -30,7 +30,7 @@
       <div class="col-12">
         <button
           class="btn btn-danger"
-          :disabled="!selectedUser || selectedUser === 'All workspaces'"
+          :disabled="!selectedUser || showAllWorkspaces"
           @click="setDeleteUserWorkspaceDirectory"
         >
           <i class="bi bi-trash-fill"></i> Delete directory
@@ -45,7 +45,7 @@
               :listContent="Object.keys(sortedWorkspaces)"
               rowIcon="person-fill"
               rowIconAlt="person-fill"
-              :altIconCondition="showSelectedUser"
+              :altIconCondition="() => {}"
               :preselectedItem="selectedUser"
               :selectionColor="selectedUser ? 'secondary' : 'primary'"
             ></ListGroup>
@@ -58,46 +58,57 @@
                 :nRows="2"
                 :sortColumns="['user', 'name', 'size', 'lastModified']"
               >
-                <template #extraHeader>
+                <template #extraHeader v-if="!showAllWorkspaces">
                   <th>
-                    <button
-                      type="button"
-                      class="btn btn-danger btn-sm bg-danger"
-                      @click.prevent="setIsDeleteTriggered"
+                    <div
+                      class="btn-group"
+                      role="group"
+                      aria-label="workspace control"
+                      v-if="!showAllWorkspaces"
                     >
-                      <i class="bi bi-trash-fill"></i>
-                    </button>
+                      <button
+                        type="button"
+                        class="btn btn-danger btn-sm bg-danger"
+                        @click.prevent="setIsDeleteTriggered"
+                      >
+                        <i class="bi bi-trash-fill"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-primary btn-sm bg-primary"
+                        @click.prevent="downloadSelectedWorkspaces"
+                      >
+                        <i class="bi bi-download"></i>
+                      </button>
+                    </div>
                   </th>
                 </template>
-                <template #extraColumn="columnProps">
+                <template #extraColumn="columnProps" v-if="!showAllWorkspaces">
                   <!-- Add buttons for editing/deleting users  -->
                   <th scope="row">
                     <input
-                      v-if="selectedUser === 'All workspaces'"
                       class="form-check-input"
-                      v-model="
-                        userWorkspaces[
-                          getIndexOfAllWorkspaces(
-                            columnProps.item['user'],
-                            columnProps.item['name']
-                          )
-                        ].checked
-                      "
-                      type="checkbox"
-                    />
-                    <input
-                      v-else
-                      class="form-check-input"
-                      v-model="
+                      :checked="
                         userWorkspaces[
                           getIndexOfWorkspace(columnProps.item['name'])
-                        ].checked
+                        ]?.checked ?? false
                       "
+                      @change="toggleChecked(columnProps.item['name'])"
                       type="checkbox"
                     />
                   </th>
                 </template>
               </DataPreviewTable>
+              <FileUpload
+                v-if="!showAllWorkspaces"
+                ref="fileUpload"
+                class="mb-2"
+                uniqueClass="workspace-upload"
+                :uploadFileMethod="uploadWorkspaceFile"
+                @upload_error="onError"
+                @upload_success="onSuccess"
+                :acceptedTypes="workspaceExtension"
+              />
             </div>
           </div>
         </div>
@@ -127,10 +138,13 @@ import {
   getWorkspaceDetails,
   deleteUserWorkspace,
   deleteWorkspaceDirectory,
+  downloadWorkspace,
+  uploadWorkspace,
 } from "@/api/api";
 import { processErrorMessages } from "@/helpers/errorProcessing";
 import { FormattedWorkspaces, StringArray, Workspaces } from "@/types/types";
 import { Workspace } from "@/types/api";
+import FileUpload from "@/components/FileUpload.vue";
 
 export default defineComponent({
   name: "Workspaces",
@@ -141,10 +155,11 @@ export default defineComponent({
     LoadingSpinner,
     DataPreviewTable,
     Alert,
+    FileUpload,
   },
-  setup(_props, { emit }) {
+  setup(_props) {
     const selectedUser: Ref = ref("");
-    const workspaceComponent = useTemplateRef("workspaceComponent");
+    const workspaceComponent = useTemplateRef("workspaceComponent") as any;
     const errorMessage: Ref<string> = ref("");
     const router = useRouter();
     const route = useRoute();
@@ -154,7 +169,7 @@ export default defineComponent({
       watch(
         () => workspaceComponent.value?.selectedItem,
         (newVal) => {
-          if (newVal != undefined && newVal !== "") {
+          if (newVal !== undefined && newVal !== "") {
             selectedUser.value = newVal;
           }
         }
@@ -190,6 +205,13 @@ export default defineComponent({
       getAllWorkspaces,
     };
   },
+  watch: {
+    selectedUser() {
+      if (this.$refs.fileUpload) {
+        (this.$refs.fileUpload as any).clearFile();
+      }
+    },
+  },
   data() {
     return {
       loading: false,
@@ -199,9 +221,43 @@ export default defineComponent({
       successMessage: "",
       deleteErrorMessages: [] as StringArray,
       deleteSuccessMessages: [] as StringArray,
+      downloadSuccesses: [] as StringArray,
+      downloadFailures: [] as StringArray,
+      isUploadingFile: false,
+      workspaceId: "",
+      userId: "",
+      workspaceExtension: ".RData",
     };
   },
   methods: {
+    downloadWorkspace,
+    uploadWorkspace,
+    getIndexOfWorkspace(selectedWorkspaceName: string) {
+      return this.userWorkspaces.findIndex((workspace) => {
+        return workspace.name === selectedWorkspaceName;
+      });
+    },
+    getFileName() {
+      return this.$refs.fileUpload && (this.$refs.fileUpload as any).file
+        ? (this.$refs.fileUpload as any).file.name
+        : "";
+    },
+    uploadWorkspaceFile() {
+      return this.uploadWorkspace(
+        (this.$refs.fileUpload as any).file,
+        this.usernameFromFolder,
+        this.getFileName().replace(this.workspaceExtension, "")
+      );
+    },
+    getUserNameFromWorkspace(workspace: string) {
+      let user = "";
+      this.userWorkspaces.forEach((ws) => {
+        if (ws.name === workspace) {
+          user = ws.user as string;
+        }
+      });
+      return user;
+    },
     clearIsDeleteUserWorkspaceDirectoryTriggered() {
       this.isDeleteWorkspaceDirectoryTriggered = false;
     },
@@ -222,17 +278,14 @@ export default defineComponent({
           this.clearIsDeleteUserWorkspaceDirectoryTriggered();
         });
     },
-    changeUser(user: string) {
-      this.selectedUser = user;
-      this.setWorkspaces(user);
-    },
-    getUserNameFromFolder() {
-      return this.selectedUser.replace("user-", "");
-    },
-    getIndexOfWorkspace(selectedWorkspaceName: string) {
-      return this.userWorkspaces.findIndex((workspace) => {
-        return workspace.name === selectedWorkspaceName;
+    resetWorkspaces() {
+      return this.loadWorkspaces().then(() => {
+        this.setWorkspaces(this.selectedUser);
       });
+    },
+    toggleChecked(itemToChange: string) {
+      this.userWorkspaces[this.getIndexOfWorkspace(itemToChange)].checked =
+        !this.userWorkspaces[this.getIndexOfWorkspace(itemToChange)].checked;
     },
     getIndexOfAllWorkspaces(user: string, selectedWorkspaceName: string) {
       return this.userWorkspaces.findIndex((workspace) => {
@@ -254,25 +307,40 @@ export default defineComponent({
       this.isDeleteTriggered = false;
     },
     async deleteWorkspace(workspaceName: string) {
-      await deleteUserWorkspace(this.getUserNameFromFolder(), workspaceName)
+      await deleteUserWorkspace(this.usernameFromFolder, workspaceName)
         .then(() => {
-          const successMessage = `[${workspaceName}] for user [${this.selectedUser}]`;
+          const successMessage = `[${workspaceName}] for user [${this.usernameFromFolder}]`;
           this.deleteSuccessMessages.push(successMessage);
         })
         .catch((error) => {
-          const errorMessage = `[${workspaceName}] for user [${this.selectedUser}] because ${error}`;
+          const errorMessage = `[${workspaceName}] for user [${this.usernameFromFolder}] because ${error}`;
           this.deleteErrorMessages.push(errorMessage);
         });
     },
+    async downloadSelectedWorkspaces() {
+      this.downloadFailures = [];
+      this.downloadSuccesses = [];
+      this.selectedWorkspaces.forEach(async (ws) => {
+        downloadWorkspace(ws, this.selectedUser)
+          .then(() => {
+            this.downloadSuccesses.push(ws);
+            this.successMessage =
+              "Succesfully downloaded: " + this.downloadSuccesses.join(", ");
+          })
+          .catch((error) => {
+            this.downloadFailures.push(ws);
+            this.errorMessage =
+              "Download failure: " + this.downloadFailures.join(", ");
+          });
+      });
+    },
     async deleteSelectedWorkspaces() {
-      for (const workspace of this.workspacesToDelete) {
+      for (const workspace of this.selectedWorkspaces) {
         await this.deleteWorkspace(workspace);
       }
       this.collectDeleteMessages();
-      this.loadWorkspaces();
-      this.setWorkspaces(this.selectedUser);
+      this.resetWorkspaces();
     },
-    showSelectedUser() {},
     collectDeleteMessages() {
       var errorCollection = "";
       if (this.deleteSuccessMessages.length > 0) {
@@ -305,9 +373,25 @@ export default defineComponent({
       }
       return workspacesWithUser;
     },
+    async onSuccess(file: { filename: string }) {
+      this.successMessage = `Upload success: [${file.filename}] for user [${this.usernameFromFolder}]`;
+      await this.resetWorkspaces();
+    },
+    onError(error: string) {
+      this.errorMessage = `Upload failure: cannot upload workspace for user [${this.usernameFromFolder}] because ${error}`;
+    },
   },
   computed: {
-    workspacesToDelete() {
+    showAllWorkspaces() {
+      return this.selectedUser === "All workspaces";
+    },
+    usernameFromFolder() {
+      return this.selectedUser.replace("user-", "");
+    },
+    isNotReadyForUpload() {
+      return this.workspaceId === "" || this.userId === "";
+    },
+    selectedWorkspaces() {
       return this.userWorkspaces
         .filter((ws) => ws.checked)
         .map((ws) => ws.name);
@@ -337,7 +421,7 @@ export default defineComponent({
       );
     },
     filteredWorkspaces() {
-      if (this.selectedUser === "All workspaces") {
+      if (this.showAllWorkspaces) {
         return this.formattedWorkspaces;
       } else {
         return Object.fromEntries(
@@ -351,7 +435,7 @@ export default defineComponent({
       }
     },
     filteredHeaders() {
-      if (this.selectedUser === "All workspaces") {
+      if (this.showAllWorkspaces) {
         return ["user", "name", "size", "lastModified"];
       } else {
         return ["name", "size", "lastModified"];

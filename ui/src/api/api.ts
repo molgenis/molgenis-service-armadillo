@@ -1,6 +1,7 @@
 import { ApiError } from "@/helpers/errors";
 import {
   encodeUriComponent,
+  getVersionFromJar,
   objectDeepCopy,
   sanitizeObject,
 } from "@/helpers/utils";
@@ -16,6 +17,7 @@ import {
   HalResponse,
   Metrics,
   ContainerPayload,
+  AuthServerConfig,
 } from "@/types/api";
 
 import {
@@ -96,7 +98,9 @@ export async function handleResponse(response: Response) {
   if (!response.ok) {
     if (response.status === 500) {
       error.message = response.statusText;
-    } else if (response.status === 403 || response.status === 401) {
+    } else if (response.status === 401) {
+      error.message = "Invalid username or password";
+    } else if (response.status === 403) {
       error.message =
         "You are logged in, but you don't have permissions to access the Armadillo user interface";
     } else if (response.status === 404) {
@@ -109,8 +113,8 @@ export async function handleResponse(response: Response) {
         } else {
           error.message = response.statusText;
         }
-      } catch (e) {
-        error.message = response.statusText;
+      } catch (ignore) {
+        // error will be thrown with proper message
       }
     }
     throw error;
@@ -376,6 +380,12 @@ export async function getFreeDiskSpace(): Promise<number> {
   });
 }
 
+export async function getTotalDiskSpace(): Promise<number> {
+  return get("/actuator/metrics/disk.total").then((data) => {
+    return Number(data.measurements[0].value);
+  });
+}
+
 export async function getWorkspaceDetails(): Promise<Workspaces> {
   return get("/all-workspaces");
 }
@@ -398,4 +408,107 @@ export async function getMetaData(project: string, object: string) {
 
 export async function getProfileStatus(name: string) {
   return get(`/containers/${encodeURIComponent(name)}/status`);
+}
+
+export async function hardRestartServer() {
+  return post("/manage/app/restart/hard");
+}
+
+export async function softRestartServer() {
+  return post("/manage/app/restart/soft");
+}
+
+export async function getAuthServerConfig(): Promise<AuthServerConfig> {
+  return get("/manage/auth/oidc-config");
+}
+
+export async function putAuthServerConfig(authConfig: AuthServerConfig) {
+  return put("/manage/auth/oidc-config", authConfig);
+}
+
+export async function getAppList() {
+  return get("/manage/app/list");
+}
+
+export async function getSupportEmail() {
+  return get("/insight/support-email");
+}
+
+export async function getLatestReleaseInfo() {
+  const version = await get("/manage/app/latest-release-info");
+  return version;
+}
+
+export async function deleteApplicationJar(jar: string) {
+  const version = getVersionFromJar(jar);
+  return delete_("/manage/app", "delete-jar?version=" + version);
+}
+
+export function downloadJar(version: string): EventSource {
+  return new EventSource("/manage/app/download?version=" + version);
+}
+
+export function downloadUpdater(version: string) {
+  return post("/manage/updater/download?armadilloVersion=" + version);
+}
+
+export function startUpdate(version: string) {
+  return post("/manage/app/update?version=" + version);
+}
+
+function downloadURI(blob: Blob, fileName: string) {
+  const aElement = document.createElement("a");
+  const objectUrl = URL.createObjectURL(blob);
+  aElement.href = objectUrl;
+  aElement.download = fileName;
+  document.body.appendChild(aElement);
+  aElement.click();
+  URL.revokeObjectURL(objectUrl);
+  document.body.removeChild(aElement);
+}
+
+export function createDownloadUrlForUserWorkspace(
+  user: string,
+  workspace: string
+) {
+  return `/workspaces/download/${user.replace("user-", "")}/${workspace}`;
+}
+
+export function createFileNameForUserWorkspace(
+  user: string,
+  workspace: string
+) {
+  return user + "-" + workspace + ".RData";
+}
+
+export async function downloadWorkspace(workspace: string, user: string) {
+  const url = createDownloadUrlForUserWorkspace(user, workspace);
+  const fileName = createFileNameForUserWorkspace(user, workspace);
+  return fetch(url, { method: "GET", mode: "cors" })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(
+          `Downloading workspace [${workspace}] for user [${user}] failed`
+        );
+      }
+      return response.blob();
+    })
+    .then((blob) => {
+      downloadURI(blob, fileName);
+    })
+    .catch(() => {
+      return Promise.reject(
+        `Downloading workspace [${workspace}] for user [${user}] failed!`
+      );
+    });
+}
+
+export async function uploadWorkspace(
+  fileToUpload: File,
+  userId: string,
+  workspaceId: string
+) {
+  let formData = new FormData();
+  formData.append("file", fileToUpload);
+  return postFormData(`/workspaces/upload/${userId}/${workspaceId}`, formData);
 }
