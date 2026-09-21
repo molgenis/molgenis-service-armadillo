@@ -42,6 +42,7 @@ import org.molgenis.armadillo.exceptions.ImageRemoveFailedException;
 import org.molgenis.armadillo.exceptions.ImageStartFailedException;
 import org.molgenis.armadillo.exceptions.ImageStopFailedException;
 import org.molgenis.armadillo.exceptions.MissingImageException;
+import org.molgenis.armadillo.exceptions.SuperExecEntrypointMissingException;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.metadata.ContainerStatus;
 import org.molgenis.armadillo.model.DockerImageInfo;
@@ -345,14 +346,47 @@ class DockerServiceTest {
   }
 
   @Test
-  void startContainer_throwsImageStartFailedOnDockerException() {
+  void startContainer_throwsImageStartFailedOnDockerException() throws IOException {
+    var config = flowerSupernodeConfig("default", List.of("--insecure"));
     var startCmd = mock(StartContainerCmd.class);
     when(dockerClient.startContainerCmd("default")).thenReturn(startCmd);
     doThrow(new DockerException("start failed", 500)).when(startCmd).exec();
 
     assertThrows(
         ImageStartFailedException.class,
-        () -> ReflectionTestUtils.invokeMethod(dockerService, "startContainer", "default"));
+        () -> ReflectionTestUtils.invokeMethod(dockerService, "startContainer", "default", config));
+  }
+
+  @Test
+  void startContainer_throwsEntrypointMissingForSuperExecWithoutEntrypoint() throws IOException {
+    var config = flowerSuperexecConfig("flower-superexec", List.of(), "apps: []");
+    var startCmd = mock(StartContainerCmd.class);
+    when(dockerClient.startContainerCmd("flower-superexec")).thenReturn(startCmd);
+    doThrow(
+            new DockerException(
+                "exec: \"armadillo-flwr-superexec\": executable file not found in $PATH", 400))
+        .when(startCmd)
+        .exec();
+
+    assertThrows(
+        SuperExecEntrypointMissingException.class,
+        () ->
+            ReflectionTestUtils.invokeMethod(
+                dockerService, "startContainer", "flower-superexec", config));
+  }
+
+  @Test
+  void startContainer_throwsImageStartFailedForOtherSuperExecErrors() throws IOException {
+    var config = flowerSuperexecConfig("flower-superexec", List.of(), "apps: []");
+    var startCmd = mock(StartContainerCmd.class);
+    when(dockerClient.startContainerCmd("flower-superexec")).thenReturn(startCmd);
+    doThrow(new DockerException("start failed", 500)).when(startCmd).exec();
+
+    assertThrows(
+        ImageStartFailedException.class,
+        () ->
+            ReflectionTestUtils.invokeMethod(
+                dockerService, "startContainer", "flower-superexec", config));
   }
 
   @Test
