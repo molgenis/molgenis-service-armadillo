@@ -76,9 +76,9 @@ public class ContainerService {
 
     String containerName = containerConfig.getName();
 
-    if (containerConfig instanceof FlowerSupernodeContainerConfig supernode) {
+    if (containerConfig instanceof FlowerSuperNodeContainerConfig supernode) {
       createPlaceholderFiles(supernode);
-    } else if (containerConfig instanceof FlowerSuperexecContainerConfig superexec) {
+    } else if (containerConfig instanceof FlowerSuperExecContainerConfig superexec) {
       createPlaceholderFiles(superexec);
     }
 
@@ -88,16 +88,16 @@ public class ContainerService {
     save();
   }
 
-  private void createPlaceholderFiles(FlowerSupernodeContainerConfig config) {
-    createFileIfNotExists(config.getCaCertPath());
-    createFileIfNotExists(config.getAuthPrivateKeyPath());
+  private void createPlaceholderFiles(FlowerSuperNodeContainerConfig config) {
+    createPlaceholderFileIfNotExists(config.getCaCertPath());
+    createPlaceholderFileIfNotExists(config.getAuthPrivateKeyPath());
   }
 
-  private void createPlaceholderFiles(FlowerSuperexecContainerConfig config) {
-    createFileIfNotExists(config.getFabWhitelistPath());
+  private void createPlaceholderFiles(FlowerSuperExecContainerConfig config) {
+    createPlaceholderFileIfNotExists(config.getFabWhitelistPath());
   }
 
-  private void createFileIfNotExists(String pathStr) {
+  private void createPlaceholderFileIfNotExists(String pathStr) {
     if (pathStr == null) return;
     Path path = Path.of(pathStr);
     if (Files.exists(path)) return;

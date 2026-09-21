@@ -10,34 +10,6 @@ jest.mock("@/api/api");
 const testFunction = jest.fn();
 
 describe("FileExplorer", () => {
-    const mock_routes = [
-        {
-            path: "/",
-            redirect: "/item_a"
-        },
-        {
-            path: "/item_a",
-            component: {
-                template: "Welcome to item a",
-            },
-        },
-        {
-            path: "/item_b",
-            component: {
-                template: "Welcome to item b",
-            },
-        },
-        {
-            path: "/item_c",
-            component: {
-                template: "Welcome to item c",
-            },
-        },
-    ];
-    const router = createRouter({
-        history: createWebHistory(),
-        routes: mock_routes,
-    });
 
     let wrapper: VueWrapper<any>;
 
@@ -59,26 +31,19 @@ describe("FileExplorer", () => {
       ]
     }
 
-    beforeEach(function() {
-        const mockRouter = {
-            push: jest.fn(),
-        };
-
-        router.currentRoute.value.params = { projectId: "my-project" };
-
-        wrapper = shallowMount(FileExplorer, {
-            global: {
-                plugins: [router],
-                mocks: {
-                    $router: mockRouter,
-                },
-            },
+    function createWrapper(folder: string) {
+        return shallowMount(FileExplorer, {
             props: {
              projectContent: projectContent,
-             addNewFolder: testFunction
+             addNewFolder: testFunction,
+             selectedFolder: folder,
+             selectedFile: ""
             },
         });
+}
 
+    beforeEach(function() {
+        wrapper = createWrapper("");
     });
 
     test("sorts folders", () => {
@@ -86,20 +51,20 @@ describe("FileExplorer", () => {
     });
 
     test("sorts files", () => {
-        wrapper.vm.selectedFolder = "folder2";
+        wrapper = createWrapper("folder2");
         expect(wrapper.vm.getSortedFiles()).toEqual([
           "my-img.jpg",
           "my-resource.rds",
           "the-actual-resource.rda"
         ],);
-        wrapper.vm.selectedFolder = "folder1";
+       wrapper = createWrapper("folder1");
         expect(wrapper.vm.getSortedFiles()).toEqual([
           "file1.csv",
           "file2.png",
           "my-link.alf",
           "my-table.parquet"
         ]);
-        wrapper.vm.selectedFolder = "anotherfolder";
+        wrapper = createWrapper("anotherfolder");
         expect(wrapper.vm.getSortedFiles()).toEqual([
           "aap.test",
           "test123.abc"
@@ -108,13 +73,13 @@ describe("FileExplorer", () => {
 
     test("showSelectedFolderIcon shows folder icon when folder is selected", () => {
         const folder = "my-folder";
-        wrapper.vm.selectedFolder = folder;
+        wrapper = wrapper = createWrapper(folder);
         expect(wrapper.vm.showSelectedFolderIcon(folder)).toEqual(true);
     });
 
     test("showSelectedFolderIcon doesnt show folder icon when folder is not selected", () => {
+        wrapper = createWrapper("another-folder");
         const folder = "my-folder";
-        wrapper.vm.selectedFolder = "another-folder";
         expect(wrapper.vm.showSelectedFolderIcon(folder)).toEqual(false);
     });
 

@@ -42,6 +42,7 @@ import org.molgenis.armadillo.exceptions.ImageRemoveFailedException;
 import org.molgenis.armadillo.exceptions.ImageStartFailedException;
 import org.molgenis.armadillo.exceptions.ImageStopFailedException;
 import org.molgenis.armadillo.exceptions.MissingImageException;
+import org.molgenis.armadillo.exceptions.SuperExecEntrypointMissingException;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.metadata.ContainerStatus;
 import org.molgenis.armadillo.model.DockerImageInfo;
@@ -61,13 +62,13 @@ class DockerServiceTest {
 
   @TempDir Path tempDir;
 
-  private FlowerSupernodeContainerConfig flowerSupernodeConfig(String name, List<String> args)
+  private FlowerSuperNodeContainerConfig flowerSupernodeConfig(String name, List<String> args)
       throws IOException {
     Path caCert = tempDir.resolve("ca.crt");
     Path credentials = tempDir.resolve("credentials");
     Files.writeString(caCert, "dummy-ca");
     Files.writeString(credentials, "dummy-key");
-    return FlowerSupernodeContainerConfig.builder()
+    return FlowerSuperNodeContainerConfig.builder()
         .name(name)
         .image("flwr/supernode:1.26.1")
         .dockerArgs(args)
@@ -76,11 +77,11 @@ class DockerServiceTest {
         .build();
   }
 
-  private FlowerSuperexecContainerConfig flowerSuperexecConfig(
+  private FlowerSuperExecContainerConfig flowerSuperexecConfig(
       String name, List<String> args, String fabWhitelistContent) throws IOException {
     Path fabWhitelist = tempDir.resolve("fab-whitelist.yaml");
     Files.writeString(fabWhitelist, fabWhitelistContent);
-    return FlowerSuperexecContainerConfig.builder()
+    return FlowerSuperExecContainerConfig.builder()
         .name(name)
         .image("flwr/superexec:1.32.1")
         .dockerArgs(args)
@@ -345,14 +346,47 @@ class DockerServiceTest {
   }
 
   @Test
-  void startContainer_throwsImageStartFailedOnDockerException() {
+  void startContainer_throwsImageStartFailedOnDockerException() throws IOException {
+    var config = flowerSupernodeConfig("default", List.of("--insecure"));
     var startCmd = mock(StartContainerCmd.class);
     when(dockerClient.startContainerCmd("default")).thenReturn(startCmd);
     doThrow(new DockerException("start failed", 500)).when(startCmd).exec();
 
     assertThrows(
         ImageStartFailedException.class,
-        () -> ReflectionTestUtils.invokeMethod(dockerService, "startContainer", "default"));
+        () -> ReflectionTestUtils.invokeMethod(dockerService, "startContainer", "default", config));
+  }
+
+  @Test
+  void startContainer_throwsEntrypointMissingForSuperExecWithoutEntrypoint() throws IOException {
+    var config = flowerSuperexecConfig("flower-superexec", List.of(), "apps: []");
+    var startCmd = mock(StartContainerCmd.class);
+    when(dockerClient.startContainerCmd("flower-superexec")).thenReturn(startCmd);
+    doThrow(
+            new DockerException(
+                "exec: \"armadillo-flwr-superexec\": executable file not found in $PATH", 400))
+        .when(startCmd)
+        .exec();
+
+    assertThrows(
+        SuperExecEntrypointMissingException.class,
+        () ->
+            ReflectionTestUtils.invokeMethod(
+                dockerService, "startContainer", "flower-superexec", config));
+  }
+
+  @Test
+  void startContainer_throwsImageStartFailedForOtherSuperExecErrors() throws IOException {
+    var config = flowerSuperexecConfig("flower-superexec", List.of(), "apps: []");
+    var startCmd = mock(StartContainerCmd.class);
+    when(dockerClient.startContainerCmd("flower-superexec")).thenReturn(startCmd);
+    doThrow(new DockerException("start failed", 500)).when(startCmd).exec();
+
+    assertThrows(
+        ImageStartFailedException.class,
+        () ->
+            ReflectionTestUtils.invokeMethod(
+                dockerService, "startContainer", "flower-superexec", config));
   }
 
   @Test
@@ -1380,7 +1414,7 @@ class DockerServiceTest {
     // allowEmpty must only waive the empty-file check, never the existence check — otherwise a
     // wrong/missing whitelist path would silently start a superexec with no enforcement mount.
     var config =
-        FlowerSuperexecContainerConfig.builder()
+        FlowerSuperExecContainerConfig.builder()
             .name("flower-clientapp-1")
             .image("flwr/superexec:1.32.1")
             .dockerArgs(List.of())
@@ -1393,7 +1427,7 @@ class DockerServiceTest {
   @Test
   void installImage_supernodeMissingCaCertThrows() {
     var config =
-        FlowerSupernodeContainerConfig.builder()
+        FlowerSuperNodeContainerConfig.builder()
             .name("flower-supernode")
             .image("flwr/supernode:1.26.1")
             .dockerArgs(List.of())
@@ -1412,7 +1446,7 @@ class DockerServiceTest {
     Files.writeString(credentials, "dummy-key");
 
     var config =
-        FlowerSupernodeContainerConfig.builder()
+        FlowerSuperNodeContainerConfig.builder()
             .name("flower-supernode")
             .image("flwr/supernode:1.26.1")
             .dockerArgs(List.of())
@@ -1429,7 +1463,7 @@ class DockerServiceTest {
     Files.writeString(caCert, "dummy-ca");
 
     var config =
-        FlowerSupernodeContainerConfig.builder()
+        FlowerSuperNodeContainerConfig.builder()
             .name("flower-supernode")
             .image("flwr/supernode:1.26.1")
             .dockerArgs(List.of())

@@ -162,8 +162,8 @@ export default {
       return this.type.includes("FAILURE")
         ? "failure"
         : this.type.includes("SUCCESS")
-        ? "success"
-        : "";
+          ? "success"
+          : "";
     },
   },
 };

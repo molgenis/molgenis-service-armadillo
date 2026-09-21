@@ -10,50 +10,7 @@ import java.util.Map;
 @JsonTypeName("flower-superexec")
 // AutoValue requires redeclaring interface methods as abstract - suppress S1161 and S3038
 @SuppressWarnings({"java:S1161", "java:S3038"})
-public abstract class FlowerSuperexecContainerConfig
-    implements ContainerConfig, OpenContainer, FlowerContainer {
-
-  @Override
-  public abstract String getName();
-
-  @Override
-  public abstract String getImage();
-
-  @Override
-  @Nullable
-  public abstract String getHost();
-
-  @Override
-  @Nullable
-  public abstract Integer getPort();
-
-  @Override
-  @Nullable
-  public abstract Long getImageSize();
-
-  @Override
-  @Nullable
-  public abstract String getInstallDate();
-
-  @Override
-  @Nullable
-  public abstract String getLastImageId();
-
-  @Override
-  @Nullable
-  public abstract List<String> getDockerArgs();
-
-  @Override
-  @Nullable
-  public abstract Map<String, Object> getDockerOptions();
-
-  @Override
-  @Nullable
-  public abstract String getVersionId();
-
-  @Override
-  @Nullable
-  public abstract String getCreationDate();
+public abstract class FlowerSuperExecContainerConfig extends AbstractFlowerContainerConfig {
 
   @Nullable
   public abstract String getFabWhitelistPath();
@@ -65,7 +22,7 @@ public abstract class FlowerSuperexecContainerConfig
   }
 
   @JsonCreator
-  public static FlowerSuperexecContainerConfig create(
+  public static FlowerSuperExecContainerConfig create(
       @JsonProperty("name") String name,
       @JsonProperty("image") String image,
       @JsonProperty("host") @Nullable String host,
@@ -95,36 +52,14 @@ public abstract class FlowerSuperexecContainerConfig
         .build();
   }
 
-  public static FlowerSuperexecContainerConfig.Builder builder() {
-    return new AutoValue_FlowerSuperexecContainerConfig.Builder();
+  public static FlowerSuperExecContainerConfig.Builder builder() {
+    return new AutoValue_FlowerSuperExecContainerConfig.Builder();
   }
 
   public abstract Builder toBuilder();
 
   @AutoValue.Builder
-  public abstract static class Builder {
-
-    public abstract Builder name(String name);
-
-    public abstract Builder image(String image);
-
-    public abstract Builder host(@Nullable String host);
-
-    public abstract Builder port(@Nullable Integer port);
-
-    public abstract Builder imageSize(@Nullable Long imageSize);
-
-    public abstract Builder installDate(@Nullable String installDate);
-
-    public abstract Builder lastImageId(@Nullable String lastImageId);
-
-    public abstract Builder dockerArgs(@Nullable List<String> dockerArgs);
-
-    public abstract Builder dockerOptions(@Nullable Map<String, Object> dockerOptions);
-
-    public abstract Builder versionId(@Nullable String versionId);
-
-    public abstract Builder creationDate(@Nullable String creationDate);
+  public abstract static class Builder extends AbstractFlowerContainerConfig.Builder<Builder> {
 
     public abstract Builder fabWhitelistPath(@Nullable String fabWhitelistPath);
 
@@ -133,9 +68,9 @@ public abstract class FlowerSuperexecContainerConfig
     @Nullable
     abstract String getFabWhitelistPath();
 
-    abstract FlowerSuperexecContainerConfig autoBuild();
+    abstract FlowerSuperExecContainerConfig autoBuild();
 
-    public FlowerSuperexecContainerConfig build() {
+    public FlowerSuperExecContainerConfig build() {
       if (getFabWhitelistPath() == null) {
         fabWhitelistPath("data/system/flower/" + getName() + "-fab-whitelist.yaml");
       }
