@@ -177,7 +177,7 @@ public class DockerService {
       createNetworkIfNotExists(FLOWER_NETWORK_NAME);
     }
     installImage(containerConfig);
-    startContainer(dockerContainerName);
+    startContainer(dockerContainerName, containerConfig);
 
     String previousImageId = containerConfig.getLastImageId();
     String currentImageId =
@@ -404,10 +404,15 @@ public class DockerService {
     }
   }
 
-  private void startContainer(String containerName) {
+  private void startContainer(String containerName, ContainerConfig config) {
     try {
       dockerClient.startContainerCmd(containerName).exec();
     } catch (DockerException e) {
+      if (config instanceof FlowerSuperExecContainerConfig
+          && e.getMessage() != null
+          && e.getMessage().contains("executable file not found")) {
+        throw new SuperExecEntrypointMissingException(config.getImage(), SUPEREXEC_ENTRYPOINT, e);
+      }
       throw new ImageStartFailedException(containerName, e);
     }
   }
