@@ -12,7 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.container.FlowerDockerService;
-import org.molgenis.armadillo.container.FlowerSuperexecContainerConfig;
+import org.molgenis.armadillo.container.FlowerSuperExecContainerConfig;
 import org.molgenis.armadillo.exceptions.NotFlowerSuperexecContainerException;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
@@ -34,7 +34,7 @@ class FlowerDataServiceTest {
 
   @Test
   void pushData_success() {
-    var flowerClient = mock(FlowerSuperexecContainerConfig.class);
+    var flowerClient = mock(FlowerSuperExecContainerConfig.class);
     when(containerService.getByName("flower-client-1")).thenReturn(flowerClient);
     InputStream data = new ByteArrayInputStream("content".getBytes());
     when(storageService.loadObject("myproject", "train.parquet")).thenReturn(data);
@@ -49,7 +49,7 @@ class FlowerDataServiceTest {
 
   @Test
   void pushData_encodesResourcePath() {
-    var flowerClient = mock(FlowerSuperexecContainerConfig.class);
+    var flowerClient = mock(FlowerSuperExecContainerConfig.class);
     when(containerService.getByName("container-1")).thenReturn(flowerClient);
     InputStream data = new ByteArrayInputStream("content".getBytes());
     when(storageService.loadObject("proj", "data/train")).thenReturn(data);
@@ -62,7 +62,7 @@ class FlowerDataServiceTest {
 
   @Test
   void pushData_doesNotCollideOnSlashVsUnderscore() {
-    var flowerClient = mock(FlowerSuperexecContainerConfig.class);
+    var flowerClient = mock(FlowerSuperExecContainerConfig.class);
     when(containerService.getByName("container-1")).thenReturn(flowerClient);
     InputStream dataA = new ByteArrayInputStream("a".getBytes());
     InputStream dataB = new ByteArrayInputStream("b".getBytes());
