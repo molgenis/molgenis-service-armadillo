@@ -24,6 +24,14 @@ armadillo:
 
   # uncomment this to configure an oidc user as admin user
   # oidc-admin-user: user@yourdomain.org
+  # key for retrieving prometheus information
+  # api-key: my-api-key
+  # path where the application is running from, defaults to: /usr/share/armadillo/application
+  # armadillo-home: /your/path/here
+  # path where the application config resides, defaults to: /etc/armadillo/application.yml
+  # armadillo-config-file: /your/path/here/application.yml
+  # mode armadillo is running in (DEV/PROD). Used for updating/restarting/configuring capabilities. Default: PROD
+  # armadillo-mode: DEV
 
 # uncomment and set this to Armadillo's own externally-reachable URL if you use Flower containers —
 # required for flower-superexec containers to call back into Armadillo (e.g. POST /flower/push-data).
@@ -38,7 +46,7 @@ spring:
     user:
       # please change this admin password!
       password: admin
-    ## uncomment oauth2 settings below to enable oidcgit
+    ## uncomment oauth2 settings below to enable oidc
 #    oauth2:
 #      client:
 #        provider:

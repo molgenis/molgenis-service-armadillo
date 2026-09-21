@@ -54,6 +54,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -1138,12 +1144,108 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @Test
   void testGetSafeUserNameForFile() {
     String user = "username@email.com";
-    assertEquals("username__at__email.com", dataController.getSafeUsernameForFileSystem(user));
+    assertEquals("username__at__email.com", DataController.getSafeUsernameForFileSystem(user));
+  }
+
+  @Test
+  @WithMockUser(roles = "SU", username = "admin")
+  void testDownloadWorkspace() throws Exception {
+    HttpHeaders httpHeaders = new HttpHeaders();
+    httpHeaders.setContentDisposition(mock(ContentDisposition.class));
+    httpHeaders.setContentLength(124L);
+    httpHeaders.setContentType(APPLICATION_OCTET_STREAM);
+    ResponseEntity<InputStreamResource> ws =
+        new ResponseEntity<>(mock(InputStreamResource.class), httpHeaders, HttpStatus.OK);
+    when(armadilloStorage.downloadUserWorkspace("bofke@email.com", "test")).thenReturn(ws);
+
+    mockMvc
+        .perform(get("/workspaces/download/bofke@email.com/test").session(session))
+        .andExpect(status().isOk());
+
+    verify(armadilloStorage).downloadUserWorkspace("bofke@email.com", "test");
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "admin",
+            "DOWNLOAD_USER_WORKSPACE",
+            Map.of(
+                "WORKSPACE",
+                "test",
+                "user",
+                "bofke@email.com",
+                "roles",
+                List.of("ROLE_SU"),
+                "sessionId",
+                sessionId)));
+  }
+
+  @Test
+  @WithMockUser(roles = "SU", username = "admin")
+  void testUploadUserWorkspace() throws Exception {
+    String userId = "henk@email.com";
+    String id = "test";
+    String userBucket = ArmadilloStorageService.getUserBucketIdentifierFromUserId(userId);
+
+    MockMultipartFile file =
+        new MockMultipartFile(
+            "file", "workspace.RData", APPLICATION_OCTET_STREAM_VALUE, "dummy content".getBytes());
+
+    mockMvc
+        .perform(
+            multipart("/workspaces/upload/{userId}/{id}", userId, id).file(file).session(session))
+        .andExpect(status().isNoContent());
+
+    verify(armadilloStorage).saveWorkspace(any(InputStream.class), eq(userBucket), eq(id));
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "admin",
+            "UPLOAD_USER_WORKSPACE",
+            Map.of(
+                "sessionId",
+                sessionId,
+                "roles",
+                List.of("ROLE_SU"),
+                "user",
+                userId,
+                "WORKSPACE",
+                id)));
   }
 
   @Test
   @WithMockUser(roles = {})
   void getWorkspaces_noAuthorities_isForbidden() throws Exception {
     mockMvc.perform(get("/workspaces")).andExpect(status().isForbidden());
+  }
+
+  @Test
+  @WithMockUser(roles = "SU", username = "admin")
+  void testUploadUserWorkspaceWithWrongExtension() throws Exception {
+    String userId = "henk@email.com";
+    String id = "test";
+    MockMultipartFile file =
+        new MockMultipartFile(
+            "file", "workspace.csv", APPLICATION_OCTET_STREAM_VALUE, "dummy content".getBytes());
+
+    mockMvc
+        .perform(
+            multipart("/workspaces/upload/{userId}/{id}", userId, id).file(file).session(session))
+        .andExpect(status().isBadRequest());
+
+    auditEventValidator.validateAuditEvent(
+        new AuditEvent(
+            instant,
+            "admin",
+            "UPLOAD_USER_WORKSPACE_FAILURE",
+            Map.of(
+                "sessionId",
+                sessionId,
+                "roles",
+                List.of("ROLE_SU"),
+                "user",
+                userId,
+                "WORKSPACE",
+                id)));
   }
 }
