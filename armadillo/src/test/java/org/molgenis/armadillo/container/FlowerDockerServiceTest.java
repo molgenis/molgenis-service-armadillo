@@ -15,6 +15,7 @@ import com.github.dockerjava.api.command.InspectExecResponse;
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.exception.NotFoundException;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -67,23 +68,54 @@ class FlowerDockerServiceTest {
     when(inspectExecResponse.getExitCodeLong()).thenReturn(0L);
   }
 
-  @Test
-  void copyDataToContainer_success() throws InterruptedException {
-    mockEnsureDirectoryExists("my-container");
-    when(dockerClient.copyArchiveToContainerCmd("my-container")).thenReturn(copyCmd);
-    when(copyCmd.withTarInputStream(any())).thenReturn(copyCmd);
+  private ByteArrayOutputStream mockCopyThatDrainsTarStream(String containerName) {
+    ByteArrayOutputStream received = new ByteArrayOutputStream();
+    when(dockerClient.copyArchiveToContainerCmd(containerName)).thenReturn(copyCmd);
+    when(copyCmd.withTarInputStream(tarStreamCaptor.capture())).thenReturn(copyCmd);
     when(copyCmd.withRemotePath("/tmp/armadillo_data")).thenReturn(copyCmd);
+    doAnswer(
+            invocation -> {
+              tarStreamCaptor.getValue().transferTo(received);
+              return null;
+            })
+        .when(copyCmd)
+        .exec();
+    return received;
+  }
+
+  @Test
+  void copyDataToContainer_success() throws Exception {
+    mockEnsureDirectoryExists("my-container");
+    ByteArrayOutputStream received = mockCopyThatDrainsTarStream("my-container");
 
     byte[] testData = "test content".getBytes();
     InputStream data = new ByteArrayInputStream(testData);
 
     flowerDockerService.copyDataToContainer(
-        "my-container", "/tmp/armadillo_data", "proj_data", data);
+        "my-container", "/tmp/armadillo_data", "proj_data", data, testData.length);
 
-    verify(dockerClient).copyArchiveToContainerCmd("my-container");
-    verify(copyCmd).withTarInputStream(any());
+    try (TarArchiveInputStream tarInput =
+        new TarArchiveInputStream(new ByteArrayInputStream(received.toByteArray()))) {
+      TarArchiveEntry entry = tarInput.getNextEntry();
+      assertEquals("proj_data", entry.getName());
+      assertArrayEquals(testData, tarInput.readAllBytes());
+      assertNull(tarInput.getNextEntry());
+    }
     verify(copyCmd).withRemotePath("/tmp/armadillo_data");
-    verify(copyCmd).exec();
+  }
+
+  @Test
+  void copyDataToContainer_sizeMismatchThrows() throws InterruptedException {
+    mockEnsureDirectoryExists("my-container");
+    mockCopyThatDrainsTarStream("my-container");
+
+    InputStream data = new ByteArrayInputStream("test content".getBytes());
+
+    assertThrows(
+        DataPushFailedException.class,
+        () ->
+            flowerDockerService.copyDataToContainer(
+                "my-container", "/tmp/armadillo_data", "proj_data", data, 999));
   }
 
   @Test
@@ -100,7 +132,7 @@ class FlowerDockerServiceTest {
         ContainerNotFoundException.class,
         () ->
             flowerDockerService.copyDataToContainer(
-                "missing", "/tmp/armadillo_data", "file", data));
+                "missing", "/tmp/armadillo_data", "file", data, 4));
   }
 
   @Test
@@ -116,7 +148,8 @@ class FlowerDockerServiceTest {
     assertThrows(
         DataPushFailedException.class,
         () ->
-            flowerDockerService.copyDataToContainer("broken", "/tmp/armadillo_data", "file", data));
+            flowerDockerService.copyDataToContainer(
+                "broken", "/tmp/armadillo_data", "file", data, 4));
   }
 
   @Test
@@ -134,13 +167,11 @@ class FlowerDockerServiceTest {
     when(dockerClient.inspectExecCmd("exec-id")).thenReturn(inspectExecCmd);
     when(inspectExecCmd.exec()).thenReturn(inspectExecResponse);
     when(inspectExecResponse.getExitCodeLong()).thenReturn(0L);
-    when(dockerClient.copyArchiveToContainerCmd("prefix-logical-name-1")).thenReturn(copyCmd);
-    when(copyCmd.withTarInputStream(any())).thenReturn(copyCmd);
-    when(copyCmd.withRemotePath("/tmp/armadillo_data")).thenReturn(copyCmd);
+    mockCopyThatDrainsTarStream("prefix-logical-name-1");
 
     InputStream data = new ByteArrayInputStream("data".getBytes());
 
-    flowerDockerService.copyDataToContainer("logical-name", "/tmp/armadillo_data", "file", data);
+    flowerDockerService.copyDataToContainer("logical-name", "/tmp/armadillo_data", "file", data, 4);
 
     verify(dockerClient).execCreateCmd("prefix-logical-name-1");
     verify(dockerClient).copyArchiveToContainerCmd("prefix-logical-name-1");
@@ -168,18 +199,19 @@ class FlowerDockerServiceTest {
         DataPushFailedException.class,
         () ->
             flowerDockerService.copyDataToContainer(
-                "my-container", "/tmp/armadillo_data", "file", data));
+                "my-container", "/tmp/armadillo_data", "file", data, 4));
 
     verify(dockerClient, never()).copyArchiveToContainerCmd(any());
   }
 
   @Test
-  void createTarArchive_roundTrip() throws IOException {
+  void writeTar_roundTrip() throws IOException {
     byte[] content = "hello world".getBytes();
     String fileName = "test_file.parquet";
 
-    InputStream tarStream = FlowerDockerService.createTarArchive(fileName, content);
-    byte[] tarBytes = tarStream.readAllBytes();
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    FlowerDockerService.writeTar(out, fileName, new ByteArrayInputStream(content), content.length);
+    byte[] tarBytes = out.toByteArray();
 
     try (TarArchiveInputStream tarInput =
         new TarArchiveInputStream(new ByteArrayInputStream(tarBytes))) {
