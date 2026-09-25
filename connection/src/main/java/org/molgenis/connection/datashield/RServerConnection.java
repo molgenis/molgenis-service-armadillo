@@ -2,8 +2,9 @@ package org.molgenis.connection.datashield;
 
 import java.io.InputStream;
 import java.util.function.Consumer;
+import org.molgenis.connection.ServerConnection;
 
-public interface RServerConnection {
+public interface RServerConnection extends ServerConnection {
 
   /**
    * Evaluate an expression and return the result object.

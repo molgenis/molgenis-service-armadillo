@@ -1,8 +1,9 @@
 package org.molgenis.connection.datashield;
 
 import java.util.List;
+import org.molgenis.connection.ServerResult;
 
-public interface RServerResult {
+public interface RServerResult extends ServerResult {
 
   /**
    * Get the length, if it makes sense for the type of data, returns -1 otherwise.
