@@ -8,10 +8,14 @@ import com.github.dockerjava.api.command.ExecCreateCmdResponse;
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Frame;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.molgenis.armadillo.exceptions.ContainerNotFoundException;
@@ -23,6 +27,8 @@ import org.springframework.stereotype.Service;
 @ConditionalOnProperty(DOCKER_MANAGEMENT_ENABLED)
 public class FlowerDockerService {
 
+  private static final int PIPE_BUFFER_BYTES = 1024 * 1024;
+
   private final DockerClient dockerClient;
   private final DockerService dockerService;
 
@@ -32,17 +38,11 @@ public class FlowerDockerService {
   }
 
   public void copyDataToContainer(
-      String containerName, String destDir, String fileName, InputStream data) {
+      String containerName, String destDir, String fileName, InputStream data, long size) {
     String dockerContainerName = dockerService.asContainerName(containerName);
     try {
       ensureDirectoryExists(dockerContainerName, destDir);
-      byte[] bytes = data.readAllBytes();
-      InputStream tarStream = createTarArchive(fileName, bytes);
-      dockerClient
-          .copyArchiveToContainerCmd(dockerContainerName)
-          .withTarInputStream(tarStream)
-          .withRemotePath(destDir)
-          .exec();
+      streamTarToContainer(dockerContainerName, destDir, fileName, data, size);
     } catch (NotFoundException e) {
       throw new ContainerNotFoundException(containerName, e);
     } catch (DockerException | IOException e) {
@@ -73,15 +73,53 @@ public class FlowerDockerService {
     }
   }
 
-  static InputStream createTarArchive(String fileName, byte[] content) throws IOException {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (TarArchiveOutputStream tar = new TarArchiveOutputStream(baos)) {
+  // The tar is written on a separate thread into a pipe that Docker reads from, so memory use
+  // stays at one pipe buffer regardless of file size.
+  private void streamTarToContainer(
+      String dockerContainerName, String destDir, String fileName, InputStream data, long size)
+      throws IOException {
+    PipedInputStream tarStream = new PipedInputStream(PIPE_BUFFER_BYTES);
+    PipedOutputStream tarOut = new PipedOutputStream(tarStream);
+    FutureTask<Void> writer =
+        new FutureTask<>(
+            () -> {
+              try (tarOut) {
+                writeTar(tarOut, fileName, data, size);
+              }
+              return null;
+            });
+    Thread.ofVirtual().start(writer);
+    try (tarStream) {
+      dockerClient
+          .copyArchiveToContainerCmd(dockerContainerName)
+          .withTarInputStream(tarStream)
+          .withRemotePath(destDir)
+          .exec();
+    }
+    awaitWriter(writer);
+  }
+
+  private static void awaitWriter(Future<Void> writer) throws IOException {
+    try {
+      writer.get();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new IOException("Interrupted while writing tar stream", e);
+    } catch (ExecutionException e) {
+      throw new IOException("Failed to write tar stream", e.getCause());
+    }
+  }
+
+  // POSIX big-number headers: plain tar headers cannot describe entries of 8GB or more.
+  static void writeTar(OutputStream out, String fileName, InputStream content, long size)
+      throws IOException {
+    try (TarArchiveOutputStream tar = new TarArchiveOutputStream(out)) {
+      tar.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX);
       TarArchiveEntry entry = new TarArchiveEntry(fileName);
-      entry.setSize(content.length);
+      entry.setSize(size);
       tar.putArchiveEntry(entry);
-      tar.write(content);
+      content.transferTo(tar);
       tar.closeArchiveEntry();
     }
-    return new ByteArrayInputStream(baos.toByteArray());
   }
 }
