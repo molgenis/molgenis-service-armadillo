@@ -2,6 +2,7 @@ package org.molgenis.armadillo.service;
 
 import static org.molgenis.armadillo.controller.ContainerDockerController.DOCKER_MANAGEMENT_ENABLED;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
+import static org.molgenis.armadillo.storage.ArmadilloStorageService.SHARED_PREFIX;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,7 +43,8 @@ public class FlowerDataService {
     // "%2F" (not "_") stands in for "/" so "data/train" and "data_train" can't collide.
     String fileName = project + "_" + resource.replace("/", "%2F");
     try (InputStream data = storageService.loadObject(project, resource)) {
-      flowerDockerService.copyDataToContainer(containerName, DATA_DIR, fileName, data);
+      long size = storageService.getFileSizeIfObjectExists(SHARED_PREFIX + project, resource);
+      flowerDockerService.copyDataToContainer(containerName, DATA_DIR, fileName, data, size);
     } catch (IOException e) {
       throw new RuntimeException("Failed to read data for " + project + "/" + resource, e);
     }
