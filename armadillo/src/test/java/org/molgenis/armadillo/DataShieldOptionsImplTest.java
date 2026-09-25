@@ -13,10 +13,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
-import org.molgenis.r.RConnectionFactory;
-import org.molgenis.r.RServerConnection;
-import org.molgenis.r.model.RPackage;
-import org.molgenis.r.service.PackageService;
+import org.molgenis.connection.RConnectionFactory;
+import org.molgenis.connection.RServerConnection;
+import org.molgenis.connection.model.RPackage;
+import org.molgenis.connection.service.PackageService;
 
 @ExtendWith(MockitoExtension.class)
 class DataShieldOptionsImplTest {

@@ -12,12 +12,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.DataShieldOptions;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
-import org.molgenis.r.RConnectionFactory;
-import org.molgenis.r.RServerConnection;
-import org.molgenis.r.RServerException;
-import org.molgenis.r.exceptions.ConnectionCreationFailedException;
-import org.molgenis.r.rock.RockResult;
-import org.molgenis.r.service.PackageService;
+import org.molgenis.connection.RConnectionFactory;
+import org.molgenis.connection.RServerConnection;
+import org.molgenis.connection.RServerException;
+import org.molgenis.connection.exceptions.ConnectionCreationFailedException;
+import org.molgenis.connection.rock.RockResult;
+import org.molgenis.connection.service.PackageService;
 import org.rosuda.REngine.REXPNull;
 
 @ExtendWith(MockitoExtension.class)

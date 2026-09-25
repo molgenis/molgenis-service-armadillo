@@ -8,7 +8,7 @@ import static org.springframework.web.servlet.support.ServletUriComponentsBuilde
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.Optional;
-import org.molgenis.r.RServerResult;
+import org.molgenis.connection.RServerResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

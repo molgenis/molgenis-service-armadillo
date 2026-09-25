@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.molgenis.armadillo.metadata.UpdateSchedule;
-import org.molgenis.r.config.EnvironmentConfigProps;
+import org.molgenis.connection.config.EnvironmentConfigProps;
 
 @AutoValue
 @JsonTypeName("ds")

@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
-import org.molgenis.r.config.EnvironmentConfigProps;
+import org.molgenis.connection.config.EnvironmentConfigProps;
 
 class DatashieldContainerConfigTest {
 

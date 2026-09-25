@@ -11,9 +11,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
-import org.molgenis.r.RServerConnection;
-import org.molgenis.r.config.EnvironmentConfigProps;
-import org.molgenis.r.service.ProcessService;
+import org.molgenis.connection.RServerConnection;
+import org.molgenis.connection.config.EnvironmentConfigProps;
+import org.molgenis.connection.service.ProcessService;
 
 @ExtendWith(MockitoExtension.class)
 class RProcessEndpointTest {

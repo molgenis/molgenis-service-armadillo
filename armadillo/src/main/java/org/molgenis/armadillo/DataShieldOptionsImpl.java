@@ -8,9 +8,9 @@ import java.util.Map;
 import java.util.Objects;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.container.annotation.ContainerScope;
-import org.molgenis.r.RServerConnection;
-import org.molgenis.r.model.RPackage;
-import org.molgenis.r.service.PackageService;
+import org.molgenis.connection.RServerConnection;
+import org.molgenis.connection.model.RPackage;
+import org.molgenis.connection.service.PackageService;
 import org.springframework.stereotype.Component;
 
 /**

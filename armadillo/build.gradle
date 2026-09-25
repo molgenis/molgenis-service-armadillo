@@ -20,7 +20,7 @@ bootJar.enabled = false
 
 dependencies {
     //internal
-    implementation project(':r')
+    implementation project(':connection')
     implementation project(':ui')
 
     //spring

@@ -14,9 +14,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
-import org.molgenis.r.RServerConnection;
-import org.molgenis.r.exceptions.RExecutionException;
-import org.molgenis.r.service.ProcessService;
+import org.molgenis.connection.RServerConnection;
+import org.molgenis.connection.exceptions.RExecutionException;
+import org.molgenis.connection.service.ProcessService;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPNull;
 
