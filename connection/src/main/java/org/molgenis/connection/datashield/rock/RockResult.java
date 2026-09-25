@@ -1,4 +1,4 @@
-package org.molgenis.connection.rock;
+package org.molgenis.connection.datashield.rock;
 
 import com.google.common.collect.Lists;
 import java.util.List;
@@ -6,8 +6,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.molgenis.connection.RNamedList;
-import org.molgenis.connection.RServerResult;
+import org.molgenis.connection.datashield.RNamedList;
+import org.molgenis.connection.datashield.RServerResult;
 
 public class RockResult implements RServerResult {
 

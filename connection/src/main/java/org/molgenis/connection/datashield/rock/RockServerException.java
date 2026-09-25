@@ -8,12 +8,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.molgenis.connection.rock;
+package org.molgenis.connection.datashield.rock;
 
 import com.google.common.base.Strings;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.molgenis.connection.RServerException;
+import org.molgenis.connection.datashield.RServerException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 

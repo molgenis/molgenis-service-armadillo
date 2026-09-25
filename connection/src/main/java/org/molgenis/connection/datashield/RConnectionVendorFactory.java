@@ -1,4 +1,4 @@
-package org.molgenis.connection;
+package org.molgenis.connection.datashield;
 
 /**
  * An R connection factory for the specific vendors implementation, not to be confused with the

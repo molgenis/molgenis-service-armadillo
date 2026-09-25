@@ -1,4 +1,4 @@
-package org.molgenis.connection.rserve;
+package org.molgenis.connection.datashield.rserve;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;

@@ -1,4 +1,4 @@
-package org.molgenis.connection.rserve;
+package org.molgenis.connection.datashield.rserve;
 
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
@@ -14,9 +14,9 @@ import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.apache.commons.io.IOUtils;
-import org.molgenis.connection.RServerConnection;
-import org.molgenis.connection.RServerException;
-import org.molgenis.connection.RServerResult;
+import org.molgenis.connection.datashield.RServerConnection;
+import org.molgenis.connection.datashield.RServerException;
+import org.molgenis.connection.datashield.RServerResult;
 import org.molgenis.connection.exceptions.RExecutionException;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;

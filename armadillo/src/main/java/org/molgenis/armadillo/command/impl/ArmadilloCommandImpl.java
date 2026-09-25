@@ -15,7 +15,7 @@ import org.molgenis.armadillo.command.ArmadilloCommand;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO.Builder;
 import org.molgenis.armadillo.command.Commands.ArmadilloCommandStatus;
-import org.molgenis.connection.RServerConnection;
+import org.molgenis.connection.datashield.RServerConnection;
 import org.molgenis.connection.exceptions.RExecutionException;
 import org.slf4j.MDC;
 

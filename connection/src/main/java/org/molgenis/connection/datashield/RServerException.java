@@ -1,4 +1,4 @@
-package org.molgenis.connection;
+package org.molgenis.connection.datashield;
 
 public abstract class RServerException extends Exception {
 

@@ -1,7 +1,7 @@
 package org.molgenis.connection.service;
 
 import java.util.List;
-import org.molgenis.connection.RServerConnection;
+import org.molgenis.connection.datashield.RServerConnection;
 import org.molgenis.connection.model.RProcess;
 
 public interface ProcessService {

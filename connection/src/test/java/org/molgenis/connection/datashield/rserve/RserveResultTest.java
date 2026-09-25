@@ -1,4 +1,4 @@
-package org.molgenis.connection.rserve;
+package org.molgenis.connection.datashield.rserve;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -7,7 +7,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import org.molgenis.connection.RServerResult;
+import org.molgenis.connection.datashield.RServerResult;
 import org.molgenis.connection.exceptions.RExecutionException;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;

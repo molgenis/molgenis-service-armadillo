@@ -1,7 +1,7 @@
 package org.molgenis.armadillo.container;
 
-import org.molgenis.connection.RConnectionFactory;
-import org.molgenis.connection.RServerConnectionFactory;
+import org.molgenis.connection.datashield.RConnectionFactory;
+import org.molgenis.connection.datashield.RServerConnectionFactory;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -1,6 +1,6 @@
-package org.molgenis.connection.rserve;
+package org.molgenis.connection.datashield.rserve;
 
-import org.molgenis.connection.RServerException;
+import org.molgenis.connection.datashield.RServerException;
 
 public class RserveException extends RServerException {
 

@@ -13,8 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
-import org.molgenis.connection.RConnectionFactory;
-import org.molgenis.connection.RServerConnection;
+import org.molgenis.connection.datashield.RConnectionFactory;
+import org.molgenis.connection.datashield.RServerConnection;
 import org.molgenis.connection.model.RPackage;
 import org.molgenis.connection.service.PackageService;
 

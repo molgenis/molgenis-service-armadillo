@@ -7,7 +7,7 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 import org.molgenis.armadillo.exceptions.UnknownContainerException;
 import org.molgenis.armadillo.exceptions.UnsupportedContainerTypeException;
 import org.molgenis.armadillo.metadata.ContainerService;
-import org.molgenis.connection.RConnectionFactory;
+import org.molgenis.connection.datashield.RConnectionFactory;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

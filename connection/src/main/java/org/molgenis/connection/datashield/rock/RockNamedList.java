@@ -1,12 +1,12 @@
-package org.molgenis.connection.rock;
+package org.molgenis.connection.datashield.rock;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import java.util.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.molgenis.connection.RNamedList;
-import org.molgenis.connection.RServerResult;
+import org.molgenis.connection.datashield.RNamedList;
+import org.molgenis.connection.datashield.RServerResult;
 
 public class RockNamedList implements RNamedList<RServerResult> {
 

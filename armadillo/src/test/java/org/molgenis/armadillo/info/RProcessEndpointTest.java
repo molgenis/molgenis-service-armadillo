@@ -11,8 +11,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
-import org.molgenis.connection.RServerConnection;
 import org.molgenis.connection.config.EnvironmentConfigProps;
+import org.molgenis.connection.datashield.RServerConnection;
 import org.molgenis.connection.service.ProcessService;
 
 @ExtendWith(MockitoExtension.class)

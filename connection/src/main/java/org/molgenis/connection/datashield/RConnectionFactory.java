@@ -1,4 +1,4 @@
-package org.molgenis.connection;
+package org.molgenis.connection.datashield;
 
 import org.molgenis.connection.exceptions.ConnectionCreationFailedException;
 import org.springframework.retry.annotation.Backoff;

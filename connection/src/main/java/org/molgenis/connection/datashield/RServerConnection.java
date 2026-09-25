@@ -1,4 +1,4 @@
-package org.molgenis.connection;
+package org.molgenis.connection.datashield;
 
 import java.io.InputStream;
 import java.util.function.Consumer;

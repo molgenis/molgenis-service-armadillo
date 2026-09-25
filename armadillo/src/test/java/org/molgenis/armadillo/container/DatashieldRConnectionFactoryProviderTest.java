@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Set;
 import org.junit.jupiter.api.Test;
-import org.molgenis.connection.RConnectionFactory;
-import org.molgenis.connection.RServerConnectionFactory;
+import org.molgenis.connection.datashield.RConnectionFactory;
+import org.molgenis.connection.datashield.RServerConnectionFactory;
 
 class DatashieldRConnectionFactoryProviderTest {
 

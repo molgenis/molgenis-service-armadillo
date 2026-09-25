@@ -9,9 +9,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.connection.RServerResult;
+import org.molgenis.connection.datashield.RServerResult;
+import org.molgenis.connection.datashield.rserve.RserveResult;
 import org.molgenis.connection.exceptions.RExecutionException;
-import org.molgenis.connection.rserve.RserveResult;
 import org.rosuda.REngine.REXPRaw;
 
 @ExtendWith(MockitoExtension.class)

@@ -1,11 +1,11 @@
-package org.molgenis.connection.rock;
+package org.molgenis.connection.datashield.rock;
 
 import static java.lang.String.format;
 
-import org.molgenis.connection.RConnectionVendorFactory;
-import org.molgenis.connection.RServerConnection;
-import org.molgenis.connection.RServerException;
 import org.molgenis.connection.config.EnvironmentConfigProps;
+import org.molgenis.connection.datashield.RConnectionVendorFactory;
+import org.molgenis.connection.datashield.RServerConnection;
+import org.molgenis.connection.datashield.RServerException;
 import org.molgenis.connection.exceptions.ConnectionCreationFailedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

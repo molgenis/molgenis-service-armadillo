@@ -8,7 +8,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.molgenis.connection.rock;
+package org.molgenis.connection.datashield.rock;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.util.Date;

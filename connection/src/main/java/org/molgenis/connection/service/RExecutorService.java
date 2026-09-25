@@ -4,8 +4,8 @@ import java.io.InputStream;
 import java.security.Principal;
 import java.util.List;
 import java.util.function.Consumer;
-import org.molgenis.connection.RServerConnection;
-import org.molgenis.connection.RServerResult;
+import org.molgenis.connection.datashield.RServerConnection;
+import org.molgenis.connection.datashield.RServerResult;
 import org.springframework.core.io.Resource;
 
 public interface RExecutorService {

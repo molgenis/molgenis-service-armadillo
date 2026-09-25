@@ -1,4 +1,4 @@
-package org.molgenis.connection.rserve;
+package org.molgenis.connection.datashield.rserve;
 
 import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.*;
@@ -13,8 +13,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.connection.RServerException;
-import org.molgenis.connection.RServerResult;
+import org.molgenis.connection.datashield.RServerException;
+import org.molgenis.connection.datashield.RServerResult;
 import org.molgenis.connection.exceptions.RExecutionException;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
@@ -64,7 +64,8 @@ class RserveConnectionTest {
     String exp = "mean(age)";
     when(rConnection.eval(exp)).thenThrow(RserveException.class);
     assertThrows(
-        org.molgenis.connection.rserve.RserveException.class, () -> rserveConnection.evalREXP(exp));
+        org.molgenis.connection.datashield.rserve.RserveException.class,
+        () -> rserveConnection.evalREXP(exp));
   }
 
   @Test
@@ -75,7 +76,8 @@ class RserveConnectionTest {
     when(rexp.inherits("try-error")).thenReturn(Boolean.TRUE);
     when(rexp.asStrings()).thenThrow(REXPMismatchException.class);
     assertThrows(
-        org.molgenis.connection.rserve.RserveException.class, () -> rserveConnection.evalREXP(exp));
+        org.molgenis.connection.datashield.rserve.RserveException.class,
+        () -> rserveConnection.evalREXP(exp));
   }
 
   @Test
@@ -95,7 +97,7 @@ class RserveConnectionTest {
     Consumer<InputStream> mockConsumer = mock(Consumer.class);
     when(rConnection.openFile(fileName)).thenThrow(new IOException("Connection failed"));
     assertThrows(
-        org.molgenis.connection.rserve.RserveException.class,
+        org.molgenis.connection.datashield.rserve.RserveException.class,
         () -> rserveConnection.readFile(fileName, mockConsumer));
   }
 

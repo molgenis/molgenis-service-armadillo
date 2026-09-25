@@ -1,12 +1,12 @@
-package org.molgenis.connection.rserve;
+package org.molgenis.connection.datashield.rserve;
 
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.molgenis.connection.RConnectionVendorFactory;
-import org.molgenis.connection.RServerConnection;
 import org.molgenis.connection.config.EnvironmentConfigProps;
+import org.molgenis.connection.datashield.RConnectionVendorFactory;
+import org.molgenis.connection.datashield.RServerConnection;
 import org.molgenis.connection.exceptions.ConnectionCreationFailedException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;

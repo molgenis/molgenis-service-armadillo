@@ -13,10 +13,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.connection.RNamedList;
-import org.molgenis.connection.RServerConnection;
-import org.molgenis.connection.RServerException;
-import org.molgenis.connection.RServerResult;
+import org.molgenis.connection.datashield.RNamedList;
+import org.molgenis.connection.datashield.RServerConnection;
+import org.molgenis.connection.datashield.RServerException;
+import org.molgenis.connection.datashield.RServerResult;
 import org.molgenis.connection.model.RPackage;
 import org.rosuda.REngine.REXPMismatchException;
 

@@ -1,4 +1,4 @@
-package org.molgenis.connection.rock;
+package org.molgenis.connection.datashield.rock;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -6,9 +6,9 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.function.Consumer;
-import org.molgenis.connection.RServerConnection;
-import org.molgenis.connection.RServerException;
-import org.molgenis.connection.RServerResult;
+import org.molgenis.connection.datashield.RServerConnection;
+import org.molgenis.connection.datashield.RServerException;
+import org.molgenis.connection.datashield.RServerResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;

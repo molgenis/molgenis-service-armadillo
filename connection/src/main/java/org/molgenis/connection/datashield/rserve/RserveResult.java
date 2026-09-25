@@ -1,10 +1,10 @@
-package org.molgenis.connection.rserve;
+package org.molgenis.connection.datashield.rserve;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import java.util.List;
-import org.molgenis.connection.RNamedList;
-import org.molgenis.connection.RServerResult;
+import org.molgenis.connection.datashield.RNamedList;
+import org.molgenis.connection.datashield.RServerResult;
 import org.molgenis.connection.exceptions.RExecutionException;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPLogical;

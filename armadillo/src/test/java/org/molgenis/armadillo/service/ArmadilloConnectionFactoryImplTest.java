@@ -12,11 +12,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.DataShieldOptions;
 import org.molgenis.armadillo.container.DatashieldContainerConfig;
-import org.molgenis.connection.RConnectionFactory;
-import org.molgenis.connection.RServerConnection;
-import org.molgenis.connection.RServerException;
+import org.molgenis.connection.datashield.RConnectionFactory;
+import org.molgenis.connection.datashield.RServerConnection;
+import org.molgenis.connection.datashield.RServerException;
+import org.molgenis.connection.datashield.rock.RockResult;
 import org.molgenis.connection.exceptions.ConnectionCreationFailedException;
-import org.molgenis.connection.rock.RockResult;
 import org.molgenis.connection.service.PackageService;
 import org.rosuda.REngine.REXPNull;
 

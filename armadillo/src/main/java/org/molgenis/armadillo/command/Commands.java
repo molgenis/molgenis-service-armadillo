@@ -4,7 +4,7 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import org.molgenis.connection.RServerResult;
+import org.molgenis.connection.datashield.RServerResult;
 import org.molgenis.connection.model.RPackage;
 import org.springframework.core.io.Resource;
 

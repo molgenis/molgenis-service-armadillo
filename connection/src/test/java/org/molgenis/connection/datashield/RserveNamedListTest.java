@@ -1,4 +1,4 @@
-package org.molgenis.connection;
+package org.molgenis.connection.datashield;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.molgenis.connection.rserve.RserveNamedList;
+import org.molgenis.connection.datashield.rserve.RserveNamedList;
 import org.rosuda.REngine.*;
 
 class RserveNamedListTest {

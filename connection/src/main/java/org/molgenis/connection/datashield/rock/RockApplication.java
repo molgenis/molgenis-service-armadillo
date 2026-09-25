@@ -1,4 +1,4 @@
-package org.molgenis.connection.rock;
+package org.molgenis.connection.datashield.rock;
 
 public class RockApplication {
 
