@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import org.molgenis.connection.datashield.RServerResult;
-import org.molgenis.connection.model.RPackage;
+import org.molgenis.connection.datashield.model.RPackage;
 import org.springframework.core.io.Resource;
 
 public interface Commands {

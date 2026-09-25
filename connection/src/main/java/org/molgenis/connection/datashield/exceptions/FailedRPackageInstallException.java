@@ -1,4 +1,4 @@
-package org.molgenis.connection.exceptions;
+package org.molgenis.connection.datashield.exceptions;
 
 import static java.lang.String.format;
 

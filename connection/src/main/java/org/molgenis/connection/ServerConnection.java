@@ -5,7 +5,7 @@ import java.util.function.Consumer;
 
 public interface ServerConnection {
 
-  ServerResult eval(String expr);
+  ServerResult eval(String expr) throws Exception;
 
   /**
    * Write a file from the input stream.

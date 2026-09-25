@@ -1,11 +1,11 @@
-package org.molgenis.connection.service;
+package org.molgenis.connection.datashield.service;
 
 import static java.lang.String.format;
 import static java.util.Map.entry;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.molgenis.connection.service.ProcessServiceImpl.*;
+import static org.molgenis.connection.datashield.service.ProcessServiceImpl.*;
 
 import java.time.Instant;
 import java.util.List;
@@ -20,9 +20,9 @@ import org.molgenis.connection.datashield.RNamedList;
 import org.molgenis.connection.datashield.RServerConnection;
 import org.molgenis.connection.datashield.RServerException;
 import org.molgenis.connection.datashield.RServerResult;
+import org.molgenis.connection.datashield.model.RProcess;
+import org.molgenis.connection.datashield.model.RProcess.Status;
 import org.molgenis.connection.datashield.rserve.RserveResult;
-import org.molgenis.connection.model.RProcess;
-import org.molgenis.connection.model.RProcess.Status;
 import org.rosuda.REngine.REXPInteger;
 import org.rosuda.REngine.REXPList;
 import org.rosuda.REngine.REXPMismatchException;

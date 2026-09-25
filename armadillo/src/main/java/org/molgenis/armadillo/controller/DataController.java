@@ -46,7 +46,7 @@ import org.molgenis.armadillo.service.ExpressionRewriter;
 import org.molgenis.armadillo.storage.ArmadilloLinkFile;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.connection.datashield.RServerResult;
-import org.molgenis.connection.model.RPackage;
+import org.molgenis.connection.datashield.model.RPackage;
 import org.obiba.datashield.core.DSMethod;
 import org.rosuda.REngine.REXPMismatchException;
 import org.springframework.core.io.InputStreamResource;

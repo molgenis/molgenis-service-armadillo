@@ -1,4 +1,4 @@
-package org.molgenis.connection.service;
+package org.molgenis.connection.datashield.service;
 
 import static java.util.stream.Collectors.toList;
 
@@ -10,9 +10,9 @@ import java.util.Optional;
 import org.molgenis.connection.datashield.RNamedList;
 import org.molgenis.connection.datashield.RServerConnection;
 import org.molgenis.connection.datashield.RServerResult;
+import org.molgenis.connection.datashield.model.RProcess;
+import org.molgenis.connection.datashield.model.RProcess.Status;
 import org.molgenis.connection.exceptions.RExecutionException;
-import org.molgenis.connection.model.RProcess;
-import org.molgenis.connection.model.RProcess.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;

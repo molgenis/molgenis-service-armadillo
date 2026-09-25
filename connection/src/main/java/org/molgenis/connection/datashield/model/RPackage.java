@@ -1,4 +1,4 @@
-package org.molgenis.connection.model;
+package org.molgenis.connection.datashield.model;
 
 import static com.google.common.base.Preconditions.checkState;
 import static java.lang.Character.isLetter;

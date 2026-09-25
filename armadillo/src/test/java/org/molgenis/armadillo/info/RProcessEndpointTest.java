@@ -13,7 +13,7 @@ import org.molgenis.armadillo.container.DatashieldContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.connection.config.EnvironmentConfigProps;
 import org.molgenis.connection.datashield.RServerConnection;
-import org.molgenis.connection.service.ProcessService;
+import org.molgenis.connection.datashield.service.ProcessService;
 
 @ExtendWith(MockitoExtension.class)
 class RProcessEndpointTest {

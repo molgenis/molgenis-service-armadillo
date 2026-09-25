@@ -1,4 +1,4 @@
-package org.molgenis.connection.service;
+package org.molgenis.connection.datashield.service;
 
 import java.io.InputStream;
 import java.security.Principal;

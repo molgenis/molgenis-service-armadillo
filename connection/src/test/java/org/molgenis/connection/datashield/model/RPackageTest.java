@@ -1,4 +1,4 @@
-package org.molgenis.connection.model;
+package org.molgenis.connection.datashield.model;
 
 import static org.junit.jupiter.api.Assertions.*;
 

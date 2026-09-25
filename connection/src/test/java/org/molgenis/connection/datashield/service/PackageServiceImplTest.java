@@ -1,4 +1,4 @@
-package org.molgenis.connection.service;
+package org.molgenis.connection.datashield.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -17,7 +17,7 @@ import org.molgenis.connection.datashield.RNamedList;
 import org.molgenis.connection.datashield.RServerConnection;
 import org.molgenis.connection.datashield.RServerException;
 import org.molgenis.connection.datashield.RServerResult;
-import org.molgenis.connection.model.RPackage;
+import org.molgenis.connection.datashield.model.RPackage;
 import org.rosuda.REngine.REXPMismatchException;
 
 @ExtendWith(MockitoExtension.class)

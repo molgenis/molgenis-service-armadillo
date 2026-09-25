@@ -5,7 +5,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.function.Function;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.connection.datashield.RServerConnection;
-import org.molgenis.connection.service.ProcessService;
+import org.molgenis.connection.datashield.service.ProcessService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

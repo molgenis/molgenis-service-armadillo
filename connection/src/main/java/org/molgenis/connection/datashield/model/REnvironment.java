@@ -1,4 +1,4 @@
-package org.molgenis.connection.model;
+package org.molgenis.connection.datashield.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.auto.value.AutoValue;

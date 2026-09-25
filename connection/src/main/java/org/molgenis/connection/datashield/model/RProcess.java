@@ -1,4 +1,4 @@
-package org.molgenis.connection.model;
+package org.molgenis.connection.datashield.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;

@@ -1,4 +1,4 @@
-package org.molgenis.connection.service;
+package org.molgenis.connection.datashield.service;
 
 import static java.lang.String.format;
 
@@ -11,7 +11,7 @@ import org.molgenis.connection.Formatter;
 import org.molgenis.connection.datashield.RServerConnection;
 import org.molgenis.connection.datashield.RServerException;
 import org.molgenis.connection.datashield.RServerResult;
-import org.molgenis.connection.exceptions.FailedRPackageInstallException;
+import org.molgenis.connection.datashield.exceptions.FailedRPackageInstallException;
 import org.molgenis.connection.exceptions.InvalidRPackageException;
 import org.molgenis.connection.exceptions.RExecutionException;
 import org.slf4j.Logger;

@@ -15,8 +15,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.connection.datashield.RServerConnection;
+import org.molgenis.connection.datashield.service.ProcessService;
 import org.molgenis.connection.exceptions.RExecutionException;
-import org.molgenis.connection.service.ProcessService;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPNull;
 

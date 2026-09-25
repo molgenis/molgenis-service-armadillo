@@ -10,8 +10,8 @@ import org.molgenis.connection.Formatter;
 import org.molgenis.connection.datashield.RConnectionFactory;
 import org.molgenis.connection.datashield.RServerConnection;
 import org.molgenis.connection.datashield.RServerException;
+import org.molgenis.connection.datashield.service.PackageService;
 import org.molgenis.connection.exceptions.ConnectionCreationFailedException;
-import org.molgenis.connection.service.PackageService;
 import org.springframework.stereotype.Component;
 
 @Component
