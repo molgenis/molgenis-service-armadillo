@@ -45,6 +45,8 @@ public class FlowerDataService {
     try (InputStream data = storageService.loadObject(project, resource)) {
       long size = storageService.getFileSizeIfObjectExists(SHARED_PREFIX + project, resource);
       flowerDockerService.copyDataToContainer(containerName, DATA_DIR, fileName, data, size);
+
+      // TODO: call FlowerExecutorService here
     } catch (IOException e) {
       throw new RuntimeException("Failed to read data for " + project + "/" + resource, e);
     }
