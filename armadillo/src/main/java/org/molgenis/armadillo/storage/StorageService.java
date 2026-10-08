@@ -12,9 +12,11 @@ import org.molgenis.armadillo.model.ArmadilloColumnMetaData;
 import org.springframework.http.MediaType;
 
 public interface StorageService {
-  public String getRootDir();
+  String getRootDir();
 
-  public String getFilenameWithoutExtension(String filename);
+  Path getObjectPathSafely(String bucketName, String objectName);
+
+  String getFilenameWithoutExtension(String filename);
 
   boolean objectExists(String bucket, String objectName);
 
