@@ -21,11 +21,14 @@ public class RockResult implements RServerResult {
 
   private String jsonResult;
 
+  private String jsonSource;
+
   public RockResult(byte[] rawResult) {
     this.rawResult = rawResult;
   }
 
   public RockResult(String jsonSource) {
+    this.jsonSource = jsonSource;
     if (jsonSource == null || jsonSource.equals("{}")) jsonResult = null;
     else {
       if (jsonSource.startsWith("{"))
@@ -68,6 +71,11 @@ public class RockResult implements RServerResult {
     if (isRaw()) return rawResult;
     if (isString()) return nativeResult.toString().getBytes();
     return null;
+  }
+
+  @Override
+  public String asJSON() {
+    return jsonSource;
   }
 
   @Override

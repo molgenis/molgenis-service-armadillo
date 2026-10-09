@@ -42,6 +42,11 @@ public class RserveResult implements RServerResult {
   }
 
   @Override
+  public String asJSON() {
+    return null;
+  }
+
+  @Override
   public boolean isNumeric() {
     return result.isNumeric();
   }

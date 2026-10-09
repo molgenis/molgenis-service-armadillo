@@ -19,6 +19,13 @@ public interface RServerResult {
   byte[] asBytes();
 
   /**
+   * Get the evaluation result as JSON text.
+   *
+   * @return null if the result was not evaluated as JSON
+   */
+  String asJSON();
+
+  /**
    * Check if the evaluation result is an array of doubles.
    *
    * @return
