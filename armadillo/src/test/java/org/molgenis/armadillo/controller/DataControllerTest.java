@@ -323,6 +323,21 @@ class DataControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   @WithMockUser
+  void testGetLastResultJson() throws Exception {
+    String json = "[1,2,3]";
+    when(commands.getLastExecution())
+        .thenReturn(Optional.of(completedFuture(new RockResult(json))));
+
+    MvcResult result = mockMvc.perform(get("/lastresult").accept(APPLICATION_JSON)).andReturn();
+    mockMvc
+        .perform(asyncDispatch(result))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_JSON))
+        .andExpect(content().string(json));
+  }
+
+  @Test
+  @WithMockUser
   void testGetLastCommandNotFound() throws Exception {
     mockMvc.perform(get("/lastcommand").accept(APPLICATION_JSON)).andExpect(status().isNotFound());
 
@@ -493,6 +508,58 @@ class DataControllerTest extends ArmadilloControllerTestBase {
                 List.of("ROLE_USER"),
                 "expression",
                 "meanDS(D$age)")));
+  }
+
+  @Test
+  @WithMockUser
+  void testExecuteJson() throws Exception {
+    String json = "{\"EstimatedMean\":36.6}";
+    when(expressionRewriter.rewriteAggregate("meanDS(D$age)")).thenReturn("dsBase::meanDS(D$age)");
+    when(commands.evaluateAsJson("dsBase::meanDS(D$age)"))
+        .thenReturn(completedFuture(new RockResult(json)));
+
+    MvcResult result =
+        mockMvc
+            .perform(
+                post("/execute")
+                    .session(session)
+                    .accept(APPLICATION_JSON)
+                    .contentType(TEXT_PLAIN)
+                    .content("meanDS(D$age)"))
+            .andReturn();
+    mockMvc
+        .perform(asyncDispatch(result))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_JSON))
+        .andExpect(content().string(json));
+
+    verify(commands, never()).evaluate("dsBase::meanDS(D$age)", true);
+  }
+
+  @Test
+  @WithMockUser
+  void testExecuteReturnsBytesWhenWildcardAccepted() throws Exception {
+    byte[] bytes = {0x0, 0x1, 0x2};
+    when(expressionRewriter.rewriteAggregate("meanDS(D$age)")).thenReturn("dsBase::meanDS(D$age)");
+    when(commands.evaluate("dsBase::meanDS(D$age)", true))
+        .thenReturn(completedFuture(new RockResult(bytes)));
+
+    MvcResult result =
+        mockMvc
+            .perform(
+                post("/execute")
+                    .session(session)
+                    .header("Accept", "application/json, text/xml, application/xml, */*")
+                    .contentType(TEXT_PLAIN)
+                    .content("meanDS(D$age)"))
+            .andReturn();
+    mockMvc
+        .perform(asyncDispatch(result))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_OCTET_STREAM))
+        .andExpect(content().bytes(bytes));
+
+    verify(commands, never()).evaluateAsJson(any());
   }
 
   @Test

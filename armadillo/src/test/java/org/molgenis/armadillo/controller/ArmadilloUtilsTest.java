@@ -3,16 +3,24 @@ package org.molgenis.armadillo.controller;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doThrow;
 import static org.molgenis.armadillo.controller.ArmadilloUtils.createRawResponse;
+import static org.molgenis.armadillo.controller.ArmadilloUtils.createResultResponse;
+import static org.molgenis.armadillo.controller.ArmadilloUtils.needsJson;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
+import static org.springframework.http.MediaType.parseMediaTypes;
 
 import java.nio.charset.Charset;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.r.RServerResult;
 import org.molgenis.r.exceptions.RExecutionException;
+import org.molgenis.r.rock.RockResult;
 import org.molgenis.r.rserve.RserveResult;
 import org.rosuda.REngine.REXPRaw;
+import org.springframework.http.ResponseEntity;
 
 @ExtendWith(MockitoExtension.class)
 class ArmadilloUtilsTest {
@@ -38,6 +46,46 @@ class ArmadilloUtilsTest {
   void testCreateRawResponseMisbehavingREXP() {
     doThrow(new RExecutionException("blah")).when(rexp).asBytes();
     assertThrows(IllegalStateException.class, () -> createRawResponse(rexp));
+  }
+
+  @Test
+  void testNeedsJsonWhenOnlyJsonAccepted() {
+    assertTrue(needsJson(List.of(APPLICATION_JSON)));
+  }
+
+  @Test
+  void testNeedsJsonIsFalseWhenWildcardAlsoAccepted() {
+    assertFalse(needsJson(parseMediaTypes("application/json, text/xml, application/xml, */*")));
+  }
+
+  @Test
+  void testNeedsJsonIsFalseWhenNothingAccepted() {
+    assertFalse(needsJson(List.of()));
+  }
+
+  @Test
+  void testNeedsJsonIsFalseWhenOnlyWildcardAccepted() {
+    assertFalse(needsJson(parseMediaTypes("*/*")));
+  }
+
+  @Test
+  void testNeedsJsonIsFalseWhenBytesAlsoAccepted() {
+    assertFalse(needsJson(parseMediaTypes("application/json, application/octet-stream")));
+  }
+
+  @Test
+  void testCreateResultResponseForJson() {
+    ResponseEntity<byte[]> response = createResultResponse(new RockResult("{\"a\":1}"));
+    assertEquals(APPLICATION_JSON, response.getHeaders().getContentType());
+    assertEquals("{\"a\":1}", new String(response.getBody(), Charset.forName("UTF-8")));
+  }
+
+  @Test
+  void testCreateResultResponseForBytes() {
+    byte[] bytes = {0x01, 0x02, 0x03};
+    ResponseEntity<byte[]> response = createResultResponse(new RockResult(bytes));
+    assertEquals(APPLICATION_OCTET_STREAM, response.getHeaders().getContentType());
+    assertArrayEquals(bytes, response.getBody());
   }
 
   @Test

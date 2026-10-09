@@ -2,15 +2,22 @@ package org.molgenis.armadillo.controller;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.ISO_8859_1;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.function.Predicate.not;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
+import static org.springframework.http.ResponseEntity.ok;
 import static org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath;
 
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.Optional;
 import org.molgenis.r.RServerResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 
 public class ArmadilloUtils {
 
@@ -34,6 +41,20 @@ public class ArmadilloUtils {
     } catch (Exception e) {
       throw new IllegalStateException(format("This was no 'RAW' result: [ %s ]", result));
     }
+  }
+
+  public static boolean needsJson(List<MediaType> acceptedTypes) {
+    boolean acceptsBytes =
+        acceptedTypes.stream().anyMatch(type -> type.includes(APPLICATION_OCTET_STREAM));
+    boolean acceptsJson = acceptedTypes.stream().anyMatch(type -> type.includes(APPLICATION_JSON));
+    return acceptsJson && !acceptsBytes;
+  }
+
+  public static ResponseEntity<byte[]> createResultResponse(RServerResult result) {
+    String json = result.asJSON();
+    return json == null
+        ? ok().contentType(APPLICATION_OCTET_STREAM).body(createRawResponse(result))
+        : ok().contentType(APPLICATION_JSON).body(json.getBytes(UTF_8));
   }
 
   static URI getLastCommandLocation() {

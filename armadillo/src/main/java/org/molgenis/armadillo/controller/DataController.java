@@ -50,6 +50,7 @@ import org.molgenis.r.model.RPackage;
 import org.obiba.datashield.core.DSMethod;
 import org.rosuda.REngine.REXPMismatchException;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -308,24 +309,27 @@ public class DataController {
   @PostMapping(
       value = "/execute",
       consumes = TEXT_PLAIN_VALUE,
-      produces = APPLICATION_OCTET_STREAM_VALUE)
+      produces = {APPLICATION_OCTET_STREAM_VALUE, APPLICATION_JSON_VALUE})
   public CompletableFuture<ResponseEntity<byte[]>> execute(
       Principal principal,
       @RequestBody String expression,
       @Parameter(description = "Indicates if the expression should be executed asynchronously")
           @RequestParam(defaultValue = "false")
-          boolean async) {
+          boolean async,
+      @RequestHeader HttpHeaders headers) {
     Map<String, Object> data = Map.of(EXPRESSION, expression);
     try {
       String rewrittenExpression = expressionRewriter.rewriteAggregate(expression);
+      CompletableFuture<RServerResult> evaluation =
+          ArmadilloUtils.needsJson(headers.getAccept())
+              ? commands.evaluateAsJson(rewrittenExpression)
+              : commands.evaluate(rewrittenExpression, true);
       CompletableFuture<RServerResult> result =
-          auditEventPublisher.audit(
-              commands.evaluate(rewrittenExpression, true), principal, EXECUTE, data);
+          auditEventPublisher.audit(evaluation, principal, EXECUTE, data);
       return async
           ? completedFuture(created(getLastCommandLocation()).body(null))
           : result
-              .thenApply(ArmadilloUtils::createRawResponse)
-              .thenApply(ResponseEntity::ok)
+              .thenApply(ArmadilloUtils::createResultResponse)
               .exceptionally(t -> status(INTERNAL_SERVER_ERROR).build());
     } catch (ExpressionException ex) {
       data = new HashMap<>(data);
@@ -343,7 +347,9 @@ public class DataController {
   }
 
   @Operation(summary = "Get last result")
-  @GetMapping(value = "/lastresult", produces = APPLICATION_OCTET_STREAM_VALUE)
+  @GetMapping(
+      value = "/lastresult",
+      produces = {APPLICATION_OCTET_STREAM_VALUE, APPLICATION_JSON_VALUE})
   @ResponseStatus(OK)
   public CompletableFuture<ResponseEntity<byte[]>> lastResult() {
     return commands
@@ -351,8 +357,7 @@ public class DataController {
         .map(
             execution ->
                 execution
-                    .thenApply(ArmadilloUtils::createRawResponse)
-                    .thenApply(ResponseEntity::ok)
+                    .thenApply(ArmadilloUtils::createResultResponse)
                     .exceptionally(ex -> notFound().build()))
         .orElse(completedFuture(notFound().build()));
   }

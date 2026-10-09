@@ -134,6 +134,17 @@ class CommandsImpl implements Commands {
   }
 
   @Override
+  public CompletableFuture<RServerResult> evaluateAsJson(String expression) {
+    return schedule(
+        new ArmadilloCommandImpl<>(expression, true) {
+          @Override
+          protected RServerResult doWithConnection(RServerConnection connection) {
+            return rExecutorService.executeAsJson(expression, connection);
+          }
+        });
+  }
+
+  @Override
   public CompletableFuture<Void> assign(String symbol, String expression) {
     String statement = format("is.null(base::assign('%s', value={%s}))", symbol, expression);
     return schedule(
