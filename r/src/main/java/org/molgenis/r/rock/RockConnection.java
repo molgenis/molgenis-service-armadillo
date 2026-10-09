@@ -78,6 +78,11 @@ public class RockConnection implements RServerConnection {
   }
 
   @Override
+  public RServerResult evalAsJson(String expr) {
+    return eval(expr, false);
+  }
+
+  @Override
   public void writeFile(String fileName, InputStream in) throws RServerException {
     try {
       MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();

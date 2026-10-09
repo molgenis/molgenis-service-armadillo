@@ -47,6 +47,12 @@ class RserveConnectionTest {
   }
 
   @Test
+  void testEvalAsJsonIsRejected() {
+    assertThrows(RExecutionException.class, () -> rserveConnection.evalAsJson("mean(age)"));
+    verifyNoInteractions(rConnection);
+  }
+
+  @Test
   void testEvalREXPThrowsExceptionWhenEvalError() throws RserveException, REXPMismatchException {
     String exp = "mean(age)";
     String[] error = {"error 1 ", "error 2 "};

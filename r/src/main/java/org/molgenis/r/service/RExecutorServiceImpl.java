@@ -41,6 +41,17 @@ public class RExecutorServiceImpl implements RExecutorService {
   }
 
   @Override
+  public RServerResult executeAsJson(String cmd, RServerConnection connection) {
+    try {
+      LOGGER.debug("Evaluate as JSON {}", cmd);
+      return connection.evalAsJson(cmd);
+    } catch (RServerException e) {
+      LOGGER.warn("RServerException", e);
+      throw new RExecutionException(e);
+    }
+  }
+
+  @Override
   public void saveWorkspace(
       RServerConnection connection, Consumer<InputStream> inputStreamConsumer) {
     try {

@@ -57,6 +57,15 @@ class RExecutorServiceImplTest {
   }
 
   @Test
+  void executeAsJson() throws RServerException {
+    when(rConnection.evalAsJson("mean(age)")).thenReturn(rexp);
+
+    RServerResult result = executorService.executeAsJson("mean(age)", rConnection);
+
+    assertSame(rexp, result);
+  }
+
+  @Test
   void executeFail() throws RServerException {
     when(rConnection.eval("mean(ages)", false))
         .thenThrow(new RExecutionException(new Exception("Ages is not a valid column")));

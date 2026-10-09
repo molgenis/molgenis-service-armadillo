@@ -27,6 +27,15 @@ public interface RServerConnection {
   RServerResult eval(String expr, boolean serialized) throws RServerException;
 
   /**
+   * Evaluate an expression and return the result as JSON text.
+   *
+   * @param expr
+   * @return
+   * @throws RServerException
+   */
+  RServerResult evalAsJson(String expr) throws RServerException;
+
+  /**
    * Write a file from the input stream.
    *
    * @param fileName

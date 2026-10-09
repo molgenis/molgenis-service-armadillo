@@ -45,6 +45,11 @@ public class RserveConnection implements RServerConnection {
   }
 
   @Override
+  public RServerResult evalAsJson(String expr) {
+    throw new RExecutionException("JSON results are only available from Rock containers");
+  }
+
+  @Override
   public void writeFile(String fileName, InputStream in) throws RServerException {
     Stopwatch sw = Stopwatch.createStarted();
     try (OutputStream os = connection.createFile(fileName);

@@ -15,6 +15,8 @@ public interface RExecutorService {
 
   RServerResult execute(String cmd, boolean serialized, RServerConnection connection);
 
+  RServerResult executeAsJson(String cmd, RServerConnection connection);
+
   void saveWorkspace(RServerConnection connection, Consumer<InputStream> inputStreamConsumer);
 
   void loadWorkspace(RServerConnection connection, Resource resource, String environment);
