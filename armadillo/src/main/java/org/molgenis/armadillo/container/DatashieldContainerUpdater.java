@@ -6,17 +6,17 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class DatashieldContainerUpdater
-    implements ContainerUpdater<DatashieldContainerConfig>,
-        OpenContainersUpdater<DatashieldContainerConfig> {
+    implements ContainerUpdater<DataShieldContainerConfig>,
+        OpenContainersUpdater<DataShieldContainerConfig> {
 
   @Override
-  public Class<DatashieldContainerConfig> getSupportedType() {
-    return DatashieldContainerConfig.class;
+  public Class<DataShieldContainerConfig> getSupportedType() {
+    return DataShieldContainerConfig.class;
   }
 
   @Override
   public ContainerConfig updateDefaultImageMetadata(
-      DatashieldContainerConfig existingConfig, DefaultImageMetadata metadata) {
+          DataShieldContainerConfig existingConfig, DefaultImageMetadata metadata) {
     return existingConfig.toBuilder()
         .lastImageId(metadata.currentImageId())
         .imageSize(metadata.imageSize())
@@ -29,7 +29,7 @@ public class DatashieldContainerUpdater
 
   @Override
   public ContainerConfig updateOpenContainersMetaData(
-      DatashieldContainerConfig existingConfig, OpenContainersImageMetadata metadata) {
+          DataShieldContainerConfig existingConfig, OpenContainersImageMetadata metadata) {
     return existingConfig.toBuilder()
         .versionId(metadata.openContainersId())
         .creationDate(metadata.creationDate())

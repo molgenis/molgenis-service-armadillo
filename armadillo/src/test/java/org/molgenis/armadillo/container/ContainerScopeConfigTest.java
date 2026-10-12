@@ -61,7 +61,7 @@ class ContainerScopeConfigTest {
     ActiveContainerNameAccessor.setActiveContainerName("test");
     when(containerService.getByName("test")).thenReturn(datashieldConfig);
 
-    DatashieldContainerConfig result = config.datashieldContainerConfig(containerService);
+    DataShieldContainerConfig result = config.datashieldContainerConfig(containerService);
 
     assertSame(datashieldConfig, result);
   }
@@ -98,8 +98,8 @@ class ContainerScopeConfigTest {
     verify(beanFactory).registerScope("container", containerScope);
   }
 
-  private static DatashieldContainerConfig createDatashieldConfig() {
-    return DatashieldContainerConfig.builder()
+  private static DataShieldContainerConfig createDatashieldConfig() {
+    return DataShieldContainerConfig.builder()
         .name("default")
         .packageWhitelist(Set.of())
         .functionBlacklist(Set.of())

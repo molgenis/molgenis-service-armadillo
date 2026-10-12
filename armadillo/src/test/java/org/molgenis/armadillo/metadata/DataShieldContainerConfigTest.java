@@ -1,17 +1,17 @@
 package org.molgenis.armadillo.metadata;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.molgenis.armadillo.container.DatashieldContainerConfig.create;
+import static org.molgenis.armadillo.container.DataShieldContainerConfig.create;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.molgenis.armadillo.container.DatashieldContainerConfig;
+import org.molgenis.armadillo.container.DataShieldContainerConfig;
 import org.molgenis.connection.config.EnvironmentConfigProps;
 
-class DatashieldContainerConfigTest {
+class DataShieldContainerConfigTest {
 
   @Test
   void testToEnvironmentConfigProps() {
@@ -19,7 +19,7 @@ class DatashieldContainerConfigTest {
     String img = "myImage";
     String host = "localhost";
     int port = 6311;
-    DatashieldContainerConfig config =
+    DataShieldContainerConfig config =
         create(
             name,
             img,
@@ -43,7 +43,7 @@ class DatashieldContainerConfigTest {
 
   @Test
   void testToEnvironmentConfigPropsDoesNotThrowErrorWhenImageNull() {
-    DatashieldContainerConfig config =
+    DataShieldContainerConfig config =
         create(
             "myName",
             null,
@@ -66,7 +66,7 @@ class DatashieldContainerConfigTest {
 
   @Test
   void testCreateEmptyHost() {
-    DatashieldContainerConfig config =
+    DataShieldContainerConfig config =
         create(
             "myName",
             null,
@@ -89,7 +89,7 @@ class DatashieldContainerConfigTest {
 
   @Test
   void testCreateEmptyOptions() {
-    DatashieldContainerConfig config =
+    DataShieldContainerConfig config =
         create(
             "myName",
             null,

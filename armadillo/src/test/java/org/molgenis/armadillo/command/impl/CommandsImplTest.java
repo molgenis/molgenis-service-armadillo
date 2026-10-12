@@ -25,7 +25,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.container.ActiveContainerNameAccessor;
-import org.molgenis.armadillo.container.DatashieldContainerConfig;
+import org.molgenis.armadillo.container.DataShieldContainerConfig;
 import org.molgenis.armadillo.exceptions.UnknownContainerException;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.security.ResourceTokenService;
@@ -256,8 +256,8 @@ class CommandsImplTest {
   @Test
   void testSelectContainerWritesToSession() {
     RequestContextHolder.setRequestAttributes(attrs);
-    DatashieldContainerConfig datashieldContainerConfig =
-        DatashieldContainerConfig.create(
+    DataShieldContainerConfig datashieldContainerConfig =
+        DataShieldContainerConfig.create(
             "exposome",
             "dummy",
             "localhost",

@@ -4,7 +4,7 @@ import static java.lang.String.format;
 
 import java.util.Map.Entry;
 import org.molgenis.armadillo.DataShieldOptions;
-import org.molgenis.armadillo.container.DatashieldContainerConfig;
+import org.molgenis.armadillo.container.DataShieldContainerConfig;
 import org.molgenis.armadillo.container.annotation.ContainerScope;
 import org.molgenis.connection.Formatter;
 import org.molgenis.connection.datashield.RConnectionFactory;
@@ -19,13 +19,13 @@ import org.springframework.stereotype.Component;
 public class ArmadilloConnectionFactoryImpl implements ArmadilloConnectionFactory {
 
   private final PackageService packageService;
-  private final DatashieldContainerConfig datashieldContainerConfig;
+  private final DataShieldContainerConfig datashieldContainerConfig;
   private final DataShieldOptions dataShieldOptions;
   private final RConnectionFactory rConnectionFactory;
 
   public ArmadilloConnectionFactoryImpl(
       PackageService packageService,
-      DatashieldContainerConfig datashieldContainerConfig,
+      DataShieldContainerConfig datashieldContainerConfig,
       DataShieldOptions dataShieldOptions,
       RConnectionFactory rConnectionFactory) {
     this.packageService = packageService;

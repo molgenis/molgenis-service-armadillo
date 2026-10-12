@@ -26,7 +26,7 @@ class DatashieldContainerFactoryTest {
     when(config.getDatashieldDefaultBlacklist()).thenReturn(Set.of("someBlockedFunc"));
 
     DatashieldContainerFactory factory = new DatashieldContainerFactory(config);
-    DatashieldContainerConfig result = (DatashieldContainerConfig) factory.createDefault();
+    DataShieldContainerConfig result = (DataShieldContainerConfig) factory.createDefault();
 
     assertEquals("default", result.getName());
     assertEquals("test/image", result.getImage());
@@ -42,7 +42,7 @@ class DatashieldContainerFactoryTest {
     when(config.getDatashieldDefaultBlacklist()).thenReturn(null);
 
     DatashieldContainerFactory factory = new DatashieldContainerFactory(config);
-    DatashieldContainerConfig result = (DatashieldContainerConfig) factory.createDefault();
+    DataShieldContainerConfig result = (DataShieldContainerConfig) factory.createDefault();
 
     assertEquals("default", result.getName());
     assertEquals("datashield/molgenis-rock-base:latest", result.getImage());

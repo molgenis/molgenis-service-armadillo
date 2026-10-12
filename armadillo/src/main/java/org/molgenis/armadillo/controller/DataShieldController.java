@@ -65,7 +65,7 @@ import org.springframework.web.server.ResponseStatusException;
 @PreAuthorize("isAuthenticated() and !authentication.authorities.empty")
 @RestController
 @Validated
-public class DataController {
+public class DataShieldController {
 
   public static final String SYMBOL_RE = "\\p{Alnum}[\\w.]*";
   public static final String SYMBOL_CSV_RE = "\\p{Alnum}[\\w.]*+(,\\p{Alnum}[\\w.]*+)*+";
@@ -81,7 +81,7 @@ public class DataController {
   private final ExpressionRewriter expressionRewriter;
   private final DSEnvironmentCache dsEnvironmentCache;
 
-  public DataController(
+  public DataShieldController(
       Commands commands,
       ArmadilloStorageService storage,
       AuditEventPublisher auditEventPublisher,

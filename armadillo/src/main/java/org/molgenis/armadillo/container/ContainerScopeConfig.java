@@ -34,9 +34,9 @@ public class ContainerScopeConfig {
 
   @Bean
   @org.molgenis.armadillo.container.annotation.ContainerScope
-  public DatashieldContainerConfig datashieldContainerConfig(ContainerService containerService) {
+  public DataShieldContainerConfig datashieldContainerConfig(ContainerService containerService) {
     var containerConfig = getActiveContainerConfig(containerService);
-    if (containerConfig instanceof DatashieldContainerConfig datashieldConfig) {
+    if (containerConfig instanceof DataShieldContainerConfig datashieldConfig) {
       return datashieldConfig;
     }
     throw new UnsupportedContainerTypeException(
@@ -48,7 +48,7 @@ public class ContainerScopeConfig {
   @Bean
   @org.molgenis.armadillo.container.annotation.ContainerScope
   public RConnectionFactory rConnectionFactory(
-      DatashieldContainerConfig datashieldConfig,
+      DataShieldContainerConfig datashieldConfig,
       DatashieldRConnectionFactoryProvider datashieldProvider) {
     return datashieldProvider.create(datashieldConfig);
   }

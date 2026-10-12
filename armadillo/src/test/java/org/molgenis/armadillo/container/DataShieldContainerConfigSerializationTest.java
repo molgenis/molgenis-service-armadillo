@@ -13,14 +13,14 @@ import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.Test;
 import org.molgenis.armadillo.metadata.ContainersMetadata;
 
-class DatashieldContainerConfigSerializationTest {
+class DataShieldContainerConfigSerializationTest {
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   @Test
   void datashieldSpecificFieldsAreWrittenWhenMetadataIsSerialized() throws Exception {
-    DatashieldContainerConfig config =
-        DatashieldContainerConfig.builder()
+    DataShieldContainerConfig config =
+        DataShieldContainerConfig.builder()
             .name("test")
             .host("localhost")
             .port(6313)

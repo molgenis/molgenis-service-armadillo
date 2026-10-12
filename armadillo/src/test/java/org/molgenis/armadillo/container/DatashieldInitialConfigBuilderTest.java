@@ -26,7 +26,7 @@ class DatashieldInitialConfigBuilderTest {
 
     DatashieldInitialConfigBuilder builder = new DatashieldInitialConfigBuilder();
     ContainerConfig config = builder.build(initial);
-    DatashieldContainerConfig datashield = (DatashieldContainerConfig) config;
+    DataShieldContainerConfig datashield = (DataShieldContainerConfig) config;
 
     assertEquals("donkey", datashield.getName());
     assertEquals("datashield/armadillo-rserver:6.2.0", datashield.getImage());

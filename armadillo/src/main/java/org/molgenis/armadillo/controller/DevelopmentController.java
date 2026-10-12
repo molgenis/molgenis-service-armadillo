@@ -23,7 +23,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.Commands;
-import org.molgenis.armadillo.container.DatashieldContainerConfig;
+import org.molgenis.armadillo.container.DataShieldContainerConfig;
 import org.molgenis.armadillo.container.DockerService;
 import org.molgenis.armadillo.exceptions.FileProcessingException;
 import org.molgenis.armadillo.metadata.ContainerService;
@@ -48,14 +48,14 @@ public class DevelopmentController {
   private final AuditEventPublisher auditEventPublisher;
   private final ContainerService containers;
   private final DockerService dockerService;
-  private final DatashieldContainerConfig datashieldContainerConfig;
+  private final DataShieldContainerConfig datashieldContainerConfig;
 
   public DevelopmentController(
       Commands commands,
       AuditEventPublisher auditEventPublisher,
       ContainerService containerService,
       @Nullable DockerService dockerService,
-      DatashieldContainerConfig datashieldContainerConfig) {
+      DataShieldContainerConfig datashieldContainerConfig) {
     this.commands = requireNonNull(commands);
     this.auditEventPublisher = requireNonNull(auditEventPublisher);
     this.containers = requireNonNull(containerService);

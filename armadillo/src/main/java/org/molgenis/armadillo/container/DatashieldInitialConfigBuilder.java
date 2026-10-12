@@ -13,7 +13,7 @@ public class DatashieldInitialConfigBuilder implements InitialConfigBuilder {
 
   @Override
   public ContainerConfig build(InitialContainerConfig initialConfig) {
-    return DatashieldContainerConfig.create(
+    return DataShieldContainerConfig.create(
         initialConfig.getName(),
         initialConfig.getImage(),
         initialConfig.getHost(),

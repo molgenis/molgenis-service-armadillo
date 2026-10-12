@@ -17,7 +17,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.container.ContainerScope;
-import org.molgenis.armadillo.container.DatashieldContainerConfig;
+import org.molgenis.armadillo.container.DataShieldContainerConfig;
 import org.molgenis.armadillo.container.DefaultContainerFactory;
 import org.molgenis.armadillo.container.FlowerSuperExecContainerConfig;
 import org.molgenis.armadillo.container.FlowerSuperNodeContainerConfig;
@@ -37,8 +37,8 @@ class ContainerServiceTest {
   void addToWhitelist() {
     var containersMetadata = ContainersMetadata.create();
 
-    DatashieldContainerConfig defaultContainer =
-        DatashieldContainerConfig.create(
+    DataShieldContainerConfig defaultContainer =
+        DataShieldContainerConfig.create(
             "default",
             "test",
             "localhost",
@@ -73,8 +73,8 @@ class ContainerServiceTest {
 
     verify(containerScope).removeAllContainerBeans("default");
 
-    DatashieldContainerConfig updatedConfig =
-        (DatashieldContainerConfig) containerService.getByName("default");
+    DataShieldContainerConfig updatedConfig =
+        (DataShieldContainerConfig) containerService.getByName("default");
     assertTrue(updatedConfig.getPackageWhitelist().contains("dsOmics"));
   }
 
@@ -164,8 +164,8 @@ class ContainerServiceTest {
     String newCreationDate = "2025-08-05T12:34:56Z";
     String newInstallDate = "2025-10-05T12:34:56Z";
 
-    DatashieldContainerConfig existingContainer =
-        DatashieldContainerConfig.create(
+    DataShieldContainerConfig existingContainer =
+        DataShieldContainerConfig.create(
             containerName,
             "someImage",
             "localhost",
@@ -213,7 +213,7 @@ class ContainerServiceTest {
     assertEquals(newImageSize, updated.getImageSize());
     assertEquals(newInstallDate, updated.getInstallDate());
 
-    DatashieldContainerConfig dsUpdated = (DatashieldContainerConfig) updated;
+    DataShieldContainerConfig dsUpdated = (DataShieldContainerConfig) updated;
     assertEquals(newVersionId, dsUpdated.getVersionId());
     assertEquals(newCreationDate, dsUpdated.getCreationDate());
 
@@ -320,7 +320,7 @@ class ContainerServiceTest {
         .getContainers()
         .put(
             "default",
-            DatashieldContainerConfig.create(
+            DataShieldContainerConfig.create(
                 "default",
                 "image",
                 "localhost",

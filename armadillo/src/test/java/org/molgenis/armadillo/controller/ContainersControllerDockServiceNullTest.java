@@ -16,7 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.container.ContainerScheduler;
-import org.molgenis.armadillo.container.DatashieldContainerConfig;
+import org.molgenis.armadillo.container.DataShieldContainerConfig;
 import org.molgenis.armadillo.metadata.*;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +47,7 @@ class ContainersControllerDockServiceNullTest extends ArmadilloControllerTestBas
         .getContainers()
         .put(
             "default",
-            DatashieldContainerConfig.create(
+            DataShieldContainerConfig.create(
                 "default",
                 "datashield/armadillo-rserver:6.2.0",
                 "localhost",
@@ -68,7 +68,7 @@ class ContainersControllerDockServiceNullTest extends ArmadilloControllerTestBas
         .getContainers()
         .put(
             "omics",
-            DatashieldContainerConfig.create(
+            DataShieldContainerConfig.create(
                 "omics",
                 "datashield/armadillo-rserver-omics",
                 "localhost",

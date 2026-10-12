@@ -7,7 +7,7 @@ import com.google.common.collect.ImmutableSet;
 import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.stream.Stream;
-import org.molgenis.armadillo.container.DatashieldContainerConfig;
+import org.molgenis.armadillo.container.DataShieldContainerConfig;
 import org.molgenis.armadillo.container.annotation.ContainerScope;
 import org.molgenis.armadillo.exceptions.DuplicateRMethodException;
 import org.molgenis.armadillo.exceptions.IllegalRMethodStringException;
@@ -31,7 +31,7 @@ public class DSEnvironmentCache {
   private static final Logger LOGGER = LoggerFactory.getLogger(DSEnvironmentCache.class);
   private final PackageService packageService;
   private final RConnectionFactory rConnectionFactory;
-  private final DatashieldContainerConfig datashieldContainerConfig;
+  private final DataShieldContainerConfig datashieldContainerConfig;
 
   private final DSEnvironment aggregateEnvironment;
   private final DSEnvironment assignEnvironment;
@@ -39,7 +39,7 @@ public class DSEnvironmentCache {
   public DSEnvironmentCache(
       PackageService packageService,
       RConnectionFactory rConnectionFactory,
-      DatashieldContainerConfig datashieldContainerConfig) {
+      DataShieldContainerConfig datashieldContainerConfig) {
     this.packageService = requireNonNull(packageService);
     this.rConnectionFactory = requireNonNull(rConnectionFactory);
     this.datashieldContainerConfig = requireNonNull(datashieldContainerConfig);

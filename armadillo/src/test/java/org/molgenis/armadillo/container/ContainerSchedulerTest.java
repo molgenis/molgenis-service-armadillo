@@ -72,7 +72,7 @@ class ContainerSchedulerTest {
 
   @Test
   void testRescheduleCreatesTaskWithCronTrigger() {
-    var container = mock(DatashieldContainerConfig.class);
+    var container = mock(DataShieldContainerConfig.class);
     when(container.getName()).thenReturn("testContainer");
     when(container.getAutoUpdate()).thenReturn(true);
     when(container.getUpdateSchedule()).thenReturn(new UpdateSchedule("daily", null, "09:00"));
@@ -92,7 +92,7 @@ class ContainerSchedulerTest {
 
   @Test
   void reschedule_runsScheduledTask() {
-    var container = mock(DatashieldContainerConfig.class);
+    var container = mock(DataShieldContainerConfig.class);
     when(container.getName()).thenReturn("testContainer");
     when(container.getAutoUpdate()).thenReturn(true);
     when(container.getUpdateSchedule()).thenReturn(new UpdateSchedule("daily", null, "09:00"));
@@ -148,7 +148,7 @@ class ContainerSchedulerTest {
 
   @Test
   void testRunUpdateForContainerImageChanged() throws Exception {
-    var container = mock(DatashieldContainerConfig.class);
+    var container = mock(DataShieldContainerConfig.class);
     when(container.getName()).thenReturn("testContainer");
     when(container.getAutoUpdate()).thenReturn(true);
     when(container.getImage()).thenReturn("timmyjc/mytest:latest");
@@ -184,7 +184,7 @@ class ContainerSchedulerTest {
 
   @Test
   void testRunUpdateForContainerNoInfo() {
-    var container = mock(DatashieldContainerConfig.class);
+    var container = mock(DataShieldContainerConfig.class);
     when(container.getName()).thenReturn("testContainer"); // ✅ Still needed
     when(dockerService.getAllContainerStatuses()).thenReturn(Map.of()); // No container info
     invokeRunUpdateForContainer(container);
@@ -194,7 +194,7 @@ class ContainerSchedulerTest {
 
   @Test
   void testRunUpdateForContainerAutoUpdateDisabled() {
-    var container = mock(DatashieldContainerConfig.class);
+    var container = mock(DataShieldContainerConfig.class);
     when(container.getName()).thenReturn("testContainer");
     when(container.getAutoUpdate()).thenReturn(false); // ✅ Needed for branch exit
 
@@ -213,7 +213,7 @@ class ContainerSchedulerTest {
 
   @Test
   void testRunUpdateForContainerImageUnchanged() throws Exception {
-    var container = mock(DatashieldContainerConfig.class);
+    var container = mock(DataShieldContainerConfig.class);
     when(container.getName()).thenReturn("testContainer");
     when(container.getAutoUpdate()).thenReturn(true);
     when(container.getImage()).thenReturn("timmyjc/mytest:latest");
@@ -247,7 +247,7 @@ class ContainerSchedulerTest {
 
   @Test
   void testRunUpdateForContainerHandlesException() {
-    var container = mock(DatashieldContainerConfig.class);
+    var container = mock(DataShieldContainerConfig.class);
     when(container.getName()).thenReturn("testContainer"); // needed for logging
 
     // Throw exception when fetching container info (caught inside try/catch)
@@ -280,7 +280,7 @@ class ContainerSchedulerTest {
 
   @Test
   void testRunUpdateForContainerSkipsWhenImageEmpty() {
-    var container = mock(DatashieldContainerConfig.class);
+    var container = mock(DataShieldContainerConfig.class);
     when(container.getName()).thenReturn("testContainer");
     when(container.getAutoUpdate()).thenReturn(true);
     when(container.getImage()).thenReturn("");
@@ -296,7 +296,7 @@ class ContainerSchedulerTest {
 
   @Test
   void testRunUpdateForContainerHandlesInterruptedException() throws Exception {
-    var container = mock(DatashieldContainerConfig.class);
+    var container = mock(DataShieldContainerConfig.class);
     when(container.getName()).thenReturn("testContainer");
     when(container.getAutoUpdate()).thenReturn(true);
     when(container.getImage()).thenReturn("timmyjc/mytest:latest");

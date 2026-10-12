@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class DatashieldRConnectionFactoryProvider {
 
-  public RConnectionFactory create(DatashieldContainerConfig config) {
+  public RConnectionFactory create(DataShieldContainerConfig config) {
     return new RServerConnectionFactory(config.toEnvironmentConfigProps());
   }
 }

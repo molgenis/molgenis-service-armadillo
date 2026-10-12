@@ -70,7 +70,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
         .getContainers()
         .put(
             "datashield-default",
-            DatashieldContainerConfig.create(
+            DataShieldContainerConfig.create(
                 "default",
                 "datashield/armadillo-rserver:6.2.0",
                 "localhost",
@@ -91,7 +91,7 @@ class ContainersControllerTest extends ArmadilloControllerTestBase {
         .getContainers()
         .put(
             "omics",
-            DatashieldContainerConfig.create(
+            DataShieldContainerConfig.create(
                 "omics",
                 "datashield/armadillo-rserver-omics",
                 "localhost",

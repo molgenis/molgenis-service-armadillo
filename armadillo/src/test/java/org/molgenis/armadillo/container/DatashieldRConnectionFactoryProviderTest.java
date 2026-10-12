@@ -12,8 +12,8 @@ class DatashieldRConnectionFactoryProviderTest {
 
   @Test
   void create_returnsRServerConnectionFactory() {
-    DatashieldContainerConfig config =
-        DatashieldContainerConfig.builder()
+    DataShieldContainerConfig config =
+        DataShieldContainerConfig.builder()
             .name("default")
             .host("localhost")
             .port(6311)

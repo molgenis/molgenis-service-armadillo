@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.molgenis.armadillo.container.DatashieldContainerConfig;
+import org.molgenis.armadillo.container.DataShieldContainerConfig;
 import org.molgenis.armadillo.exceptions.DuplicateRMethodException;
 import org.molgenis.armadillo.exceptions.IllegalRMethodStringException;
 import org.molgenis.connection.datashield.RConnectionFactory;
@@ -32,7 +32,8 @@ class DSEnvironmentConfigPropsCacheTest {
 
   @Mock RConnectionFactory rConnectionFactory;
   @Mock PackageService packageService;
-  @Mock DatashieldContainerConfig datashieldContainerConfig;
+  @Mock
+  DataShieldContainerConfig datashieldContainerConfig;
   private DSEnvironmentCache dsEnvironmentCache;
 
   @BeforeEach

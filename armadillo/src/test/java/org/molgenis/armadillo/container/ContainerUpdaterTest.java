@@ -27,7 +27,7 @@ class ContainerUpdaterTest {
     assertTrue(updater.supports(VanillaContainerConfig.createDefault()));
     assertFalse(
         updater.supports(
-            DatashieldContainerConfig.builder()
+            DataShieldContainerConfig.builder()
                 .name("ds")
                 .packageWhitelist(java.util.Set.of())
                 .functionBlacklist(java.util.Set.of())

@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.container.ContainerInfo;
-import org.molgenis.armadillo.container.DatashieldContainerConfig;
+import org.molgenis.armadillo.container.DataShieldContainerConfig;
 
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
@@ -77,7 +77,7 @@ public sealed interface ContainerResponse {
       implements ContainerResponse {}
 
   static ContainerResponse create(ContainerConfig config, @Nullable ContainerInfo info) {
-    if (config instanceof DatashieldContainerConfig ds) {
+    if (config instanceof DataShieldContainerConfig ds) {
       return new DatashieldResponse(
           ds.getType(),
           ds.getName(),

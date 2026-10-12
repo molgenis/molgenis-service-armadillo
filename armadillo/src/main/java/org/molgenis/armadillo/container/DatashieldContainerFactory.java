@@ -19,7 +19,7 @@ public class DatashieldContainerFactory implements DefaultContainerFactory {
 
   @Override
   public ContainerConfig createDefault() {
-    return DatashieldContainerConfig.createDefault(
+    return DataShieldContainerConfig.createDefault(
         config.getContainerDefaultImage(),
         config.getDatashieldDefaultWhitelist(),
         config.getDatashieldDefaultBlacklist());

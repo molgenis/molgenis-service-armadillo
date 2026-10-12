@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.molgenis.armadillo.container.ContainerInfo;
-import org.molgenis.armadillo.container.DatashieldContainerConfig;
+import org.molgenis.armadillo.container.DataShieldContainerConfig;
 import org.molgenis.armadillo.container.FlowerSuperExecContainerConfig;
 import org.molgenis.armadillo.container.VanillaContainerConfig;
 import org.molgenis.armadillo.controller.ContainerResponse.DatashieldResponse;
@@ -56,7 +56,7 @@ class ContainerResponseTest {
   @Test
   void create_forDatashieldContainer() {
     var config =
-        DatashieldContainerConfig.builder()
+        DataShieldContainerConfig.builder()
             .name("ds")
             .image("image")
             .host("localhost")

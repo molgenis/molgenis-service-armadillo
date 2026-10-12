@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.molgenis.armadillo.container.ContainerConfig;
-import org.molgenis.armadillo.container.DatashieldContainerConfig;
+import org.molgenis.armadillo.container.DataShieldContainerConfig;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.connection.config.EnvironmentConfigProps;
 import org.molgenis.connection.datashield.RServerConnection;
@@ -33,7 +33,7 @@ public class RProcessEndpoint {
   public List<REnvironment> getRServeEnvironments() {
     // TODO: make this available in the /actuator/ endpoint
     return containerService.getAll().stream()
-        .filter(DatashieldContainerConfig.class::isInstance)
+        .filter(DataShieldContainerConfig.class::isInstance)
         .map(ContainerConfig::getName)
         .map(
             environmentName ->
@@ -47,9 +47,9 @@ public class RProcessEndpoint {
     var environment =
         runAsSystem(containerService::getAll).stream()
             .filter(it -> environmentName.equals(it.getName()))
-            .filter(DatashieldContainerConfig.class::isInstance)
-            .map(DatashieldContainerConfig.class::cast)
-            .map(DatashieldContainerConfig::toEnvironmentConfigProps)
+            .filter(DataShieldContainerConfig.class::isInstance)
+            .map(DataShieldContainerConfig.class::cast)
+            .map(DataShieldContainerConfig::toEnvironmentConfigProps)
             .findFirst()
             .orElseThrow(
                 () ->

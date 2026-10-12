@@ -14,7 +14,7 @@ import org.molgenis.connection.config.EnvironmentConfigProps;
 @JsonTypeName("ds")
 // AutoValue requires redeclaring interface methods as abstract - suppress S1161 and S3038
 @SuppressWarnings({"java:S1161", "java:S3038"})
-public abstract class DatashieldContainerConfig
+public abstract class DataShieldContainerConfig
     implements ContainerConfig, UpdatableContainer, OpenContainer {
 
   private static final SecureRandom SECURE_RANDOM = new SecureRandom();
@@ -86,7 +86,7 @@ public abstract class DatashieldContainerConfig
   }
 
   @JsonCreator
-  public static DatashieldContainerConfig create(
+  public static DataShieldContainerConfig create(
       @JsonProperty("name") @Nullable String name,
       @JsonProperty("image") @Nullable String image,
       @JsonProperty("host") @Nullable String host,
@@ -139,7 +139,7 @@ public abstract class DatashieldContainerConfig
    * Creates a default container config. Applies fallback defaults when parameters are null, since
    * AutoValue builder getters throw IllegalStateException for unset properties.
    */
-  public static DatashieldContainerConfig createDefault(
+  public static DataShieldContainerConfig createDefault(
       String image, Set<String> packageWhitelist, Set<String> functionBlacklist) {
     return builder()
         .name("default")
@@ -225,9 +225,9 @@ public abstract class DatashieldContainerConfig
     @Nullable
     abstract Map<String, Object> getDockerOptions();
 
-    abstract DatashieldContainerConfig autoBuild();
+    abstract DataShieldContainerConfig autoBuild();
 
-    public DatashieldContainerConfig build() {
+    public DataShieldContainerConfig build() {
       if (getImage() == null) image("datashield/molgenis-rock-base:latest");
       if (getHost() == null) host("localhost");
       if (getPort() == null) port(6311);

@@ -20,7 +20,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.command.Commands;
-import org.molgenis.armadillo.container.DatashieldContainerConfig;
+import org.molgenis.armadillo.container.DataShieldContainerConfig;
 import org.molgenis.armadillo.container.DockerService;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
@@ -44,7 +44,7 @@ class DevelopmentControllerTest extends ArmadilloControllerTestBase {
   @MockitoBean private ContainerService containerService;
   @MockitoBean private Commands commands;
   @MockitoBean private ArmadilloStorageService armadilloStorage;
-  @MockitoBean private DatashieldContainerConfig datashieldContainerConfig;
+  @MockitoBean private DataShieldContainerConfig datashieldContainerConfig;
 
   @Mock(lenient = true)
   private Clock clock;

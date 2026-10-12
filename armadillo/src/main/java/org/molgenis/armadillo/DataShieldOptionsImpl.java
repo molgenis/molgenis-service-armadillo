@@ -6,7 +6,7 @@ import com.google.common.collect.ImmutableMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import org.molgenis.armadillo.container.DatashieldContainerConfig;
+import org.molgenis.armadillo.container.DataShieldContainerConfig;
 import org.molgenis.armadillo.container.annotation.ContainerScope;
 import org.molgenis.connection.datashield.RServerConnection;
 import org.molgenis.connection.datashield.model.RPackage;
@@ -25,13 +25,13 @@ import org.springframework.stereotype.Component;
 @ContainerScope
 public class DataShieldOptionsImpl implements DataShieldOptions {
 
-  private final DatashieldContainerConfig datashieldContainerConfig;
+  private final DataShieldContainerConfig datashieldContainerConfig;
   private final PackageService packageService;
 
   @SuppressWarnings("java:S3077") // ImmutableMap is thread-safe
   private volatile ImmutableMap<String, String> options;
 
-  public DataShieldOptionsImpl(DatashieldContainerConfig dsConfig, PackageService packageService) {
+  public DataShieldOptionsImpl(DataShieldContainerConfig dsConfig, PackageService packageService) {
     this.datashieldContainerConfig = dsConfig;
     this.packageService = requireNonNull(packageService);
   }

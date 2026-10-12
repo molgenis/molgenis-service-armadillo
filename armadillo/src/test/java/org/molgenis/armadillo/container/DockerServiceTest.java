@@ -941,7 +941,7 @@ class DockerServiceTest {
     String containerName = "datashield-1";
     String imageId = "sha256:ds-image";
 
-    var config = mock(DatashieldContainerConfig.class);
+    var config = mock(DataShieldContainerConfig.class);
     when(containerService.getByName(containerName)).thenReturn(config);
 
     InspectImageCmd cmd = mock(InspectImageCmd.class);
@@ -1076,7 +1076,7 @@ class DockerServiceTest {
 
   @Test
   void pullImage_emitsProgressUpdates_toContainerStatusService() {
-    var container = mock(DatashieldContainerConfig.class);
+    var container = mock(DataShieldContainerConfig.class);
     when(container.getName()).thenReturn("donkey");
     when(container.getImage()).thenReturn("repo/image:tag");
     when(containerService.getByName("default")).thenReturn(container);
@@ -1200,7 +1200,7 @@ class DockerServiceTest {
 
   @Test
   void pullImage_interruptedException_setsInterruptFlag_andThrows() {
-    var container = mock(DatashieldContainerConfig.class);
+    var container = mock(DataShieldContainerConfig.class);
     when(container.getName()).thenReturn("donkey");
     when(container.getImage()).thenReturn("repo/image:tag");
     when(containerService.getByName("default")).thenReturn(container);
