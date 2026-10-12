@@ -1,6 +1,12 @@
 package org.molgenis.connection.flower;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+
 import org.molgenis.connection.flower.service.FlowerDockerService;
 
 public class FlowerContainerConnection {
@@ -21,7 +27,7 @@ public class FlowerContainerConnection {
   //        return containerPrefix + containerName + "-1";
   //    }
   private final String containerName;
-  private FlowerDockerService dockerService;
+  private final FlowerDockerService dockerService;
   private static final String DATA_DIR = "/tmp/armadillo_data";
 
   public FlowerContainerConnection(String containerName, FlowerDockerService dockerService) {
@@ -29,8 +35,15 @@ public class FlowerContainerConnection {
     this.dockerService = dockerService;
   }
 
-  public void pushData(String fileName, InputStream data) {
-    long size = 123L;
-    this.dockerService.copyDataToContainer(containerName, DATA_DIR, fileName, data, size);
+  public void pushData(String fileName, InputStream in) throws IOException {
+    Path tmp = Files.createTempFile("flower-upload-", ".tmp");
+    try {
+      long size = Files.copy(in, tmp, StandardCopyOption.REPLACE_EXISTING);
+      try (InputStream data = new BufferedInputStream(Files.newInputStream(tmp))) {
+        this.dockerService.copyDataToContainer(containerName, DATA_DIR, fileName, data, size);
+      }
+    } finally {
+      Files.deleteIfExists(tmp);
+    }
   }
 }

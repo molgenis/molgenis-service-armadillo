@@ -20,19 +20,10 @@ public class FlowerServerConnection implements ServerConnection {
     throw new NotImplementedException("Method not implemented");
   }
 
+
   @Override
   public void writeFile(String fileName, InputStream in) throws Exception {
-    // where do we get this name in rserve/rock???
-    String containerName = "";
-    // when running in container, will be containerPrefix + containerName + "-1";
-    String dockerContainerName = "";
-    // how to get filesize from inputstream without consuming? available?? how big can these things
-    // get?? -> probably not right
-    long size = 123L;
-    // use this from flowerdocker service in flower container connection
-    //        flowerDockerService.copyDataToContainer(containerName, DATA_DIR, fileName, in, size,
-    // dockerContainerName);
-    flowerContainerConnection.pushData(fileName, in);
+   flowerContainerConnection.pushData(fileName, in);
   }
 
   @Override
