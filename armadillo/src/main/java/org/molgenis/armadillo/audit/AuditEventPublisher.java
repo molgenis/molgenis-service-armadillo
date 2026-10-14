@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class AuditEventPublisher implements ApplicationEventPublisherAware {
 
+  public static final String APPROVE_ACCESS_REQUEST = "APPROVE_ACCESS_REQUEST";
   public static final String TRIGGER_SOFT_RESTART = "TRIGGER_SOFT_RESTART";
   public static final String TRIGGER_HARD_RESTART = "TRIGGER_HARD_RESTART";
   public static final String UPDATE_ARMADILLO = "UPDATE_ARMADILLO";

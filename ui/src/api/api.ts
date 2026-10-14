@@ -511,3 +511,16 @@ export async function uploadWorkspace(
   formData.append("file", fileToUpload);
   return postFormData(`/workspaces/upload/${userId}/${workspaceId}`, formData);
 }
+
+export async function approveRequest(
+  user: string,
+  requestId: string,
+  requestData: ListOfObjectsWithStringKey
+) {
+  const data = {
+    user: user,
+    requestId: requestId,
+    data: requestData,
+  };
+  return postJson("/access/request/approve", data);
+}
