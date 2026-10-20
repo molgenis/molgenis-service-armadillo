@@ -4,7 +4,7 @@ import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import java.io.InputStream;
 import org.molgenis.armadillo.container.FlowerSuperExecContainerConfig;
-// import org.molgenis.armadillo.exceptions.NotFlowerSuperexecContainerException;
+import org.molgenis.armadillo.exceptions.NotFlowerSuperExecContainerException;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.connection.flower.service.FlowerExecutorService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +26,7 @@ public class FlowerCommands {
     var config = runAsSystem(() -> containerService.getByName(containerName));
     System.out.println(config);
     if (!(config instanceof FlowerSuperExecContainerConfig)) {
-      throw new Exception(containerName);
-      //      throw new NotFlowerSuperexecContainerException(containerName);
+      throw new NotFlowerSuperExecContainerException(containerName);
     }
     // "%2F" (not "_") stands in for "/" so "data/train" and "data_train" can't collide.
     String fileName = project + "_" + object.replace("/", "%2F");
