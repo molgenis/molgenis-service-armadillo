@@ -25,14 +25,14 @@ import org.springframework.stereotype.Component;
 @ContainerScope
 public class DataShieldOptionsImpl implements DataShieldOptions {
 
-  private final DataShieldContainerConfig datashieldContainerConfig;
+  private final DataShieldContainerConfig dataShieldContainerConfig;
   private final PackageService packageService;
 
   @SuppressWarnings("java:S3077") // ImmutableMap is thread-safe
   private volatile ImmutableMap<String, String> options;
 
   public DataShieldOptionsImpl(DataShieldContainerConfig dsConfig, PackageService packageService) {
-    this.datashieldContainerConfig = dsConfig;
+    this.dataShieldContainerConfig = dsConfig;
     this.packageService = requireNonNull(packageService);
   }
 
@@ -43,7 +43,7 @@ public class DataShieldOptionsImpl implements DataShieldOptions {
               .map(RPackage::options)
               .filter(Objects::nonNull)
               .collect(HashMap::new, Map::putAll, Map::putAll);
-      optionsMap.putAll(datashieldContainerConfig.getDatashieldROptions());
+      optionsMap.putAll(dataShieldContainerConfig.getDatashieldROptions());
       options = ImmutableMap.copyOf(optionsMap);
     }
   }

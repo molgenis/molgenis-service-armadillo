@@ -5,9 +5,7 @@ import java.util.function.Consumer;
 import org.apache.hc.core5.http.NotImplementedException;
 import org.molgenis.connection.ServerConnection;
 import org.molgenis.connection.ServerResult;
-import org.springframework.stereotype.Component;
 
-@Component
 public class FlowerServerConnection implements ServerConnection {
   FlowerContainerConnection flowerContainerConnection;
 
@@ -20,10 +18,9 @@ public class FlowerServerConnection implements ServerConnection {
     throw new NotImplementedException("Method not implemented");
   }
 
-
   @Override
   public void writeFile(String fileName, InputStream in) throws Exception {
-   flowerContainerConnection.pushData(fileName, in);
+    flowerContainerConnection.pushData(fileName, in);
   }
 
   @Override

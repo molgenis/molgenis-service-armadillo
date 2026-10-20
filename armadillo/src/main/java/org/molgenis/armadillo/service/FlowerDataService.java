@@ -1,15 +1,9 @@
 package org.molgenis.armadillo.service;
 
 import static org.molgenis.armadillo.controller.ContainerDockerController.DOCKER_MANAGEMENT_ENABLED;
-import static org.molgenis.armadillo.security.RunAs.runAsSystem;
-import static org.molgenis.armadillo.storage.ArmadilloStorageService.SHARED_PREFIX;
 
-import java.io.IOException;
 import java.io.InputStream;
-import org.molgenis.armadillo.container.FlowerDockerService;
-import org.molgenis.armadillo.container.FlowerSuperExecContainerConfig;
-import org.molgenis.armadillo.exceptions.NotFlowerSuperexecContainerException;
-import org.molgenis.armadillo.metadata.ContainerService;
+import org.molgenis.armadillo.command.FlowerCommands;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,37 +12,20 @@ import org.springframework.stereotype.Service;
 @Service
 @ConditionalOnProperty(DOCKER_MANAGEMENT_ENABLED)
 public class FlowerDataService {
-
-  private static final String DATA_DIR = "/tmp/armadillo_data";
-
   private final ArmadilloStorageService storageService;
-  private final FlowerDockerService flowerDockerService;
-  private final ContainerService containerService;
+  private final FlowerCommands flowerCommands;
 
-  public FlowerDataService(
-      ArmadilloStorageService storageService,
-      FlowerDockerService flowerDockerService,
-      ContainerService containerService) {
+  public FlowerDataService(ArmadilloStorageService storageService, FlowerCommands flowerCommands) {
     this.storageService = storageService;
-    this.flowerDockerService = flowerDockerService;
-    this.containerService = containerService;
+    this.flowerCommands = flowerCommands;
   }
 
   @PreAuthorize("hasAnyRole('ROLE_SU', 'ROLE_' + #project.toUpperCase() + '_RESEARCHER')")
-  public void pushData(String project, String resource, String containerName) {
-    var config = runAsSystem(() -> containerService.getByName(containerName));
-    if (!(config instanceof FlowerSuperExecContainerConfig)) {
-      throw new NotFlowerSuperexecContainerException(containerName);
-    }
-    // "%2F" (not "_") stands in for "/" so "data/train" and "data_train" can't collide.
-    String fileName = project + "_" + resource.replace("/", "%2F");
+  public InputStream loadData(String project, String resource) {
     try (InputStream data = storageService.loadObject(project, resource)) {
-      long size = storageService.getFileSizeIfObjectExists(SHARED_PREFIX + project, resource);
-      flowerDockerService.copyDataToContainer(containerName, DATA_DIR, fileName, data, size);
-
-      // TODO: call FlowerExecutorService here
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to read data for " + project + "/" + resource, e);
+      return data;
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to load data for " + project + "/" + resource, e);
     }
   }
 }

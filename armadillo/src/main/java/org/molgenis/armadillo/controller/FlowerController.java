@@ -15,9 +15,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.io.InputStream;
 import java.security.Principal;
 import java.util.Map;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
+import org.molgenis.armadillo.command.FlowerCommands;
 import org.molgenis.armadillo.service.FlowerDataService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,10 +37,13 @@ public class FlowerController {
 
   private final FlowerDataService flowerDataService;
   private final AuditEventPublisher auditor;
+  private final FlowerCommands commands;
 
-  public FlowerController(FlowerDataService flowerDataService, AuditEventPublisher auditor) {
+  public FlowerController(
+      FlowerDataService flowerDataService, AuditEventPublisher auditor, FlowerCommands commands) {
     this.flowerDataService = flowerDataService;
     this.auditor = auditor;
+    this.commands = commands;
   }
 
   @Operation(
@@ -70,9 +75,15 @@ public class FlowerController {
   @ResponseStatus(NO_CONTENT)
   public void pushData(Principal principal, @Valid @RequestBody PushDataRequest request) {
     auditor.audit(
-        () ->
-            flowerDataService.pushData(
-                request.project(), request.resource(), request.containerName()),
+        () -> {
+          try (InputStream data =
+              flowerDataService.loadData(request.project(), request.resource())) {
+            commands.loadData(request.project(), request.containerName(), request.resource(), data);
+          } catch (Exception e) {
+            throw new RuntimeException(
+                "Failed to read data for " + request.project() + "/" + request.resource(), e);
+          }
+        },
         principal,
         FLOWER_PUSH_DATA,
         Map.of(

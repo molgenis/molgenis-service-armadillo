@@ -1144,7 +1144,8 @@ class DataShieldControllerTest extends ArmadilloControllerTestBase {
   @Test
   void testGetSafeUserNameForFile() {
     String user = "username@email.com";
-    assertEquals("username__at__email.com", DataShieldController.getSafeUsernameForFileSystem(user));
+    assertEquals(
+        "username__at__email.com", DataShieldController.getSafeUsernameForFileSystem(user));
   }
 
   @Test

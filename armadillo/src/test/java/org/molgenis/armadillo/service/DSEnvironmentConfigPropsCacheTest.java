@@ -32,8 +32,7 @@ class DSEnvironmentConfigPropsCacheTest {
 
   @Mock RConnectionFactory rConnectionFactory;
   @Mock PackageService packageService;
-  @Mock
-  DataShieldContainerConfig datashieldContainerConfig;
+  @Mock DataShieldContainerConfig datashieldContainerConfig;
   private DSEnvironmentCache dsEnvironmentCache;
 
   @BeforeEach

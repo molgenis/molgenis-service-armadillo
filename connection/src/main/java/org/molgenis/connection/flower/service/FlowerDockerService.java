@@ -16,17 +16,20 @@ import org.molgenis.connection.flower.exceptions.ContainerNotFoundException;
 import org.molgenis.connection.flower.exceptions.DataPushFailedException;
 import org.molgenis.connection.flower.helpers.TarFile;
 import org.molgenis.connection.flower.helpers.TaskManager;
-import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-@Service
+@Component
 public class FlowerDockerService {
   private static final int PIPE_BUFFER_BYTES = 1024 * 1024;
 
   private final DockerClient dockerClient = DockerClientBuilder.getInstance().build();
-  TaskManager taskManager;
+  // TODO: look into autowiring
+  @Autowired TaskManager taskManager;
 
-  public FlowerDockerService(TaskManager taskManager) {
-    this.taskManager = taskManager;
+  public FlowerDockerService() {
+    System.out.println("starting");
+    //    this.taskManager = new TaskManager();
   }
 
   public void copyDataToContainer(

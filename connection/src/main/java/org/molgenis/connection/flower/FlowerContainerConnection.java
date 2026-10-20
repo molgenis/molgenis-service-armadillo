@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-
 import org.molgenis.connection.flower.service.FlowerDockerService;
 
 public class FlowerContainerConnection {
@@ -30,13 +29,14 @@ public class FlowerContainerConnection {
   private final FlowerDockerService dockerService;
   private static final String DATA_DIR = "/tmp/armadillo_data";
 
-  public FlowerContainerConnection(String containerName, FlowerDockerService dockerService) {
+  public FlowerContainerConnection(String containerName) {
     this.containerName = containerName;
-    this.dockerService = dockerService;
+    // TODO figure out how to do this with spring, but over it for now
+    this.dockerService = new FlowerDockerService();
   }
 
   public void pushData(String fileName, InputStream in) throws IOException {
-    Path tmp = Files.createTempFile("flower-upload-", ".tmp");
+    Path tmp = Files.createTempFile("flower-upload-", fileName + ".tmp");
     try {
       long size = Files.copy(in, tmp, StandardCopyOption.REPLACE_EXISTING);
       try (InputStream data = new BufferedInputStream(Files.newInputStream(tmp))) {

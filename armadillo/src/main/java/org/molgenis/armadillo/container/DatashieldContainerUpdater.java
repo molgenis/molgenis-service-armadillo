@@ -16,7 +16,7 @@ public class DatashieldContainerUpdater
 
   @Override
   public ContainerConfig updateDefaultImageMetadata(
-          DataShieldContainerConfig existingConfig, DefaultImageMetadata metadata) {
+      DataShieldContainerConfig existingConfig, DefaultImageMetadata metadata) {
     return existingConfig.toBuilder()
         .lastImageId(metadata.currentImageId())
         .imageSize(metadata.imageSize())
@@ -29,7 +29,7 @@ public class DatashieldContainerUpdater
 
   @Override
   public ContainerConfig updateOpenContainersMetaData(
-          DataShieldContainerConfig existingConfig, OpenContainersImageMetadata metadata) {
+      DataShieldContainerConfig existingConfig, OpenContainersImageMetadata metadata) {
     return existingConfig.toBuilder()
         .versionId(metadata.openContainersId())
         .creationDate(metadata.creationDate())

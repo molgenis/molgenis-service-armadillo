@@ -161,7 +161,7 @@ public abstract class DataShieldContainerConfig
   public abstract Builder toBuilder();
 
   public static Builder builder() {
-    return new AutoValue_DatashieldContainerConfig.Builder();
+    return new AutoValue_DataShieldContainerConfig.Builder();
   }
 
   @AutoValue.Builder

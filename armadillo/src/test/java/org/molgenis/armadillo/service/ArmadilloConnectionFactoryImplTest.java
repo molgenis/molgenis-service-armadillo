@@ -27,8 +27,7 @@ class ArmadilloConnectionFactoryImplTest {
   @Mock RConnectionFactory rConnectionFactory;
   @Mock PackageService packageService;
   @Mock RServerConnection rConnection;
-  @Mock
-  DataShieldContainerConfig datashieldContainerConfig;
+  @Mock DataShieldContainerConfig datashieldContainerConfig;
 
   private ArmadilloConnectionFactoryImpl armadilloConnectionFactory;
 
