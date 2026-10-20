@@ -991,8 +991,8 @@ class DataShieldControllerTest extends ArmadilloControllerTestBase {
   @WithMockUser(roles = "SU")
   void testGetResources() throws Exception {
     when(armadilloStorage.listProjects()).thenReturn(List.of("gecko", "alspac"));
-    when(armadilloStorage.listResources("gecko")).thenReturn(List.of("hpc-resource-1"));
-    when(armadilloStorage.listResources("alspac")).thenReturn(List.of("hpc-resource-20"));
+    when(armadilloStorage.listResources("gecko")).thenReturn(List.of("hpc-object-1"));
+    when(armadilloStorage.listResources("alspac")).thenReturn(List.of("hpc-object-20"));
 
     mockMvc.perform(get("/resources").session(session)).andExpect(status().isOk());
 
@@ -1007,10 +1007,10 @@ class DataShieldControllerTest extends ArmadilloControllerTestBase {
   @Test
   @WithMockUser(roles = "SU")
   void testResourceExists() throws Exception {
-    when(armadilloStorage.resourceExists("gecko", "2_1-core-1_1/hpc-resource-1")).thenReturn(true);
+    when(armadilloStorage.resourceExists("gecko", "2_1-core-1_1/hpc-object-1")).thenReturn(true);
 
     mockMvc
-        .perform(head("/resources/gecko/2_1-core-1_1/hpc-resource-1").session(session))
+        .perform(head("/resources/gecko/2_1-core-1_1/hpc-object-1").session(session))
         .andExpect(status().isOk());
 
     auditEventValidator.validateAuditEvent(
@@ -1027,21 +1027,21 @@ class DataShieldControllerTest extends ArmadilloControllerTestBase {
                 "gecko",
                 "folder",
                 "2_1-core-1_1",
-                "resource",
-                "hpc-resource-1")));
+                "object",
+                "hpc-object-1")));
   }
 
   @Test
   @WithMockUser(roles = "SU")
   void testLoadResource() throws Exception {
-    when(armadilloStorage.resourceExists("gecko", "2_1-core-1_1/hpc-resource-1")).thenReturn(true);
+    when(armadilloStorage.resourceExists("gecko", "2_1-core-1_1/hpc-object-1")).thenReturn(true);
     when(commands.loadResource(
-            any(Principal.class), eq("hpc_res"), eq("gecko/2_1-core-1_1/hpc-resource-1")))
+            any(Principal.class), eq("hpc_res"), eq("gecko/2_1-core-1_1/hpc-object-1")))
         .thenReturn(completedFuture(null));
 
     mockMvc
         .perform(
-            post("/load-resource?symbol=hpc_res&resource=gecko/2_1-core-1_1/hpc-resource-1")
+            post("/load-object?symbol=hpc_res&object=gecko/2_1-core-1_1/hpc-object-1")
                 .session(session))
         .andExpect(status().isOk());
 
@@ -1061,17 +1061,17 @@ class DataShieldControllerTest extends ArmadilloControllerTestBase {
                 "gecko",
                 "folder",
                 "2_1-core-1_1",
-                "resource",
-                "hpc-resource-1")));
+                "object",
+                "hpc-object-1")));
   }
 
   @Test
   @WithMockUser(roles = "SU")
   void testLoadResourceFails() throws Exception {
-    when(armadilloStorage.resourceExists("gecko", "2_1-core-1_1/hpc-resource-1")).thenReturn(false);
+    when(armadilloStorage.resourceExists("gecko", "2_1-core-1_1/hpc-object-1")).thenReturn(false);
     mockMvc
         .perform(
-            post("/load-resource?symbol=hpc_res&resource=gecko/2_1-core-1_1/hpc-resource-1")
+            post("/load-object?symbol=hpc_res&object=gecko/2_1-core-1_1/hpc-object-1")
                 .session(session))
         .andExpect(status().isOk());
 
@@ -1091,8 +1091,8 @@ class DataShieldControllerTest extends ArmadilloControllerTestBase {
                 "gecko",
                 "folder",
                 "2_1-core-1_1",
-                "resource",
-                "hpc-resource-1",
+                "object",
+                "hpc-object-1",
                 "message",
                 "Resource not found")));
   }

@@ -185,7 +185,7 @@ public class DataShieldController {
   @Operation(
       summary = "Get available resources",
       description =
-          "Return a list of (fully qualified) resource identifiers available for DataSHIELD operations")
+          "Return a list of (fully qualified) object identifiers available for DataSHIELD operations")
   @GetMapping(value = "/resources", produces = APPLICATION_JSON_VALUE)
   public List<String> getResources(Principal principal) {
     return auditEventPublisher.audit(
@@ -200,13 +200,13 @@ public class DataShieldController {
   }
 
   @Operation(
-      summary = "Check resource existence",
+      summary = "Check object existence",
       responses = {
         @ApiResponse(
             responseCode = "200",
-            description = "The resource exists and is available for DataSHIELD operations")
+            description = "The object exists and is available for DataSHIELD operations")
       })
-  @RequestMapping(value = "/resources/{project}/{folder}/{resource}", method = HEAD)
+  @RequestMapping(value = "/resources/{project}/{folder}/{object}", method = HEAD)
   public ResponseEntity<Void> resourceExists(
       Principal principal,
       @PathVariable String project,
@@ -222,10 +222,10 @@ public class DataShieldController {
   }
 
   @Operation(
-      summary = "Load resource",
-      description = "Load a resource",
+      summary = "Load object",
+      description = "Load a object",
       security = {@SecurityRequirement(name = "jwt")})
-  @PostMapping(value = "/load-resource")
+  @PostMapping(value = "/load-object")
   public CompletableFuture<ResponseEntity<Void>> loadResource(
       Principal principal,
       @Valid @Pattern(regexp = SYMBOL_RE) @RequestParam String symbol,

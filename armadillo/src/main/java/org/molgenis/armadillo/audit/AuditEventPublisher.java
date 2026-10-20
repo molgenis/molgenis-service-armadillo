@@ -39,6 +39,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String TABLE_EXISTS = "TABLE_EXISTS";
   public static final String LOAD_RESOURCE = "LOAD_RESOURCE";
   public static final String LOAD_RESOURCE_FAILURE = "LOAD_RESOURCE_FAILURE";
+  public static final String LOAD_DATA = "LOAD_DATA";
   public static final String REMOVE_SYMBOL = "REMOVE_SYMBOL";
   public static final String ASSIGN1 = "ASSIGN";
   public static final String ASSIGN_FAILURE = "ASSIGN_FAILURE";
@@ -101,7 +102,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String SELECTED_CONTAINER = "selectedContainer";
   public static final String TYPE = "type";
   public static final String FOLDER = "folder";
-  public static final String RESOURCE = "resource";
+  public static final String RESOURCE = "object";
   public static final String SYMBOL = "symbol";
   public static final String PROJECT = "project";
   public static final String CONTAINER = "container";

@@ -30,7 +30,7 @@ public class ResourceTokenService {
   private Clock clock = Clock.systemUTC();
 
   public ResourceTokenService(
-      @Value("${storage.resource-token-timeout:300}") long tokenValiditySeconds) {
+      @Value("${storage.object-token-timeout:300}") long tokenValiditySeconds) {
     try {
       this.tokenValiditySeconds = tokenValiditySeconds;
       KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");

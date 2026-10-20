@@ -611,17 +611,17 @@ class ArmadilloStorageServiceTest {
   @Test
   @WithMockUser(roles = "SU")
   void testResourceExists() {
-    when(storageService.objectExists(SHARED_GECKO, "hpc-resource.rds")).thenReturn(true);
-    boolean exists = armadilloStorage.resourceExists("gecko", "hpc-resource");
+    when(storageService.objectExists(SHARED_GECKO, "hpc-object.rds")).thenReturn(true);
+    boolean exists = armadilloStorage.resourceExists("gecko", "hpc-object");
     assertTrue(exists);
   }
 
   @Test
   @WithMockUser(roles = "SU")
   void testLoadResource() {
-    when(storageService.load(SHARED_GECKO, "hpc-resource.rds")).thenReturn(is);
+    when(storageService.load(SHARED_GECKO, "hpc-object.rds")).thenReturn(is);
 
-    InputStream resource = armadilloStorage.loadResource("gecko", "hpc-resource");
+    InputStream resource = armadilloStorage.loadResource("gecko", "hpc-object");
     assertNotNull(resource);
   }
 
@@ -630,9 +630,9 @@ class ArmadilloStorageServiceTest {
   void testListResources() {
     when(storageService.listBuckets()).thenReturn(singletonList(SHARED_GECKO));
     when(storageService.listObjects(SHARED_GECKO)).thenReturn(List.of(item));
-    when(item.name()).thenReturn("hpc-resource.rds");
+    when(item.name()).thenReturn("hpc-object.rds");
 
-    assertEquals(List.of("gecko/hpc-resource"), armadilloStorage.listResources("gecko"));
+    assertEquals(List.of("gecko/hpc-object"), armadilloStorage.listResources("gecko"));
   }
 
   @Test
