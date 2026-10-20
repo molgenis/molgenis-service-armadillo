@@ -216,7 +216,7 @@ class CommandsImplTest {
   @Test
   void testLoadResource() throws Exception {
     String gzippedContent =
-        "something /projects/gecko/objects/2_1-core-1_0%2Fhpc-object.rds something";
+        "something /projects/gecko/objects/2_1-core-1_0%2Fhpc-resource.rds something";
 
     // Create real gzipped bytes
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -288,7 +288,7 @@ class CommandsImplTest {
 
   @Test
   void testReadResource() throws Exception {
-    String originalContent = "This is a test object content";
+    String originalContent = "This is a test resource content";
 
     // Create real gzipped bytes
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -307,8 +307,7 @@ class CommandsImplTest {
   @Test
   void testExtractResourceInfo() {
     String fileInfo =
-        "X\u0000\u0000\u0000\u0003\u0000\u0004\u0005\u0000\u0000\u0003\u0005\u0000\u0000\u0000\u0000\u0005UTF-8\u0000\u0000\u0003\u0013\u0000\u0000\u0000\u0005\u0000\u0000\u0000\u0010\u0000\u0000\u0000\u0001\u0000\u0004\u0000\t\u0000\u0000\u0000\u0004test\u0000\u0000\u0000\u0010\u0000\u0000\u0000\u0001\u0000\u0004\u0000\t\u0000\u0000\u0000Uhttp://host.docker.internal:8080/storage/projects/omics/objects/ewas%2Fgse66351_1.rda\u0000\u0000\u0000�\u0000\u0000\u0000�\u0000\u0000\u0000\u0010\u0000\u0000\u0000\u0001\u0000\u0004\u0000\t\u0000\u0000\u0000ExpressionSet\u0000\u0000\u0004\u0002\u0000\u0000\u0000\u0001\u0000\u0004\u0000\t\u0000\u0000\u0000\u0005names\u0000\u0000\u0000\u0010\u0000\u0000\u0000\u0005\u0000\u0004\u0000\t\u0000\u0000\u0000\u0004name\u0000\u0004\u0000\t\u0000\u0000\u0000\u0003url\u0000\u0004\u0000\t\u0000\u0000\u0000\bidentity\u0000\u0004\u0000\t\u0000\u0000\u0000\u0006secret\u0000\u0004\u0000\t\u0000\u0000\u0000\u0006format\u0000\u0000\u0004\u0002\u0000\u0000\u0000\u0001\u0000\u0004\u0000\t\u0000\u0000\u0000\u0005class\u0000\u0000\u0000\u0010\u0000\u0000\u0000\u0001\u0000\u0004\u0000\t\u0000\u0000\u0000\bobject\u0000\u0000\u0000�";
-
+        "X\u0000\u0000\u0000\u0003\u0000\u0004\u0005\u0000\u0000\u0003\u0005\u0000\u0000\u0000\u0000\u0005UTF-8\u0000\u0000\u0003\u0013\u0000\u0000\u0000\u0005\u0000\u0000\u0000\u0010\u0000\u0000\u0000\u0001\u0000\u0004\u0000\t\u0000\u0000\u0000\u0004test\u0000\u0000\u0000\u0010\u0000\u0000\u0000\u0001\u0000\u0004\u0000\t\u0000\u0000\u0000Uhttp://host.docker.internal:8080/storage/projects/omics/objects/ewas%2Fgse66351_1.rda\u0000\u0000\u0000�\u0000\u0000\u0000�\u0000\u0000\u0000\u0010\u0000\u0000\u0000\u0001\u0000\u0004\u0000\t\u0000\u0000\u0000ExpressionSet\u0000\u0000\u0004\u0002\u0000\u0000\u0000\u0001\u0000\u0004\u0000\t\u0000\u0000\u0000\u0005names\u0000\u0000\u0000\u0010\u0000\u0000\u0000\u0005\u0000\u0004\u0000\t\u0000\u0000\u0000\u0004name\u0000\u0004\u0000\t\u0000\u0000\u0000\u0003url\u0000\u0004\u0000\t\u0000\u0000\u0000\bidentity\u0000\u0004\u0000\t\u0000\u0000\u0000\u0006secret\u0000\u0004\u0000\t\u0000\u0000\u0000\u0006format\u0000\u0000\u0004\u0002\u0000\u0000\u0000\u0001\u0000\u0004\u0000\t\u0000\u0000\u0000\u0005class\u0000\u0000\u0000\u0010\u0000\u0000\u0000\u0001\u0000\u0004\u0000\t\u0000\u0000\u0000\bresource\u0000\u0000\u0000�";
     HashMap<String, String> result = commands.extractResourceInfo(fileInfo);
 
     assertEquals("omics", result.get("project"));

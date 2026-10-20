@@ -783,7 +783,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
     someException.ifPresent(
         se -> {
           assertEquals(
-              "403 FORBIDDEN \"403 FORBIDDEN \"Token has no permissions for object project:lifecycle\"\"",
+              "403 FORBIDDEN \"403 FORBIDDEN \"Token has no permissions for resource project:lifecycle\"\"",
               se.getMessage());
         });
   }
@@ -813,7 +813,7 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
     someException.ifPresent(
         se -> {
           assertEquals(
-              "403 FORBIDDEN \"403 FORBIDDEN \"Token has no permissions for object object:test.parquet\"\"",
+              "403 FORBIDDEN \"403 FORBIDDEN \"Token has no permissions for resource object:test.parquet\"\"",
               se.getMessage());
         });
   }

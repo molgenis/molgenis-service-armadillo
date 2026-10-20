@@ -225,7 +225,7 @@ class CommandsImpl implements Commands {
           resourceTokenService.generateResourceToken(
               principal, resourceInfo.get("project"), resourceObjectName);
       return schedule(
-          new ArmadilloCommandImpl<>("Load object " + resource, false) {
+          new ArmadilloCommandImpl<>("Load resource " + resource, false) {
             @Override
             protected Void doWithConnection(RServerConnection connection) {
               InputStream inputStream = armadilloStorage.loadResource(project, objectName);
@@ -239,7 +239,7 @@ class CommandsImpl implements Commands {
             }
           });
     } catch (IOException e) {
-      throw new StorageException("Cannot read contents of object" + resource + "because: " + e);
+      throw new StorageException("Cannot read contents of resource" + resource + "because: " + e);
     }
   }
 

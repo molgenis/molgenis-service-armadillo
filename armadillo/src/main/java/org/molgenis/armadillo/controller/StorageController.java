@@ -393,7 +393,7 @@ public class StorageController {
     }
   }
 
-  @Operation(summary = "Download a object with internal token")
+  @Operation(summary = "Download a resource with internal token")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "Resource downloaded successfully"),
@@ -440,12 +440,12 @@ public class StorageController {
       if (claims.get("resource_object").toString().toLowerCase().equals(resourceObj)) {
         return auditDownloadObject(project, object, token, DOWNLOAD_RESOURCE);
       } else {
-        errorMsg = "Token has no permissions for object object:" + object;
+        errorMsg = "Token has no permissions for resource object:" + object;
         auditFailure(errorMsg, data, token);
         throw new ResponseStatusException(HttpStatus.FORBIDDEN, errorMsg);
       }
     } else {
-      errorMsg = "Token has no permissions for object project:" + project;
+      errorMsg = "Token has no permissions for resource project:" + project;
       auditFailure(errorMsg, data, token);
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, errorMsg);
     }

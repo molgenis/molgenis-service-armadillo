@@ -102,7 +102,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String SELECTED_CONTAINER = "selectedContainer";
   public static final String TYPE = "type";
   public static final String FOLDER = "folder";
-  public static final String RESOURCE = "object";
+  public static final String RESOURCE = "resource";
   public static final String SYMBOL = "symbol";
   public static final String PROJECT = "project";
   public static final String CONTAINER = "container";
