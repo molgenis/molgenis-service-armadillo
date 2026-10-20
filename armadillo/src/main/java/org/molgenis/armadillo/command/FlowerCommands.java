@@ -6,16 +6,18 @@ import java.io.InputStream;
 import org.molgenis.armadillo.container.FlowerSuperExecContainerConfig;
 // import org.molgenis.armadillo.exceptions.NotFlowerSuperexecContainerException;
 import org.molgenis.armadillo.metadata.ContainerService;
-// import org.molgenis.connection.flower.service.FlowerExecutorService;
+import org.molgenis.connection.flower.service.FlowerExecutorService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class FlowerCommands {
-  //  FlowerExecutorService flowerExecutorService;
+  FlowerExecutorService flowerExecutorService;
   private final ContainerService containerService;
 
-  public FlowerCommands(ContainerService containerService) {
-    //    this.flowerExecutorService = flowerExecutorService;
+  public FlowerCommands(
+      ContainerService containerService, @Autowired FlowerExecutorService flowerExecutorService) {
+    this.flowerExecutorService = flowerExecutorService;
     this.containerService = containerService;
   }
 
@@ -30,6 +32,6 @@ public class FlowerCommands {
     // "%2F" (not "_") stands in for "/" so "data/train" and "data_train" can't collide.
     String fileName = project + "_" + object.replace("/", "%2F");
     System.out.println(fileName);
-    //    flowerExecutorService.loadData(containerName, fileName, data);
+    flowerExecutorService.loadData(containerName, fileName, data);
   }
 }
