@@ -204,7 +204,7 @@ public class DataShieldController {
       responses = {
         @ApiResponse(
             responseCode = "200",
-            description = "The object exists and is available for DataSHIELD operations")
+            description = "The resource exists and is available for DataSHIELD operations")
       })
   @RequestMapping(value = "/resources/{project}/{folder}/{resource}", method = HEAD)
   public ResponseEntity<Void> resourceExists(
