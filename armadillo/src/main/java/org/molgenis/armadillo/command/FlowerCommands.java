@@ -8,15 +8,20 @@ import org.molgenis.armadillo.exceptions.NotFlowerSuperExecContainerException;
 import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.connection.flower.service.FlowerExecutorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 public class FlowerCommands {
   FlowerExecutorService flowerExecutorService;
   private final ContainerService containerService;
+  private final String rootDir;
 
   public FlowerCommands(
-      ContainerService containerService, @Autowired FlowerExecutorService flowerExecutorService) {
+      ContainerService containerService,
+      @Value("${storage.root-dir}") String rootDir,
+      @Autowired FlowerExecutorService flowerExecutorService) {
+    this.rootDir = rootDir;
     this.flowerExecutorService = flowerExecutorService;
     this.containerService = containerService;
   }
@@ -24,13 +29,15 @@ public class FlowerCommands {
   public void loadData(String project, String containerName, String object, InputStream data)
       throws Exception {
     var config = runAsSystem(() -> containerService.getByName(containerName));
+
     System.out.println(config);
     if (!(config instanceof FlowerSuperExecContainerConfig)) {
       throw new NotFlowerSuperExecContainerException(containerName);
     }
     // "%2F" (not "_") stands in for "/" so "data/train" and "data_train" can't collide.
-    String fileName = project + "_" + object.replace("/", "%2F");
+    String fileName = String.format("%s/%s/%s", rootDir, project, object);
     System.out.println(fileName);
+
     flowerExecutorService.loadData(containerName, fileName, data);
   }
 }
