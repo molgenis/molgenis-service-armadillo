@@ -2,6 +2,7 @@ package org.molgenis.connection.flower.helpers;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
@@ -11,12 +12,20 @@ public class TarFile {
   private final String fileName;
   private final InputStream data;
   private final long size;
+  private final PipedInputStream tarStream;
+  private static final int PIPE_BUFFER_BYTES = 1024 * 1024;
 
-  public TarFile(PipedOutputStream tarOut, String fileName, InputStream data, long size) {
-    this.outputStream = tarOut;
+  public TarFile(String fileName, InputStream data, long size) throws IOException {
+    this.tarStream = new PipedInputStream(PIPE_BUFFER_BYTES);
+    this.outputStream = new PipedOutputStream(tarStream);
+    ;
     this.fileName = fileName;
     this.data = data;
     this.size = size;
+  }
+
+  public PipedInputStream getTarStream() {
+    return this.tarStream;
   }
 
   public Void write() throws IOException {

@@ -9,7 +9,6 @@ import com.github.dockerjava.api.model.Frame;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.util.concurrent.FutureTask;
 import org.molgenis.connection.exceptions.ContainerNotFoundException;
 import org.molgenis.connection.exceptions.DataPushFailedException;
@@ -21,9 +20,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class FlowerDockerService {
   /** Helper class for FlowerContainerConnection */
-  private static final int PIPE_BUFFER_BYTES = 1024 * 1024;
-
   private final DockerClient dockerClient;
+
   private final TaskManager taskManager;
 
   public FlowerDockerService(DockerClient dockerClient, @Autowired TaskManager taskManager) {
@@ -71,14 +69,11 @@ public class FlowerDockerService {
     }
   }
 
-  // The tar is written on a separate thread into a pipe that Docker reads from, so memory use
-  // stays at one pipe buffer regardless of file size.
   private void streamTarToContainer(
       String dockerContainerName, String destDir, String fileName, InputStream data, long size)
       throws IOException {
-    PipedInputStream tarStream = new PipedInputStream(PIPE_BUFFER_BYTES);
-    PipedOutputStream tarOut = new PipedOutputStream(tarStream);
-    TarFile tar = new TarFile(tarOut, fileName, data, size);
+    TarFile tar = new TarFile(fileName, data, size);
+    PipedInputStream tarStream = tar.getTarStream();
     FutureTask<Void> writer = taskManager.create(tar::write);
     taskManager.start(writer);
     try (tarStream) {
