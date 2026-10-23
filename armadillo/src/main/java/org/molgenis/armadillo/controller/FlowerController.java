@@ -18,7 +18,7 @@ import java.util.Map;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.command.FlowerCommands;
 import org.molgenis.armadillo.metadata.FlowerDataRequest;
-import org.molgenis.armadillo.service.FlowerDataService;
+import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.*;
@@ -30,15 +30,15 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("flower")
 public class FlowerController {
 
-  private final FlowerDataService flowerDataService;
+  private final ArmadilloStorageService storageService;
   private final AuditEventPublisher auditor;
   private final FlowerCommands commands;
 
   public FlowerController(
       AuditEventPublisher auditor,
       @Autowired FlowerCommands commands,
-      @Autowired FlowerDataService flowerDataService) {
-    this.flowerDataService = flowerDataService;
+      @Autowired ArmadilloStorageService storageService) {
+    this.storageService = storageService;
     this.auditor = auditor;
     this.commands = commands;
   }
@@ -73,7 +73,7 @@ public class FlowerController {
   public void loadData(Principal principal, @Valid @RequestBody FlowerDataRequest request) {
     auditor.audit(
         () -> {
-          try (InputStream data = flowerDataService.loadData(request.project(), request.object())) {
+          try (InputStream data = storageService.loadObject(request.project(), request.object())) {
             commands.loadData(request.project(), request.containerName(), request.object(), data);
           } catch (Exception e) {
             throw new RuntimeException(

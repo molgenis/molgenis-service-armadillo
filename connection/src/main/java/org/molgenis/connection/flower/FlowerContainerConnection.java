@@ -1,9 +1,6 @@
 package org.molgenis.connection.flower;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import org.molgenis.connection.flower.service.FlowerDockerService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -36,15 +33,8 @@ public class FlowerContainerConnection {
     //        this.dockerService = new FlowerDockerService();
   }
 
-  public void pushData(String fileName, InputStream in, long size) throws IOException {
-    Path tmp = Files.createTempFile("flower-upload-", fileName + ".tmp");
-    try {
-      //      long size = Files.copy(in, tmp, StandardCopyOption.REPLACE_EXISTING);
-      this.dockerService.copyDataToContainer(containerName, DATA_DIR, fileName, in, size);
-      System.out.println("Writing!!!" + fileName);
-
-    } finally {
-      Files.deleteIfExists(tmp);
-    }
+  public void pushData(String fileName, InputStream in, long size) {
+    this.dockerService.copyDataToContainer(containerName, DATA_DIR, fileName, in, size);
+    System.out.println("Writing!!!" + fileName);
   }
 }

@@ -11,6 +11,8 @@ import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.concurrent.FutureTask;
+import org.molgenis.connection.exceptions.ContainerNotFoundException;
+import org.molgenis.connection.exceptions.DataPushFailedException;
 import org.molgenis.connection.flower.helpers.TarFile;
 import org.molgenis.connection.flower.helpers.TaskManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,9 +44,9 @@ public class FlowerDockerService {
       createDirectory(containerName, destDir);
       streamTarToContainer(containerName, destDir, fileName, data, size);
     } catch (NotFoundException e) {
-      //            throw new ContainerNotFoundException(containerName, e);
+      throw new ContainerNotFoundException(containerName, e);
     } catch (DockerException | IOException e) {
-      //            throw new DataPushFailedException(containerName, e);
+      throw new DataPushFailedException(containerName, e);
     }
   }
 

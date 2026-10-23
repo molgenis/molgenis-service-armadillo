@@ -22,7 +22,7 @@ public class FlowerExecutorService {
 
   // connection between armadillo and connection part of application for flower
   // can we use fully qualified filename so we can get filesize?
-  public void loadData(String container, String fileName, InputStream data) throws Exception {
+  public void loadData(String container, String fileName, InputStream data) {
     FlowerContainerConnection connection = this.connect(container);
     FlowerServerConnection serverConnection = new FlowerServerConnection(connection);
     serverConnection.writeFile(fileName, data);

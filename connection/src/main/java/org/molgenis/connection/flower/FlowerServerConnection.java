@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
+import org.apache.commons.io.FileUtils;
 import org.apache.hc.core5.http.NotImplementedException;
 import org.molgenis.connection.ServerConnection;
 import org.molgenis.connection.ServerResult;
@@ -22,14 +23,14 @@ public class FlowerServerConnection implements ServerConnection {
   }
 
   @Override
-  public void writeFile(String fileName, InputStream in) throws Exception {
+  public void writeFile(String fileName, InputStream in) {
     String[] splittedPath = fileName.split("/");
     String project = splittedPath[splittedPath.length - 3];
     String folder = splittedPath[splittedPath.length - 2];
     String file = splittedPath[splittedPath.length - 1];
     String armadilloFile =
         URLEncoder.encode(String.format("%s/%s/%s", project, folder, file), StandardCharsets.UTF_8);
-    long size = new File(fileName).length();
+    long size = FileUtils.sizeOf(new File(fileName));
     flowerContainerConnection.pushData(armadilloFile, in, size);
   }
 
