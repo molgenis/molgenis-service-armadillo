@@ -18,19 +18,12 @@ import org.molgenis.connection.flower.helpers.TaskManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-// import org.molgenis.connection.flower.exceptions.ContainerNotFoundException;
-// import org.molgenis.connection.flower.exceptions.DataPushFailedException;
-// import org.molgenis.connection.flower.helpers.TarFile;
-// import org.molgenis.connection.flower.helpers.TaskManager;
-
 @Service
 public class FlowerDockerService {
+  /** Helper class for FlowerContainerConnection */
   private static final int PIPE_BUFFER_BYTES = 1024 * 1024;
 
   private final DockerClient dockerClient;
-
-  //    // TODO: look into autowiring
-  //    @Autowired TaskManager taskManager;
   private final TaskManager taskManager;
 
   public FlowerDockerService(DockerClient dockerClient, @Autowired TaskManager taskManager) {
@@ -38,7 +31,7 @@ public class FlowerDockerService {
     this.taskManager = taskManager;
   }
 
-  public void copyDataToContainer(
+  public void copyCompressedDataToContainer(
       String containerName, String destDir, String fileName, InputStream data, long size) {
     try {
       createDirectory(containerName, destDir);

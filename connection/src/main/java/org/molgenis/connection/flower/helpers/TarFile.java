@@ -20,6 +20,8 @@ public class TarFile {
   }
 
   public Void write() throws IOException {
+    // The tar is written on a separate thread into a pipe that Docker reads from, so memory use
+    // stays at one pipe buffer regardless of file size.
     try (TarArchiveOutputStream tar = new TarArchiveOutputStream(this.outputStream)) {
       tar.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX);
       TarArchiveEntry entry = new TarArchiveEntry(fileName);

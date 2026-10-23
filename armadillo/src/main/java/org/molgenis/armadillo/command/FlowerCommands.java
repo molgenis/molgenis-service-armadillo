@@ -29,15 +29,11 @@ public class FlowerCommands {
 
   public void loadData(String project, String containerName, String object, InputStream data) {
     var config = runAsSystem(() -> containerService.getByName(containerName));
-
-    System.out.println(config);
     if (!(config instanceof FlowerSuperExecContainerConfig)) {
       throw new NotFlowerSuperExecContainerException(containerName);
     }
     // "%2F" (not "_") stands in for "/" so "data/train" and "data_train" can't collide.
     String fileName = String.format("%s/%s%s/%s", rootDir, SHARED_PREFIX, project, object);
-    System.out.println(fileName);
-
     flowerExecutorService.loadData(containerName, fileName, data);
   }
 }

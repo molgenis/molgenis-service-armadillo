@@ -1,16 +1,18 @@
 package org.molgenis.connection.flower;
 
-import java.io.File;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
-import org.apache.commons.io.FileUtils;
 import org.apache.hc.core5.http.NotImplementedException;
 import org.molgenis.connection.ServerConnection;
 import org.molgenis.connection.ServerResult;
+import org.molgenis.connection.flower.helpers.ArmadilloDataFile;
 
 public class FlowerServerConnection implements ServerConnection {
+  /***
+   * Flower equivalent for RockConnection and RServeConnection
+   * */
   FlowerContainerConnection flowerContainerConnection;
 
   public FlowerServerConnection(FlowerContainerConnection flowerContainerConnection) {
@@ -23,15 +25,12 @@ public class FlowerServerConnection implements ServerConnection {
   }
 
   @Override
-  public void writeFile(String fileName, InputStream in) {
-    String[] splittedPath = fileName.split("/");
-    String project = splittedPath[splittedPath.length - 3];
-    String folder = splittedPath[splittedPath.length - 2];
-    String file = splittedPath[splittedPath.length - 1];
-    String armadilloFile =
-        URLEncoder.encode(String.format("%s/%s/%s", project, folder, file), StandardCharsets.UTF_8);
-    long size = FileUtils.sizeOf(new File(fileName));
-    flowerContainerConnection.pushData(armadilloFile, in, size);
+  public void writeFile(String filePath, InputStream in) {
+    ArmadilloDataFile armadilloDataFile = new ArmadilloDataFile(filePath);
+    String urlEncodedDataFileName =
+        URLEncoder.encode(armadilloDataFile.getArmadilloFilePath(), StandardCharsets.UTF_8);
+    long size = armadilloDataFile.getSize();
+    flowerContainerConnection.pushData(urlEncodedDataFileName, in, size);
   }
 
   @Override

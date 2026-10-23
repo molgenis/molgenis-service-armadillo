@@ -10,10 +10,13 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class FlowerExecutorService {
+  /***
+   * Flower equivalent for RExecutorService in DataSHIELD
+   * */
   private final FlowerDockerService dockerService;
 
   public FlowerExecutorService(@Autowired FlowerDockerService flowerDockerService) {
-    dockerService = flowerDockerService;
+    this.dockerService = flowerDockerService;
   }
 
   private FlowerContainerConnection connect(String container) {
@@ -21,10 +24,9 @@ public class FlowerExecutorService {
   }
 
   // connection between armadillo and connection part of application for flower
-  // can we use fully qualified filename so we can get filesize?
-  public void loadData(String container, String fileName, InputStream data) {
+  public void loadData(String container, String filePath, InputStream data) {
     FlowerContainerConnection connection = this.connect(container);
     FlowerServerConnection serverConnection = new FlowerServerConnection(connection);
-    serverConnection.writeFile(fileName, data);
+    serverConnection.writeFile(filePath, data);
   }
 }

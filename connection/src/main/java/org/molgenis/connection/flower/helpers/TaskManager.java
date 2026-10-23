@@ -8,14 +8,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class TaskManager {
+  /** Helper class for FLowerContainerConnection */
   public FutureTask<Void> create(Callable<Void> task) {
-    return new FutureTask<>(
-        () -> {
-          task.call();
-          // TODO: not sure if we need this return anymore as write already returns null, test
-          // later!
-          return null;
-        });
+    return new FutureTask<>(task);
   }
 
   public void await(FutureTask<Void> task) throws IOException {
