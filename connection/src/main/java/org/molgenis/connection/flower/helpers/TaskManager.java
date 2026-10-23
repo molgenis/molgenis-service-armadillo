@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class TaskManager {
-  /** Helper class for FLowerContainerConnection */
+  /** Helper class for FlowerDockerService */
   public FutureTask<Void> create(Callable<Void> task) {
     return new FutureTask<>(task);
   }

@@ -7,7 +7,6 @@ import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Frame;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.util.concurrent.FutureTask;
 import org.molgenis.connection.exceptions.ContainerNotFoundException;
@@ -29,11 +28,10 @@ public class FlowerDockerService {
     this.taskManager = taskManager;
   }
 
-  public void copyCompressedDataToContainer(
-      String containerName, String destDir, String fileName, InputStream data, long size) {
+  public void copyCompressedDataToContainer(String containerName, String destDir, TarFile tar) {
     try {
       createDirectory(containerName, destDir);
-      streamTarToContainer(containerName, destDir, fileName, data, size);
+      streamTarToContainer(containerName, destDir, tar);
     } catch (NotFoundException e) {
       throw new ContainerNotFoundException(containerName, e);
     } catch (DockerException | IOException e) {
@@ -69,10 +67,8 @@ public class FlowerDockerService {
     }
   }
 
-  private void streamTarToContainer(
-      String dockerContainerName, String destDir, String fileName, InputStream data, long size)
+  private void streamTarToContainer(String dockerContainerName, String destDir, TarFile tar)
       throws IOException {
-    TarFile tar = new TarFile(fileName, data, size);
     PipedInputStream tarStream = tar.getTarStream();
     FutureTask<Void> writer = taskManager.create(tar::write);
     taskManager.start(writer);
