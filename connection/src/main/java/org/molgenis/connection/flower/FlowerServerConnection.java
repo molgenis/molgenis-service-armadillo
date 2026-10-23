@@ -27,6 +27,8 @@ public class FlowerServerConnection implements ServerConnection {
   @Override
   public void writeFile(String filePath, InputStream in) {
     ArmadilloDataFile armadilloDataFile = new ArmadilloDataFile(filePath);
+    // url encode so that "%2F" stands in for "/", instead of "_" so "data/train" and "data_train"
+    // can't collide
     String urlEncodedDataFileName =
         URLEncoder.encode(armadilloDataFile.getArmadilloFilePath(), StandardCharsets.UTF_8);
     long size = armadilloDataFile.getSize();
