@@ -8,6 +8,7 @@ import Actuator from "@/views/Actuator.vue";
 import Workspaces from "@/views/Workspaces.vue";
 import RemoteFiles from "@/views/RemoteFiles.vue";
 import System from "@/views/System.vue";
+import Request from "@/views/Request.vue";
 
 const routes = [
   {
@@ -57,6 +58,11 @@ const routes = [
     path: "/logs",
     name: "logs",
     component: RemoteFiles,
+  },
+  {
+    path: "/r/:requestId/:user/:requestData",
+    name: "request",
+    component: Request,
   },
   {
     path: "/control",
