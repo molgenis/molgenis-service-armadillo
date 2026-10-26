@@ -1,8 +1,6 @@
 package org.molgenis.connection.flower.service;
 
 import java.io.InputStream;
-// import org.molgenis.connection.flower.FlowerContainerConnection;
-// import org.molgenis.connection.flower.FlowerServerConnection;
 import org.molgenis.connection.flower.FlowerContainerConnection;
 import org.molgenis.connection.flower.FlowerServerConnection;
 import org.springframework.beans.factory.annotation.Autowired;
