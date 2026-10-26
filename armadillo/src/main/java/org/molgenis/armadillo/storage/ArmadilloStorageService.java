@@ -38,7 +38,6 @@ public class ArmadilloStorageService {
 
   public static final String SHARED_PREFIX = "shared-";
   public static final String USER_PREFIX = "user-";
-  public static final String BUCKET_REGEX = "(?=^.{3,63}$)(?!xn--)([a-z0-9][a-z0-9-]*[a-z0-9])";
   public static final String PARQUET = ".parquet";
   public static final String LINK_FILE = ".alf";
   public static final String RDS = ".rds";
@@ -46,13 +45,10 @@ public class ArmadilloStorageService {
   public static final String RDATA_EXT = ".RData";
   private final StorageService storageService;
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(LocalStorageService.class);
-  private final LocalStorageService localStorageService;
+  private static final Logger LOGGER = LoggerFactory.getLogger(ArmadilloStorageService.class);
 
-  public ArmadilloStorageService(
-      StorageService storageService, LocalStorageService localStorageService) {
+  public ArmadilloStorageService(StorageService storageService) {
     this.storageService = storageService;
-    this.localStorageService = localStorageService;
   }
 
   public String getFilenameWithoutExtension(String fileName) {
@@ -490,9 +486,9 @@ public class ArmadilloStorageService {
     throwIfDuplicate(project, objectParquet);
     CharacterSeparatedFile characterSeparatedFile = new CharacterSeparatedFile(file);
     characterSeparatedFile.setNumberOfRowsToDetermineTypeBy(numberOfRowsToDetermineTypeBy);
-    Path path = localStorageService.getObjectPathSafely(SHARED_PREFIX + project, objectParquet);
+    Path path = storageService.getObjectPathSafely(SHARED_PREFIX + project, objectParquet);
     try {
-      localStorageService.createBucketIfNotExists(SHARED_PREFIX + project);
+      storageService.createBucketIfNotExists(SHARED_PREFIX + project);
 
       // create parent dirs if needed
       //noinspection ResultOfMethodCallIgnored
