@@ -46,6 +46,7 @@ allprojects {
 }
 
 ext['tomcat.version'] = '10.1.59'
+ext['netty.version'] = '4.1.137.Final'
 
 if(getGitNameRef().contains("tags/") && !getGitNameRef().contains("~")) {
     def x = getGitNameRef().replace("tags/", "")

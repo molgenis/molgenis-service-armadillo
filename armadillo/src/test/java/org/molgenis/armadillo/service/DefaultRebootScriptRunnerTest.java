@@ -44,9 +44,13 @@ class DefaultRebootScriptRunnerTest {
   }
 
   @Test
-  void getUpdateLogFile_createsFileIfMissing() throws IOException {
+  void getUpdateLogFile_createsFileIfMissing() throws Exception {
     assertFalse(logFile.exists());
     scriptRunner.runRebootScript("true");
+    Thread updateThread = findThreadByName("update-armadillo");
+    if (updateThread != null) {
+      updateThread.join(2000);
+    }
     assertTrue(logFile.exists());
   }
 

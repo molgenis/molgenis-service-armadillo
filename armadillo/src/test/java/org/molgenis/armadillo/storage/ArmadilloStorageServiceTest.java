@@ -63,7 +63,6 @@ class ArmadilloStorageServiceTest {
   @Mock ObjectMetadata item;
   @Mock InputStream is;
   @Autowired ArmadilloStorageService armadilloStorage;
-  static LocalStorageService localStorageServiceMock = Mockito.mock(LocalStorageService.class);
 
   @EnableMethodSecurity
   @Configuration
@@ -71,7 +70,7 @@ class ArmadilloStorageServiceTest {
 
     @Bean
     ArmadilloStorageService armadilloStorageService(StorageService storageService) {
-      return new ArmadilloStorageService(storageService, localStorageServiceMock);
+      return new ArmadilloStorageService(storageService);
     }
   }
 
@@ -1061,8 +1060,7 @@ class ArmadilloStorageServiceTest {
     Mockito.when(mockFile.getInputStream())
         .thenReturn(new ByteArrayInputStream(csvData.getBytes()));
     Mockito.when(
-            localStorageServiceMock.getObjectPathSafely(
-                SHARED_PREFIX + projectName, objectName + PARQUET))
+            storageService.getObjectPathSafely(SHARED_PREFIX + projectName, objectName + PARQUET))
         .thenReturn(Path.of(objectLocation));
     Mockito.when(storageService.getRootDir()).thenReturn(tempDirWithPrefix.toString());
     Mockito.when(storageService.objectExists("gecko", objectName + PARQUET))

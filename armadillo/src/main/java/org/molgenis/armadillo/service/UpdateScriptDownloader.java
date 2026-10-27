@@ -31,19 +31,17 @@ public class UpdateScriptDownloader {
   }
 
   private String getScriptVersionTag(String version) {
-    // if script not available yet on current release:
-    String scriptVersionTag = "70429b0a4ebdb579fdfd66df9bacae3a67866135";
-    if (!version.equals("dev")) {
+    // if version not released yet:
+    String scriptVersionTag = "refs/heads/master";
+    if (version.endsWith("SNAPSHOT") || version.equals("dev")) {
+      return scriptVersionTag;
+    } else {
       version = version.replace("v", "");
     }
     String[] versionSplit = version.split("\\.");
-    try {
-      if (Integer.parseInt(versionSplit[0]) > 5
-          || (Integer.parseInt(versionSplit[0]) == 5 && Integer.parseInt(versionSplit[1]) >= 17)) {
-        scriptVersionTag = "refs/tags/v" + version;
-      }
-    } catch (NumberFormatException ignored) {
-      // when dev
+    if (Integer.parseInt(versionSplit[0]) > 5
+        || (Integer.parseInt(versionSplit[0]) == 5 && Integer.parseInt(versionSplit[1]) >= 17)) {
+      scriptVersionTag = "refs/tags/v" + version;
     }
     return scriptVersionTag;
   }
