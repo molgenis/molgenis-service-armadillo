@@ -28,7 +28,7 @@ dependencies {
     implementation 'org.springframework.security:spring-security-oauth2-jose'
 
     //other
-    implementation 'commons-io:commons-io:2.15.1'
+    implementation 'commons-io:commons-io:2.18.0'
     implementation 'org.rosuda.REngine:REngine:2.1.0'
     implementation 'org.rosuda.REngine:Rserve:1.8.1'
     implementation 'com.google.guava:guava:33.5.0-jre'
