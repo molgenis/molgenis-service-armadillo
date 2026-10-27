@@ -36,7 +36,7 @@ flowchart TD
     P2 --> K8S
     P3 --> K8S
 
-    P1 --> DS[Armadillo(DataSHIELD)]
+    P1 --> DS[Armadillo Servers - DataSHIELD]
     P2 --> DS
     P3 --> DS
 
