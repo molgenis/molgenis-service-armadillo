@@ -25,7 +25,6 @@
                   this user interface, please contact an administrator.
                 </div>
               </Alert>
-              {{ errorMessage }}
               <router-view />
             </div>
             <Login @loginEvent="reloadUser" v-else />
@@ -41,7 +40,7 @@
 import Navbar from "@/components/Navbar.vue";
 import Login from "@/views/Login.vue";
 import Alert from "@/components/Alert.vue";
-import Footer from "./components/Footer.vue";
+import Footer from "@/components/Footer.vue";
 import { defineComponent, onMounted, ref, Ref } from "vue";
 import {
   getPrincipal,
@@ -81,6 +80,7 @@ export default defineComponent({
     });
 
     const loadUser = async () => {
+      isUnauthorised.value = false;
       await getPrincipal()
         .then((principal) => {
           isAuthenticated.value = principal.authenticated;
@@ -127,14 +127,14 @@ export default defineComponent({
         Users: "string",
         Workspaces: "string",
         Profiles: "string",
-        Insight: ["Metrics", "Logs"],
+        System: ["Metrics", "Logs", "Control"],
       },
       tabIcons: [
         "clipboard2-data",
         "people-fill",
         "person-workspace",
         "shield-shaded",
-        "brilliance",
+        "gear-fill",
       ],
     };
   },

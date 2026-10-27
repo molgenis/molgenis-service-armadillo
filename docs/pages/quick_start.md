@@ -19,7 +19,7 @@ Below we provide a quick start for each type of user:
 Data management can be done in different ways: the Armadillo User Interface, the MolgenisArmadillo R client, or using DsUpload. 
 
 ### User interface
-In the armadillo user interface, data managers can login and manage users, projects, workspaces and profiles. They can also see the logs (e.g. to understand errors that may have occurred or to monitor use). To get to know more about the UI, visit the [usage examples page](examples_usage.md).
+In the armadillo user interface, data managers can login and manage users, projects, workspaces and profiles. They can also see the logs (e.g. to understand errors that may have occurred or to monitor use). To get to know more about the UI, visit the [UI page](basic_usage/armadillo_ui.md).
 
 ![ui-projects.png](../img/ui-projects.png){ width="1000" }
 
@@ -84,13 +84,13 @@ library(dsBaseClient)
 With these libraries, you can now login to Armadillo. Note - here we don't specify a profile so you will log in to the default profile. If there is a specific profile you want to connect to you can specify this with the argument e.g. `profile = donkey`.
 ```R
 url <- "https://armadillo-playground.molgenis.net//"
-token <- armadillo.get_token(url)
+token <- armadillo.get_credentials(url)
 builder <- DSI::newDSLoginBuilder()
 
 builder$append(
   server = "armadillo",
   url = url,
-  token = token,
+  token = token@access_token,
   driver = "ArmadilloDriver")
   
 logindata <- builder$build()

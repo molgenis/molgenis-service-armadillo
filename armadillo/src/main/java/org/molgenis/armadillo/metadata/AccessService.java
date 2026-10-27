@@ -269,9 +269,14 @@ public class AccessService {
             settings.getProjects(),
             settings.getPermissions().stream()
                 .filter(
+                    // keep everything EXCEPT the exact (email, project) pair being deleted.
+                    // NB: this must be "||", not "&&" - with "&&" a permission survives only
+                    // if it differs on BOTH email and project, which (by De Morgan's law)
+                    // ends up deleting every permission for that email (any project) plus
+                    // every permission for that project (any email) - far more than intended.
                     projectPermission ->
-                        !projectPermission.getProject().equals(project)
-                            && !projectPermission.getEmail().equals(email))
+                        !(projectPermission.getProject().equals(project)
+                            && projectPermission.getEmail().equals(email)))
                 .collect(Collectors.toSet()));
 
     save();

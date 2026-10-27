@@ -10,7 +10,9 @@ import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
+import org.molgenis.r.exceptions.ConnectionCreationFailedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -40,11 +42,13 @@ class AuthenticationFilterTest {
   void testDoFilter_ActuatorProtectedEndpoint_SetsAuthentication() throws Exception {
     when(request.getRequestURI()).thenReturn("/actuator/env");
 
-    mockStatic(AuthenticationService.class)
-        .when(() -> AuthenticationService.getAuthentication(request, "test-token"))
-        .thenReturn(authentication);
+    try (MockedStatic<AuthenticationService> mocked = mockStatic(AuthenticationService.class)) {
+      mocked
+          .when(() -> AuthenticationService.getAuthentication(request, "test-token"))
+          .thenReturn(authentication);
 
-    filter.doFilter(request, response, filterChain);
+      filter.doFilter(request, response, filterChain);
+    }
 
     SecurityContext ctx = SecurityContextHolder.getContext();
     assertEquals(authentication, ctx.getAuthentication());
@@ -63,12 +67,32 @@ class AuthenticationFilterTest {
   }
 
   @Test
-  void testDoFilter_ExceptionHandling_ReturnsUnauthorized() {
-    when(request.getRequestURI()).thenThrow(new RuntimeException("Test Exception"));
+  void testDoFilter_AuthenticationFails_ReturnsUnauthorized() throws Exception {
+    when(request.getRequestURI()).thenReturn("/actuator/env");
 
-    filter.doFilter(request, response, filterChain);
+    try (MockedStatic<AuthenticationService> mocked = mockStatic(AuthenticationService.class)) {
+      mocked
+          .when(() -> AuthenticationService.getAuthentication(request, "test-token"))
+          .thenThrow(new RuntimeException("bad token"));
+
+      filter.doFilter(request, response, filterChain);
+    }
 
     verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     verify(response).setContentType("application/json");
+    verify(filterChain, never()).doFilter(any(), any());
+  }
+
+  @Test
+  void testDoFilter_DownstreamException_Propagates() throws Exception {
+    when(request.getRequestURI()).thenReturn("/data/something");
+    doThrow(new ConnectionCreationFailedException("R server down"))
+        .when(filterChain)
+        .doFilter(request, response);
+
+    assertThrows(
+        ConnectionCreationFailedException.class,
+        () -> filter.doFilter(request, response, filterChain));
+    verify(response, never()).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
   }
 }

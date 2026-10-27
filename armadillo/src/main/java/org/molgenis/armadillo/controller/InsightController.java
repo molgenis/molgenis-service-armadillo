@@ -3,8 +3,7 @@ package org.molgenis.armadillo.controller;
 import static java.util.Objects.requireNonNull;
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
 import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
+import static org.springframework.http.MediaType.*;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -70,6 +69,19 @@ public class InsightController {
   @ResponseStatus(OK)
   public List<FileInfo> filesList(Principal principal) {
     return auditor.audit(insightService::filesInfo, principal, LIST_FILES, Map.of());
+  }
+
+  @Operation(summary = "Get support email")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "return support email address"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+      })
+  @GetMapping(path = "support-email", produces = APPLICATION_JSON_VALUE)
+  @ResponseStatus(OK)
+  public Map<String, String> getSupportEmail(Principal principal) {
+    return auditor.audit(
+        insightService::getSupportEmailAddress, principal, "GET_SUPPORT_EMAIL_ADDRESS", Map.of());
   }
 
   @Operation(summary = "File details")
