@@ -1,7 +1,6 @@
 package org.molgenis.armadillo.controller;
 
 import static org.molgenis.armadillo.audit.AuditEventPublisher.*;
-import static org.molgenis.armadillo.controller.ContainerDockerController.DOCKER_MANAGEMENT_ENABLED;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,12 +19,10 @@ import org.molgenis.armadillo.command.FlowerCommands;
 import org.molgenis.armadillo.metadata.FlowerDataRequest;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "flower", description = "Flower federated learning")
 @RestController
-@ConditionalOnProperty(DOCKER_MANAGEMENT_ENABLED)
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping("flower")
 public class FlowerController {
