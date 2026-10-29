@@ -633,7 +633,8 @@ public class DataShieldController {
         storage.createArmadilloLinkFileFromStream(armadilloLinkFileStream, project, objectName);
     String sourceProject = linkFile.getSourceProject();
     String sourceObject = linkFile.getSourceObject();
-    if (runAsSystem(() -> storage.hasObject(sourceProject, sourceObject + PARQUET))) {
+    if (Boolean.TRUE.equals(
+        runAsSystem(() -> storage.hasObject(sourceProject, sourceObject + PARQUET)))) {
       List<String> variableList = getLinkedVariables(linkFile, variables);
       HashMap<String, Object> finalData = data;
       return runAsSystem(

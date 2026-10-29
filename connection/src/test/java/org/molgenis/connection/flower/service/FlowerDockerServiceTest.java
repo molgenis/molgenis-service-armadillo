@@ -148,7 +148,7 @@ class FlowerDockerServiceTest {
   }
 
   @Test
-  void createDirectoryDoesNotThrowOnExitCodeZero() throws Exception {
+  void createDirectoryDoesNotThrowOnExitCodeZero() {
     stubMkdirExec(0L);
 
     assertDoesNotThrow(() -> service.createDirectory(CONTAINER, DEST_DIR));
@@ -165,7 +165,7 @@ class FlowerDockerServiceTest {
   }
 
   @Test
-  void createDirectoryThrowsOnNullExitCode() throws Exception {
+  void createDirectoryThrowsOnNullExitCode() {
     stubMkdirExec(null);
 
     IOException e =
@@ -192,7 +192,7 @@ class FlowerDockerServiceTest {
   }
 
   @Test
-  void copyCreatesDirectoryThenStreamsTar() throws Exception {
+  void copyCreatesDirectoryThenStreamsTar() {
     stubMkdirExec(0L);
     stubTarStreaming();
 
@@ -204,7 +204,7 @@ class FlowerDockerServiceTest {
   }
 
   @Test
-  void copyPassesStreamAndRemotePathToDocker() throws Exception {
+  void copyPassesStreamAndRemotePathToDocker() {
     stubMkdirExec(0L);
     stubTarStreaming();
 
@@ -286,7 +286,7 @@ class FlowerDockerServiceTest {
   }
 
   @Test
-  void copyThrowsContainerNotFoundWhenCopyReportsNotFound() throws Exception {
+  void copyThrowsContainerNotFoundWhenCopyReportsNotFound() {
     stubMkdirExec(0L);
     stubTarStreaming();
     NotFoundException notFound = new NotFoundException("no such container");
@@ -315,7 +315,7 @@ class FlowerDockerServiceTest {
   }
 
   @Test
-  void copyThrowsDataPushFailedWhenMkdirFails() throws Exception {
+  void copyThrowsDataPushFailedWhenMkdirFails() {
     stubMkdirExec(2L);
 
     DataPushFailedException e =
