@@ -48,7 +48,6 @@ import org.molgenis.armadillo.storage.ArmadilloStorageService;
 import org.molgenis.connection.datashield.RServerResult;
 import org.molgenis.connection.datashield.model.RPackage;
 import org.obiba.datashield.core.DSMethod;
-import org.rosuda.REngine.REXPMismatchException;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -65,7 +64,7 @@ import org.springframework.web.server.ResponseStatusException;
 @PreAuthorize("isAuthenticated() and !authentication.authorities.empty")
 @RestController
 @Validated
-public class DataController {
+public class DataShieldController {
 
   public static final String SYMBOL_RE = "\\p{Alnum}[\\w.]*";
   public static final String SYMBOL_CSV_RE = "\\p{Alnum}[\\w.]*+(,\\p{Alnum}[\\w.]*+)*+";
@@ -81,7 +80,7 @@ public class DataController {
   private final ExpressionRewriter expressionRewriter;
   private final DSEnvironmentCache dsEnvironmentCache;
 
-  public DataController(
+  public DataShieldController(
       Commands commands,
       ArmadilloStorageService storage,
       AuditEventPublisher auditEventPublisher,
@@ -255,7 +254,7 @@ public class DataController {
   @Operation(summary = "Get assigned symbols")
   @GetMapping(value = "/symbols", produces = APPLICATION_JSON_VALUE)
   public List<String> getSymbols(Principal principal)
-      throws ExecutionException, InterruptedException, REXPMismatchException {
+      throws ExecutionException, InterruptedException {
     CompletableFuture<RServerResult> result =
         auditEventPublisher.audit(
             commands.evaluate("base::ls()"), principal, GET_ASSIGNED_SYMBOLS, Map.of());
@@ -368,7 +367,7 @@ public class DataController {
   }
 
   @GetMapping(value = "profiles")
-  public @ResponseBody ContainersResponse listContainers(Principal principal) {
+  public ContainersResponse listContainers(Principal principal) {
     return auditEventPublisher.audit(
         () ->
             ContainersResponse.create(commands.listContainers(), commands.getActiveContainerName()),
@@ -587,7 +586,7 @@ public class DataController {
       List<String> variableList,
       Principal principal,
       Map<String, Object> data,
-      Boolean async) {
+      boolean async) {
     var result =
         auditEventPublisher.audit(
             commands.loadTable(symbol, table, variableList), principal, LOAD_TABLE, data);
@@ -603,11 +602,11 @@ public class DataController {
     List<String> variableList = getVariableList(variables);
     var invalidVariables =
         variableList.stream().filter(element -> !allowedVariables.contains(element)).toList();
-    if (invalidVariables.size() > 0) {
+    if (!invalidVariables.isEmpty()) {
       String invalid = invalidVariables.toString();
       throw new UnknownVariableException(linkFile.getProject(), linkFile.getLinkObject(), invalid);
     }
-    return variableList.size() == 0
+    return variableList.isEmpty()
         ? allowedVariables
         : variableList.stream().filter(allowedVariables::contains).toList();
   }
@@ -628,13 +627,14 @@ public class DataController {
       Principal principal,
       HashMap<String, Object> data,
       String symbol,
-      Boolean async) {
+      boolean async) {
     InputStream armadilloLinkFileStream = storage.loadObject(project, objectName + LINK_FILE);
     ArmadilloLinkFile linkFile =
         storage.createArmadilloLinkFileFromStream(armadilloLinkFileStream, project, objectName);
     String sourceProject = linkFile.getSourceProject();
     String sourceObject = linkFile.getSourceObject();
-    if (runAsSystem(() -> storage.hasObject(sourceProject, sourceObject + PARQUET))) {
+    if (Boolean.TRUE.equals(
+        runAsSystem(() -> storage.hasObject(sourceProject, sourceObject + PARQUET)))) {
       List<String> variableList = getLinkedVariables(linkFile, variables);
       HashMap<String, Object> finalData = data;
       return runAsSystem(

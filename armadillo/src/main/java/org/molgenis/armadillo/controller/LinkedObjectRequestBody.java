@@ -1,6 +1,6 @@
 package org.molgenis.armadillo.controller;
 
-import static org.molgenis.armadillo.controller.DataController.TABLE_RESOURCE_REGEX;
+import static org.molgenis.armadillo.controller.DataShieldController.TABLE_RESOURCE_REGEX;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;

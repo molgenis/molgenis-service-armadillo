@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.molgenis.armadillo.controller.DataController.TABLE_RESOURCE_REGEX;
+import static org.molgenis.armadillo.controller.DataShieldController.TABLE_RESOURCE_REGEX;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.LINK_FILE;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.PARQUET;
 import static org.obiba.datashield.core.DSMethodType.AGGREGATE;
@@ -25,7 +25,6 @@ import java.security.Principal;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
@@ -50,7 +49,6 @@ import org.obiba.datashield.core.impl.DefaultDSMethod;
 import org.obiba.datashield.r.expr.v2.ParseException;
 import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPRaw;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -62,13 +60,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MvcResult;
 
-@ExtendWith(SpringExtension.class)
-@WebMvcTest({DataController.class, MockMvcValidationConfiguration.class})
+@WebMvcTest({DataShieldController.class, MockMvcValidationConfiguration.class})
 @Import({TestSecurityConfig.class})
-class DataControllerTest extends ArmadilloControllerTestBase {
+class DataShieldControllerTest extends ArmadilloControllerTestBase {
 
   private static final RPackage BASE =
       RPackage.builder()
@@ -93,7 +89,6 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @MockitoBean private DSEnvironmentCache environments;
   @Mock private RockResult rexp;
   @Mock private DSEnvironment assignEnvironment;
-  @Autowired private DataController dataController;
 
   @Test
   @WithMockUser
@@ -440,7 +435,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   @WithMockUser
-  void testSaveWorkspaceWrongId() throws Exception {
+  void testSaveWorkspaceWrongId() {
     assertThrows(
         jakarta.servlet.ServletException.class,
         () -> mockMvc.perform(post("/workspaces/)servername:*wrongid-dash")));
@@ -614,12 +609,10 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     when(commands.assign("D", rewrittenExpression))
         .thenReturn(failedFuture(new NullPointerException("Execution failed")));
 
-    MvcResult mvcResult =
-        mockMvc
-            .perform(
-                post("/symbols/D").session(session).contentType(TEXT_PLAIN).content(expression))
-            .andExpect(status().isOk())
-            .andReturn();
+    mockMvc
+        .perform(post("/symbols/D").session(session).contentType(TEXT_PLAIN).content(expression))
+        .andExpect(status().isOk())
+        .andReturn();
 
     auditEventValidator.validateAuditEvent(
         new AuditEvent(
@@ -890,21 +883,21 @@ class DataControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   void testGetLinkedVariables() {
-    DataController dataController =
-        new DataController(
+    DataShieldController dataShieldController =
+        new DataShieldController(
             commands, armadilloStorage, auditEventPublisher, expressionRewriter, environments);
     ArmadilloLinkFile alfMock = mock(ArmadilloLinkFile.class);
     String selectedVariables = "my,variable,list";
     when(alfMock.getVariables()).thenReturn("my,full,complete,extended,variable,list");
     assertEquals(
         Arrays.stream(selectedVariables.split(",")).toList(),
-        dataController.getLinkedVariables(alfMock, selectedVariables));
+        dataShieldController.getLinkedVariables(alfMock, selectedVariables));
   }
 
   @Test
   void testGetLinkedInvalidVariables() {
-    DataController dataController =
-        new DataController(
+    DataShieldController dataShieldController =
+        new DataShieldController(
             commands, armadilloStorage, auditEventPublisher, expressionRewriter, environments);
     ArmadilloLinkFile alfMock = mock(ArmadilloLinkFile.class);
     String selectedVariables = "not,my,variable,list";
@@ -912,7 +905,7 @@ class DataControllerTest extends ArmadilloControllerTestBase {
     when(alfMock.getProject()).thenReturn("project");
     when(alfMock.getLinkObject()).thenReturn("object");
     try {
-      dataController.getLinkedVariables(alfMock, selectedVariables);
+      dataShieldController.getLinkedVariables(alfMock, selectedVariables);
     } catch (UnknownVariableException e) {
       assertEquals("Variables '[not]' do not exist in object 'project/object'", e.getMessage());
     }
@@ -920,12 +913,12 @@ class DataControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   void testGetVariableList() {
-    DataController dataController =
-        new DataController(
+    DataShieldController dataShieldController =
+        new DataShieldController(
             commands, armadilloStorage, auditEventPublisher, expressionRewriter, environments);
     String variables = "1,b,c";
     List<String> expected = Arrays.asList("1", "b", "c");
-    assertEquals(expected, dataController.getVariableList(variables));
+    assertEquals(expected, dataShieldController.getVariableList(variables));
   }
 
   @Test
@@ -1126,13 +1119,13 @@ class DataControllerTest extends ArmadilloControllerTestBase {
 
   @Test
   void testGetMatchedData() {
-    DataController dataController =
-        new DataController(
+    DataShieldController dataShieldController =
+        new DataShieldController(
             commands, armadilloStorage, auditEventPublisher, expressionRewriter, environments);
     String regex = "^([a-z0-9-]{0,55}[a-z0-9])/([\\w-:]+)/([\\w-:]+)$";
     java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(regex);
     HashMap<String, Object> matchedData =
-        dataController.getMatchedData(
+        dataShieldController.getMatchedData(
             pattern, "helllo123hihellogoodbye/somethingElse/Blaat", "RESOURCE");
     HashMap<String, Object> expected = new HashMap<>();
     expected.put("project", "helllo123hihellogoodbye");
@@ -1144,7 +1137,8 @@ class DataControllerTest extends ArmadilloControllerTestBase {
   @Test
   void testGetSafeUserNameForFile() {
     String user = "username@email.com";
-    assertEquals("username__at__email.com", DataController.getSafeUsernameForFileSystem(user));
+    assertEquals(
+        "username__at__email.com", DataShieldController.getSafeUsernameForFileSystem(user));
   }
 
   @Test
