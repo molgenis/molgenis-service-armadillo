@@ -18,7 +18,6 @@ public class TarFile {
   public TarFile(String fileName, InputStream data, long size) throws IOException {
     this.tarStream = new PipedInputStream(PIPE_BUFFER_BYTES);
     this.outputStream = new PipedOutputStream(tarStream);
-    ;
     this.fileName = fileName;
     this.data = data;
     this.size = size;

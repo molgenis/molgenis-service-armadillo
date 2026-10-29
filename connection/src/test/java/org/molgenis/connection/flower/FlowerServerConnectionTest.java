@@ -68,7 +68,7 @@ class FlowerServerConnectionTest {
 
   @Test
   void writeFile_usesOnlyLastThreePathComponents(@TempDir Path tempDir) throws IOException {
-    byte[] content = new byte[] {1, 2, 3};
+    byte[] content = {1, 2, 3};
     Path dataFile = createFile(tempDir, "project", "folder", "data.parquet", content);
     InputStream in = new ByteArrayInputStream(content);
 
@@ -80,7 +80,7 @@ class FlowerServerConnectionTest {
   @Test
   void writeFile_encodesSlashesSoFoldersCannotCollideWithUnderscores(@TempDir Path tempDir)
       throws IOException {
-    byte[] content = new byte[] {1};
+    byte[] content = {1};
     Path withSlash = createFile(tempDir, "proj", "data", "train.txt", content);
     Path withUnderscore = createFile(tempDir, "proj", "data_train", "txt", content);
     InputStream in1 = new ByteArrayInputStream(content);
@@ -95,7 +95,7 @@ class FlowerServerConnectionTest {
 
   @Test
   void writeFile_encodesSpecialCharactersInFileName(@TempDir Path tempDir) throws IOException {
-    byte[] content = new byte[] {1, 2};
+    byte[] content = {1, 2};
     Path dataFile = createFile(tempDir, "proj", "fold", "my file.txt", content);
     InputStream in = new ByteArrayInputStream(content);
 

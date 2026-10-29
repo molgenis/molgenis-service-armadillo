@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.molgenis.armadillo.MockMvcValidationConfiguration;
 import org.molgenis.armadillo.TestSecurityConfig;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
@@ -24,9 +23,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@ExtendWith(SpringExtension.class)
 @WebMvcTest({FlowerController.class, MockMvcValidationConfiguration.class})
 @Import({TestSecurityConfig.class})
 @TestPropertySource(properties = "armadillo.docker-management-enabled=true")

@@ -84,7 +84,7 @@ class FlowerDockerServiceTest {
   }
 
   /** Stubs the whole mkdir exec chain so it completes with the given exit code. */
-  private void stubMkdirExec(Long exitCode) throws InterruptedException {
+  private void stubMkdirExec(Long exitCode) {
     stubExecCreate();
     stubExecStart();
     stubInspect(exitCode);

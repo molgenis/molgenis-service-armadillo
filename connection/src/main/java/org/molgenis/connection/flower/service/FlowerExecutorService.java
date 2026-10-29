@@ -4,9 +4,9 @@ import java.io.InputStream;
 import org.molgenis.connection.flower.FlowerContainerConnection;
 import org.molgenis.connection.flower.FlowerServerConnection;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 public class FlowerExecutorService {
   /***
    * Flower equivalent for RExecutorService in DataSHIELD

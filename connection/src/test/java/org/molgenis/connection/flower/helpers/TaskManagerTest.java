@@ -49,7 +49,7 @@ class TaskManagerTest {
     FutureTask<Void> first = taskManager.create(callable);
     FutureTask<Void> second = taskManager.create(callable);
 
-    assertTrue(first != second);
+    assertNotSame(first, second);
   }
 
   @Test
@@ -206,8 +206,6 @@ class TaskManagerTest {
               }
             });
     waiter.start();
-    // give the waiter time to block in task.get()
-    Thread.sleep(100);
     waiter.interrupt();
     waiter.join(5000);
 

@@ -119,6 +119,8 @@ class FlowerContainerConnectionTest {
   void pushData_exceptionFromDockerService_propagatesUnchanged() {
     String content = "hello flower";
     byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
+    InputStream in = stream(content);
+    long size = bytes.length;
     DataPushFailedException expected =
         new DataPushFailedException(CONTAINER_NAME, new IOException("docker copy failed"));
     doThrow(expected)
@@ -127,8 +129,7 @@ class FlowerContainerConnectionTest {
 
     DataPushFailedException thrown =
         assertThrows(
-            DataPushFailedException.class,
-            () -> connection.pushData("data.csv", stream(content), bytes.length));
+            DataPushFailedException.class, () -> connection.pushData("data.csv", in, size));
 
     assertSame(expected, thrown);
   }

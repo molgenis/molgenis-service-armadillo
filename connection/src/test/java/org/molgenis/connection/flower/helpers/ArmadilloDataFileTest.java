@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class ArmadilloDataFileTest {
 
@@ -33,30 +35,12 @@ class ArmadilloDataFileTest {
   }
 
   @Test
-  void getArmadilloFilePath_returnsLastThreeComponents() {
-    ArmadilloDataFile file = new ArmadilloDataFile("project/folder/file.parquet");
-    assertEquals("project/folder/file.parquet", file.getArmadilloFilePath());
-  }
-
-  @Test
   void longPath_onlyLastThreeComponentsAreUsed() {
     ArmadilloDataFile file = new ArmadilloDataFile("/tmp/data/more/project/folder/file.parquet");
 
     assertEquals("project", file.getProjectName());
     assertEquals("folder", file.getFolderName());
     assertEquals("file.parquet", file.getFileName());
-    assertEquals("project/folder/file.parquet", file.getArmadilloFilePath());
-  }
-
-  @Test
-  void absolutePathWithLeadingSlash_isHandled() {
-    ArmadilloDataFile file = new ArmadilloDataFile("/project/folder/file.parquet");
-    assertEquals("project/folder/file.parquet", file.getArmadilloFilePath());
-  }
-
-  @Test
-  void trailingSlash_isIgnoredBySplit() {
-    ArmadilloDataFile file = new ArmadilloDataFile("project/folder/file.parquet/");
     assertEquals("project/folder/file.parquet", file.getArmadilloFilePath());
   }
 
@@ -141,5 +125,17 @@ class ArmadilloDataFileTest {
     ArmadilloDataFile file = new ArmadilloDataFile(dataFile.toString());
 
     assertEquals("proj/fold/data.parquet", file.getArmadilloFilePath());
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "project/folder/file.parquet",
+        "/project/folder/file.parquet",
+        "project/folder/file.parquet/"
+      })
+  void getArmadilloFilePath(String filePath) {
+    ArmadilloDataFile file = new ArmadilloDataFile(filePath);
+    assertEquals("project/folder/file.parquet", file.getArmadilloFilePath());
   }
 }
