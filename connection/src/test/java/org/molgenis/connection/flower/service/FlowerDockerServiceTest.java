@@ -155,7 +155,7 @@ class FlowerDockerServiceTest {
   }
 
   @Test
-  void createDirectoryThrowsOnNonZeroExitCode() throws Exception {
+  void createDirectoryThrowsOnNonZeroExitCode() {
     stubMkdirExec(1L);
 
     IOException e =
