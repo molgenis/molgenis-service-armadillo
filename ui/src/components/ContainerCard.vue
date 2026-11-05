@@ -28,12 +28,14 @@
         </span>
         <span class="col-1 ps-1 pe-1 position-relative">
           <OnlineStatus
+            v-if="dockerManagementEnabled"
             class="position-absolute top-50 start-50 translate-middle"
             :status="status"
           />
         </span>
         <span class="col-1">
           <ContainerStartButton
+            v-if="dockerManagementEnabled"
             :name="name"
             :status="status"
             :startFunction="startFunction"
@@ -127,10 +129,10 @@ export default defineComponent({
     image: { type: String, required: true },
     port: { type: Number, required: false },
     size: { type: String, required: true },
-    version: { type: String, required: true },
+    version: { type: String, required: false },
     status: {
       type: Object as PropType<StatusMappingType>,
-      required: true,
+      required: false,
     },
     template: { type: String as PropType<ContainerType>, default: "default" },
     isLoading: { type: Boolean, default: false },
@@ -143,6 +145,7 @@ export default defineComponent({
     autoUpdate: { type: Boolean },
     updateSchedule: { type: Object as PropType<UpdateSchedule>, default: {} },
     options: { type: Object, default: {} },
+    dockerManagementEnabled: { type: Boolean, default: true },
   },
   data() {
     return {

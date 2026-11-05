@@ -56,6 +56,7 @@
           :autoUpdate="container.autoUpdate"
           :updateSchedule="container.updateSchedule"
           :options="getOtherOptions(container.options)"
+          :dockerManagementEnabled="container.dockerStatus != null"
         >
           <DataShieldContainerInfo
             v-if="container.image.startsWith('datashield/')"
@@ -67,7 +68,6 @@
             "
             :options="container.specificContainerOptions?.datashieldROptions"
           />
-          <!-- Add component for different types here -->
         </ContainerCard>
       </span>
     </div>
@@ -287,9 +287,13 @@ export default defineComponent({
     // Safe lookups: `container.container` only exists when Docker management
     // is enabled, so never dereference it directly in the template.
     getStatus(container) {
-      const key = container?.dockerStatus
-        .status as keyof typeof this.statusMapping;
-      return key ? this.statusMapping[key] : undefined;
+      if (container.dockerStatus == null) {
+        return undefined;
+      } else {
+        const key = container?.dockerStatus
+          .status as keyof typeof this.statusMapping;
+        return key ? this.statusMapping[key] : undefined;
+      }
     },
     // imageSize can be null (e.g. image not pulled yet), and convertBytes
     // calls .toFixed() on it, which throws and breaks the whole render.

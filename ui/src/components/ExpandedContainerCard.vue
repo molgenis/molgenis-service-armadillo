@@ -9,6 +9,7 @@
           </template>
         </ExpandedContainerProperty>
         <ExpandedContainerProperty
+          v-if="version"
           title="Version"
           :value="version"
           icon="file-diff"
@@ -80,7 +81,7 @@ export default defineComponent({
     image: { type: String, required: true },
     port: { type: Number, required: false },
     size: { type: String, required: true },
-    version: { type: String, required: true },
+    version: { type: String, required: false },
     installationDate: { type: String, default: "-" },
     creationDate: { type: String, default: "-" },
     template: { type: String as PropType<ContainerType>, default: "default" },
