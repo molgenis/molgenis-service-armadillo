@@ -150,3 +150,18 @@ export type ProfileStartStatus = {
   completedLayers: number | null;
   totalLayers: number | null;
 };
+
+export type AuthServerConfig = {
+  issuerUri?: string;
+  clientId?: string;
+  clientSecret?: string;
+  deviceClientId?: string;
+  deviceIssuerUri?: string;
+};
+
+export type DiskSpaceType = {
+  total: string;
+  free: string;
+  used: string;
+  percentage: number;
+};

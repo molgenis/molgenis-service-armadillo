@@ -1,0 +1,11 @@
+# Local config + installed packages + generated output
+.env
+.Rlib/
+.Rlib_*/
+.armadillo/
+results/*
+!results/.gitkeep
+Rplots.pdf
+.Rhistory
+.RData
+.DS_Store

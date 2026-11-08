@@ -20,6 +20,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class AuditEventPublisher implements ApplicationEventPublisherAware {
 
+  public static final String TRIGGER_SOFT_RESTART = "TRIGGER_SOFT_RESTART";
+  public static final String TRIGGER_HARD_RESTART = "TRIGGER_HARD_RESTART";
+  public static final String UPDATE_ARMADILLO = "UPDATE_ARMADILLO";
+  public static final String LIST_AVAILABLE_VERSIONS = "LIST_AVAILABLE_VERSIONS";
+  public static final String GET_OIDC_CONFIG = "GET_OIDC_CONFIG";
+  public static final String GET_RELEASE_VERSION = "GET_RELEASE_VERSION";
+  public static final String DOWNLOAD_ARMADILLO = "DOWNLOAD_ARMADILLO";
+  public static final String DOWNLOAD_UPDATE_SCRIPT = "DOWNLOAD_UPDATE_SCRIPT";
+  public static final String UPDATE_OIDC_CONFIG = "UPDATE_OIDC_CONFIG";
+  public static final String DELETE_JAR = "DELETE_JAR";
   public static final String SELECT_PROFILE = "SELECT_PROFILE";
   public static final String PROFILES = "PROFILES";
   public static final String GET_ASSIGNED_SYMBOLS = "GET_ASSIGNED_SYMBOLS";

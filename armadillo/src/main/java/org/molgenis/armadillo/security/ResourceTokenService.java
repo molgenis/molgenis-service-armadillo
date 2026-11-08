@@ -8,6 +8,7 @@ import java.security.KeyPairGenerator;
 import java.security.Principal;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.time.Clock;
 import java.time.Instant;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
@@ -26,6 +27,7 @@ public class ResourceTokenService {
 
   private final JwtEncoder jwtEncoder;
   private final RSAPublicKey publicKey;
+  private Clock clock = Clock.systemUTC();
 
   public ResourceTokenService(
       @Value("${storage.resource-token-timeout:300}") long tokenValiditySeconds) {
@@ -47,6 +49,11 @@ public class ResourceTokenService {
     }
   }
 
+  // For test purposes, allow the clock to be mocked
+  public void setClock(Clock clock) {
+    this.clock = clock;
+  }
+
   public RSAPublicKey getPublicKey() {
     return publicKey;
   }
@@ -58,7 +65,7 @@ public class ResourceTokenService {
             ? token.getToken().getClaimAsString("email")
             : principal.getName();
 
-    Instant now = Instant.now();
+    Instant now = Instant.now(clock);
     JwtClaimsSet claims =
         JwtClaimsSet.builder()
             .issuer(INTERNAL_ISSUER)

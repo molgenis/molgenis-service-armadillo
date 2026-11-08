@@ -1,0 +1,37 @@
+# Local Opal + Mongo + Rock for the benchmark. Versions and the admin password are
+# read from .env; run with:
+#   docker compose --env-file ../.env -f opal/docker-compose.yml up -d
+# OPAL_VERSION pins datashield/opal_citest; OPAL_ROCK_VERSION pins Opal's rock
+# engine, the PUBLISHED dsBase-version-pinned datashield/rock-base:<version> (match
+# it to the Armadillo profiles). Permissive disclosure is set per profile.
+services:
+  opal:
+    image: datashield/opal_citest:${OPAL_VERSION:-latest}
+    restart: unless-stopped
+    ports:
+      - "8443:8443"
+      - "${OPAL_LOCAL_PORT:-8081}:8080"
+    links:
+      - mongo
+      - rock
+    environment:
+      - OPAL_ADMINISTRATOR_PASSWORD=${OPAL_LOCAL_PASS:-datashield_test&}
+      - MONGO_HOST=mongo
+      - MONGO_PORT=27017
+      - MONGO_USER=root
+      - MONGO_PASSWORD=foobar
+      - ROCK_HOSTS=rock:8085
+      - ROCK_ADMINISTRATOR_PASSWORD=foobar
+
+  mongo:
+    image: mongo:8.0
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=foobar
+
+  rock:
+    image: datashield/rock-base:${OPAL_ROCK_VERSION:-latest}
+    restart: unless-stopped
+    environment:
+      DEBUG: "FALSE"

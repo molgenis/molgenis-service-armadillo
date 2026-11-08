@@ -4,7 +4,9 @@ import java.io.FileInputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.molgenis.armadillo.service.FileService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -18,6 +20,9 @@ public class InsightService {
   public static final String LOG_FILE = "LOG_FILE";
 
   private final FileService fileService;
+
+  @Value("${armadillo.oidc-admin-user:support@molgenis.org}")
+  private String supportEmailAddress;
 
   public InsightService(FileService fileService) {
     this.fileService = fileService;
@@ -98,6 +103,12 @@ public class InsightService {
       case LOG_FILE, AUDIT_FILE -> this.fileService.streamLogFile(getFileName(file_id));
       default -> (FileInputStream) FileInputStream.nullInputStream();
     };
+  }
+
+  public Map<String, String> getSupportEmailAddress() {
+    HashMap<String, String> support = new HashMap<>();
+    support.put("email", supportEmailAddress);
+    return support;
   }
 }
 

@@ -182,6 +182,7 @@ describe("ProjectsExplorer", () => {
 
     test("success message uploading a file", () => {
         expect(wrapper.vm.successMessage).toBe("");
+        wrapper.vm.selectedFolder = "folder-d-four";
         wrapper.vm.onUploadSuccess({object: "folder-d-four", filename: "some-new-file.extension"});
         expect(wrapper.vm.successMessage).toBe("Successfully uploaded file [some-new-file.extension] into directory [folder-d-four] of project: [some-project]");
     });
