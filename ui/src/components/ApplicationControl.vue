@@ -241,7 +241,10 @@ export default defineComponent({
   },
   computed: {
     isUpdateAvailable() {
-      return this.latestReleaseVersion != this.currentReleaseVersion;
+      const stripV = (version?: string) => version?.replace(/^v/, "");
+      return (
+        stripV(this.latestReleaseVersion) !== stripV(this.currentReleaseVersion)
+      );
     },
   },
 });
