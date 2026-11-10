@@ -39,7 +39,6 @@ armadillo:
 # network address, not a docker-internal hostname.
 #flower:
 #  armadillo-url: 'https://armadillo.yourdomain.org'
-
 # required settings:
 spring:
   security:
