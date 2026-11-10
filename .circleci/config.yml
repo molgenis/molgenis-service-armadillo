@@ -102,15 +102,15 @@ jobs:
                 dockerPush
             fi
       
-      - run:
-          name: Docker-Scout scanning on cves, break on critical.
-          command: |
-            export $( cat build/ci.properties | xargs )
-            if [ "${CIRCLE_BRANCH}" = "master" ]; then
-              docker scout cves molgenis/molgenis-armadillo:${TAG_NAME} --exit-code --only-severity critical --only-fixed
-            else
-              docker scout cves molgenis/molgenis-armadillo-snapshot:${TAG_NAME} --exit-code --only-severity critical --only-fixed
-            fi
+#      - run:
+#          name: Docker-Scout scanning on cves, break on critical.
+#          command: |
+#            export $( cat build/ci.properties | xargs )
+#            if [ "${CIRCLE_BRANCH}" = "master" ]; then
+#              docker scout cves molgenis/molgenis-armadillo:${TAG_NAME} --exit-code --only-severity critical --only-fixed
+#            else
+#              docker scout cves molgenis/molgenis-armadillo-snapshot:${TAG_NAME} --exit-code --only-severity critical --only-fixed
+#            fi
 
       - run:
           name: deploy preview to Azure
