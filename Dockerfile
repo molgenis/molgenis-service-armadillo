@@ -4,7 +4,7 @@ VOLUME /data
 VOLUME /config
 VOLUME /logs
 
-RUN apk update && apk add --no-cache libc6-compat
+RUN apk update && apk add --no-cache libc6-compat 'zlib>=1.4-r0'
 RUN apk upgrade --no-cache
 
 
