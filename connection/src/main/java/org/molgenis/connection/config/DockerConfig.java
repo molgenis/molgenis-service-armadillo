@@ -5,14 +5,15 @@ import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.transport.DockerHttpClient;
 import com.github.dockerjava.zerodep.ZerodepDockerHttpClient;
-import jakarta.ws.rs.ProcessingException;
 import java.time.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.DisabledException;
 
 @Configuration
 public class DockerConfig {
+  private static final Logger logger = LoggerFactory.getLogger(DockerConfig.class);
 
   @Bean
   public DockerClient dockerClient() {
@@ -30,9 +31,10 @@ public class DockerConfig {
 
     try {
       dockerClient.infoCmd().exec();
-    } catch (ProcessingException e) {
-      throw new DisabledException(
-          "Docker is offline or it is not configured correctly. Docker management and flower data upload are disabled.");
+    } catch (RuntimeException e) {
+      logger.warn(
+          "Docker is offline or not configured correctly. Docker management and flower data upload are disabled.",
+          e);
     }
     return dockerClient;
   }
