@@ -241,7 +241,7 @@ export default defineComponent({
   },
   computed: {
     isUpdateAvailable() {
-      return this.latestReleaseVersion !== this.currentReleaseVersion;
+      return this.latestReleaseVersion != this.currentReleaseVersion;
     },
   },
 });
