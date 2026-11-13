@@ -1,4 +1,4 @@
-package org.molgenis.armadillo.container;
+package org.molgenis.armadillo.config;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.*;
