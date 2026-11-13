@@ -1,0 +1,241 @@
+start_container <- function(container_name) {
+  auth_header <- get_auth_header(release_env$auth_type, release_env$token)
+  cli_progress_step(sprintf("Starting container: %s", container_name))
+  response <- POST(
+    sprintf("%scontainers/%s/start", release_env$armadillo_url, container_name),
+    config = c(httr::add_headers(auth_header))
+  )
+  if (response$status_code == 204) {
+    cli_progress_done()
+  } else if (response$status_code == 409) {
+    cli_progress_done()
+    cli_alert_info(sprintf("Container %s already running", container_name))
+  } else {
+    cli_progress_done(result = "failed")
+    exit_test(sprintf("Unable to start container %s, error code: %s", container_name, response$status_code))
+  }
+}
+
+
+get_installed_packages <- function() {
+  auth_header <- get_auth_header(release_env$auth_type, release_env$token)
+  base_url <- release_env$armadillo_url
+
+  h <- httr::handle(base_url)
+  auth_config <- httr::add_headers(auth_header)
+
+  select_response <- POST(
+    paste0(base_url, "select-profile"),
+    body = release_env$current_container,
+    encode = "raw",
+    config = c(httr::content_type("text/plain"), auth_config),
+    handle = h
+  )
+  if (select_response$status_code != 204) {
+    cli_alert_warning(sprintf(
+      "Failed to select container '%s' (status %s), package detection may be incomplete",
+      release_env$current_container, select_response$status_code
+    ))
+  }
+
+  response <- GET(
+    paste0(base_url, "packages"),
+    config = c(auth_config),
+    handle = h
+  )
+  if (response$status_code != 200) {
+    cli_alert_warning("Failed to fetch packages from API")
+    return(list())
+  }
+
+  content(response)
+}
+
+extract_ds_package_names <- function(packages) {
+  ds_packages <- character(0)
+  for (pkg in packages) {
+    if (!is.null(pkg$assignMethods) || !is.null(pkg$aggregateMethods)) {
+      ds_packages <- c(ds_packages, pkg$name)
+    }
+  }
+  ds_packages
+}
+
+refresh_container_info <- function() {
+  release_env$container_info <- get_from_api_with_header(
+    paste0("containers/", release_env$current_container),
+    release_env$token, release_env$auth_type,
+    release_env$armadillo_url, release_env$user
+  )
+}
+
+update_container_whitelist <- function(new_whitelist) {
+  args <- list(
+    type = "ds",
+    name = release_env$current_container,
+    image = release_env$container_info$image,
+    host = release_env$container_info$host,
+    port = release_env$container_info$port,
+    packageWhitelist = as.list(new_whitelist),
+    functionBlacklist = as.list(unlist(release_env$container_info$specificContainerOptions$functionBlacklist)),
+    datashieldROptions = release_env$container_info$specificContainerOptions$datashieldROptions
+  )
+  put_to_api(
+    "containers", release_env$token, release_env$auth_type,
+    body_args = args, url = release_env$armadillo_url
+  )
+}
+
+detect_and_whitelist_packages <- function() {
+  initialise_empty_whitelist()
+
+  ds_packages <- detect_installed_ds_packages()
+
+  update_whitelist_if_needed(ds_packages)
+
+  release_env$installed_ds_packages <- ds_packages
+}
+
+initialise_empty_whitelist <- function() {
+  current_whitelist <- unlist(release_env$container_info$specificContainerOptions$packageWhitelist)
+  if (length(current_whitelist) > 0) return()
+
+  cli_alert_info("Whitelist empty, initialising with dsBase")
+  response <- update_container_whitelist(c("dsBase"))
+  if (response$status_code == 204) {
+    refresh_container_info()
+  }
+}
+
+detect_installed_ds_packages <- function() {
+  cli_progress_step("Detecting installed DataShield packages")
+  packages <- get_installed_packages()
+  ds_packages <- extract_ds_package_names(packages)
+  if (length(ds_packages) == 0) {
+    cli_progress_done(result = "failed")
+    exit_test(sprintf("No DataShield packages detected for container '%s'",
+      release_env$current_container))
+  }
+  cli_progress_done()
+  ds_packages
+}
+
+update_whitelist_if_needed <- function(ds_packages) {
+  current_whitelist <- unlist(release_env$container_info$specificContainerOptions$packageWhitelist)
+  missing <- setdiff(ds_packages, current_whitelist)
+  if (length(missing) == 0) return()
+
+  cli_alert_info(sprintf("Auto-whitelisting: %s", paste(missing, collapse = ", ")))
+  response <- update_container_whitelist(union(current_whitelist, ds_packages))
+  if (response$status_code == 204) {
+    cli_alert_success("Container whitelist updated")
+    refresh_container_info()
+  } else {
+    cli_alert_warning(sprintf("Failed to update whitelist (status %s)", response$status_code))
+  }
+}
+
+show_container_info <- function() {
+  image <- release_env$container_info$image
+  ds_packages <- release_env$installed_ds_packages
+
+  all_ds_tests <- c("dsBase", "dsMediation", "dsSurvival", "dsMTLBase", "dsExposome", "dsOmics", "dsTidyverse")
+
+  user_skips <- release_env$skip_tests[release_env$skip_tests != ""]
+  not_installed <- setdiff(all_ds_tests, ds_packages)
+
+  cat("\n")
+  cli_alert_info(sprintf("Image: %s", image))
+  cli_alert_info(sprintf("DS packages: %s", paste(ds_packages, collapse = ", ")))
+  cli_alert_info(sprintf("Skipped by user: %s",
+    if (length(user_skips) == 0) "None" else paste(user_skips, collapse = ", ")))
+  cli_alert_info(sprintf("Skipped (package not available): %s",
+    if (length(not_installed) == 0) "None" else paste(not_installed, collapse = ", ")))
+  resource_tests <- c("setup-resources", "resources", "ds-exposome", "ds-omics")
+  cli_alert_info(sprintf("Skipped (admin mode): %s",
+    if (release_env$ADMIN_MODE) paste(resource_tests, collapse = ", ") else "None"))
+  cat("\n")
+}
+
+close_connections <- function() {
+  if (is.null(release_env$conns)) {
+    cli_alert_info("No open connections")
+    return()
+  }
+  cli_progress_step("Closing DataSHIELD connections")
+  datashield.logout(release_env$conns)
+  cli_progress_done()
+}
+
+restore_admin_permissions <- function() {
+  if (release_env$ADMIN_MODE) {
+    cli_alert_info("Running as admin, no permissions to restore")
+    return()
+  }
+  if (!isTRUE(release_env$admin_demoted)) {
+    cli_alert_info("Admin was not demoted, no permissions to restore")
+    return()
+  }
+  cli_progress_step("Restoring admin permissions")
+  set_user(TRUE, list())
+  cli_progress_done()
+}
+
+delete_created_projects <- function() {
+  projects <- unique(release_env$created_projects)
+  if (length(projects) == 0) {
+    cli_alert_info("No projects to delete")
+    return()
+  }
+  for (project in projects) {
+    tryCatch({
+      suppressMessages(armadillo.delete_project(project))
+      cli_alert_success(sprintf("Deleted project: %s", project))
+    }, error = function(e) {
+      cli_alert_warning(sprintf("Failed to delete project %s: %s", project, e$message))
+    })
+  }
+}
+
+teardown <- function() {
+  tryCatch(close_connections(), error = function(e) {
+    cli_alert_warning(sprintf("Failed to close connections: %s", e$message))
+  })
+
+  tryCatch(restore_admin_permissions(), error = function(e) {
+    cli_alert_warning(sprintf("Failed to restore admin permissions: %s", e$message))
+  })
+
+  if(!release_env$debug) {
+    tryCatch(delete_created_projects(), error = function(e) {
+    cli_alert_warning(sprintf("Failed to delete projects: %s", e$message))
+    })
+  } else {
+    cli_alert_warning("Running in debug mode - project deletion skipped")
+  }
+
+  cli_alert_success("Teardown complete")
+}
+
+setup_containers <- function() {
+  test_name <- "setup-containers"
+  if (should_skip_test(test_name)) {
+    return()
+  }
+
+  refresh_container_info()
+
+  if (!is.null(release_env$container_info$dockerStatus) &&
+      !identical(release_env$container_info$dockerStatus$status, "RUNNING")) {
+    start_container(release_env$current_container)
+  }
+  seed <- unlist(release_env$container_info$specificContainerOptions$datashieldROptions$datashield.seed)
+  if (is.null(seed)) {
+    cli_alert_warning(sprintf("Seed of container [%s] is NULL, please set it in UI container tab and restart the container",
+      release_env$current_container))
+    wait_for_input(release_env$interactive)
+    exit_test("Container not properly configured")
+  }
+  detect_and_whitelist_packages()
+  show_container_info()
+}

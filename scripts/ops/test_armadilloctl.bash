@@ -50,10 +50,10 @@ warning "Make sure Armadillo is running"
 
 ./armadilloctl.bash > $OUT || success "Needs a command."
 
-./armadilloctl.bash status > $OUT || success "status needs profile name"
+./armadilloctl.bash status > $OUT || success "status needs container name"
 ./armadilloctl.bash statusAll > $OUT && success "statusAll needs running Armadillo"
 
-./armadilloctl.bash stopAll > $OUT && success "stopAll needs running Armadillo"
+./armadilloctl.bash stopAll > $OUT && success "stopAll needs runningq Armadillo"
 
 do_sleep 5 "autoStart"
 ./armadilloctl.bash autoStart > $OUT && success "autoStart needs running Armadillo"

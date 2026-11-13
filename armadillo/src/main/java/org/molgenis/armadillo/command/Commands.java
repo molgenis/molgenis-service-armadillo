@@ -4,17 +4,17 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import org.molgenis.r.RServerResult;
-import org.molgenis.r.model.RPackage;
+import org.molgenis.connection.datashield.RServerResult;
+import org.molgenis.connection.datashield.model.RPackage;
 import org.springframework.core.io.Resource;
 
 public interface Commands {
 
-  List<String> listProfiles();
+  List<String> listContainers();
 
-  String getActiveProfileName();
+  String getActiveContainerName();
 
-  void selectProfile(String profileName);
+  void selectContainer(String containerName);
 
   CompletableFuture<RServerResult> evaluate(String expression);
 

@@ -25,63 +25,63 @@ is_armadillo_running() {
   curl $CURL_OPTS --request "GET" "${cmd}" > /dev/null || (error "Armadillo not running."; exit 1)
 }
 
-get_profiles() {
-  cmd="$ARMADILLO_URL/ds-profiles"
-  profile_names=$(curl $CURL_OPTS --user "${CREDENTIALS}" --request "GET" --header "accept: application/json" "${cmd}" | jq -r '.[] | "\(.name)"')
+get_containers() {
+  cmd="$ARMADILLO_URL/ds-containers"
+  container_names=$(curl $CURL_OPTS --user "${CREDENTIALS}" --request "GET" --header "accept: application/json" "${cmd}" | jq -r '.[] | "\(.name)"')
 }
 
 status() {
     if [ -z "$1" ]; then
-        error "$0 needs profile name. Or try ${0}All"
+        error "$0 needs container name. Or try ${0}All"
     fi
     name=$1
 
-    cmd="${ARMADILLO_URL}/ds-profiles/{$name}"
+    cmd="${ARMADILLO_URL}/ds-containers/{$name}"
     stats=$(curl $CURL_OPTS --user "${CREDENTIALS}" --request "GET" --header "accept: application/json" "${cmd}" | jq -r '"\(.name) = \(.container.status)"')
     success "$stats"
 }
 
 start() {
     if [ -z "$1" ]; then
-        error "$0 needs profile name. Or try ${0}All"
+        error "$0 needs container name. Or try ${0}All"
     fi
 
-    profile="$1"
-    cmd="$ARMADILLO_URL/ds-profiles/$profile/start"
-    echo "Starting '$profile' on $cmd"
+    container="$1"
+    cmd="$ARMADILLO_URL/ds-containers/$container/start"
+    echo "Starting '$container' on $cmd"
 
     curl $CURL_OPTS --user $CREDENTIALS --request "POST" "$cmd" --data ""
 }
 
 stop() {
     if [ -z "$1" ]; then
-        error "$0 needs profile name. Or try ${0}All"
+        error "$0 needs container name. Or try ${0}All"
     fi
 
-    profile="$1"
-    cmd="$ARMADILLO_URL/ds-profiles/$profile/stop"
-    echo "Stopping '$profile' on $cmd"
+    container="$1"
+    cmd="$ARMADILLO_URL/ds-containers/$container/stop"
+    echo "Stopping '$container' on $cmd"
 
     curl $CURL_OPTS --user $CREDENTIALS --request "POST" $cmd --data ""
 }
 
 restart() {
     if [ -z "$1" ]; then
-        error "$0 needs profile name. Or try ${0}All"
+        error "$0 needs container name. Or try ${0}All"
     fi
 
-    profile=$1
-    echo "Restarting $profile"
-    stop "$profile"
+    container=$1
+    echo "Restarting $container"
+    stop "$container"
     sleep 5
-    start "$profile"
+    start "$container"
     sleep 5
-    status "$profile"
+    status "$container"
 
 }
 
 is_auto_start() {
-  if [[ $ARMADILLO_PROFILES_AUTOSTART =~ (^|[[:space:]])$1($|[[:space:]]) ]]
+  if [[ $ARMADILLO_CONTAINERS_AUTOSTART =~ (^|[[:space:]])$1($|[[:space:]]) ]]
   then
     return 0
   else
@@ -91,9 +91,9 @@ is_auto_start() {
 
 doAll() {
   command=$1
-  get_profiles
+  get_containers
 
-  echo "${profile_names}" | while read -r item; do
+  echo "${container_names}" | while read -r item; do
     "$command" "${item}"
   done
 }
@@ -117,9 +117,9 @@ restartAll() {
 }
 
 autoStart() {
-    get_profiles
+    get_containers
     echo "Auto starting ..."
-    echo "${profile_names}" | while read -r item
+    echo "${container_names}" | while read -r item
     do
       if is_auto_start "${item}"
       then
@@ -156,8 +156,8 @@ all_set() {
   [[ -z "$ARMADILLO_ADMIN_PASSWORD" ]] && var_empty ARMADILLO_ADMIN_PASSWORD
 
   # Set to all if not set with value.
-  [[ -n "${ARMADILLO_PROFILES_AUTOSTART}" ]] && var_found ARMADILLO_PROFILES_AUTOSTART
-  [[ -z "${ARMADILLO_PROFILES_AUTOSTART}" ]] && ARMADILLO_PROFILES_AUTOSTART="__ALL__"
+  [[ -n "${ARMADILLO_CONTAINERS_AUTOSTART}" ]] && var_found ARMADILLO_CONTAINERS_AUTOSTART
+  [[ -z "${ARMADILLO_CONTAINERS_AUTOSTART}" ]] && ARMADILLO_CONTAINERS_AUTOSTART="__ALL__"
 
   CREDENTIALS="${ARMADILLO_ADMIN_USER}:${ARMADILLO_ADMIN_PASSWORD}"
 
@@ -165,7 +165,7 @@ all_set() {
   echo "Armadillo settings:"
   echo "  ARMADILLO_URL                : ${ARMADILLO_URL}"
   echo "  ARMADILLO_ADMIN_USER         : ${ARMADILLO_ADMIN_USER}"
-  echo "  ARMADILLO_PROFILES_AUTOSTART : ${ARMADILLO_PROFILES_AUTOSTART}"
+  echo "  ARMADILLO_CONTAINERS_AUTOSTART : ${ARMADILLO_CONTAINERS_AUTOSTART}"
 }
 
 check_dependencies || exit
@@ -174,7 +174,7 @@ all_set || exit
 
 is_armadillo_running || exit
 
-get_profiles
+get_containers
 
 if [[ "$1" =~ ^(status|start|stop|restart|statusAll|startAll|stopAll|restartAll|autoStart)$ ]]; then
     "$@"

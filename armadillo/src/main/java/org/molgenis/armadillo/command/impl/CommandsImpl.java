@@ -8,10 +8,15 @@ import static org.molgenis.armadillo.storage.ArmadilloStorageService.PARQUET;
 import static org.molgenis.armadillo.storage.ArmadilloStorageService.RDS;
 
 import jakarta.annotation.PreDestroy;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,19 +25,19 @@ import org.molgenis.armadillo.ArmadilloSession;
 import org.molgenis.armadillo.command.ArmadilloCommand;
 import org.molgenis.armadillo.command.ArmadilloCommandDTO;
 import org.molgenis.armadillo.command.Commands;
+import org.molgenis.armadillo.container.ActiveContainerNameAccessor;
+import org.molgenis.armadillo.container.ContainerConfig;
 import org.molgenis.armadillo.exceptions.StorageException;
-import org.molgenis.armadillo.metadata.ProfileConfig;
-import org.molgenis.armadillo.metadata.ProfileService;
-import org.molgenis.armadillo.profile.ActiveProfileNameAccessor;
+import org.molgenis.armadillo.metadata.ContainerService;
 import org.molgenis.armadillo.security.ResourceTokenService;
 import org.molgenis.armadillo.service.ArmadilloConnectionFactory;
 import org.molgenis.armadillo.storage.ArmadilloStorageService;
-import org.molgenis.r.RServerConnection;
-import org.molgenis.r.RServerResult;
-import org.molgenis.r.model.RPackage;
-import org.molgenis.r.service.PackageService;
-import org.molgenis.r.service.ProcessService;
-import org.molgenis.r.service.RExecutorService;
+import org.molgenis.connection.datashield.RServerConnection;
+import org.molgenis.connection.datashield.RServerResult;
+import org.molgenis.connection.datashield.model.RPackage;
+import org.molgenis.connection.datashield.service.PackageService;
+import org.molgenis.connection.datashield.service.ProcessService;
+import org.molgenis.connection.datashield.service.RExecutorService;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.task.TaskExecutor;
@@ -50,7 +55,7 @@ class CommandsImpl implements Commands {
   private final TaskExecutor taskExecutor;
   private final ArmadilloConnectionFactory connectionFactory;
   private final ProcessService processService;
-  private final ProfileService profileService;
+  private final ContainerService containerService;
   private final ResourceTokenService resourceTokenService;
 
   private ArmadilloSession armadilloSession;
@@ -65,7 +70,7 @@ class CommandsImpl implements Commands {
       TaskExecutor taskExecutor,
       ArmadilloConnectionFactory connectionFactory,
       ProcessService processService,
-      ProfileService profileService,
+      ContainerService containerService,
       ResourceTokenService resourceTokenService) {
     this.armadilloStorage = armadilloStorage;
     this.packageService = packageService;
@@ -73,26 +78,27 @@ class CommandsImpl implements Commands {
     this.taskExecutor = taskExecutor;
     this.connectionFactory = connectionFactory;
     this.processService = processService;
-    this.profileService = profileService;
+    this.containerService = containerService;
     this.resourceTokenService = resourceTokenService;
   }
 
   @Override
-  public String getActiveProfileName() {
-    return ActiveProfileNameAccessor.getActiveProfileName();
+  public String getActiveContainerName() {
+    return ActiveContainerNameAccessor.getActiveContainerName();
   }
 
   @Override
-  public void selectProfile(String profileName) {
-    runAsSystem(() -> profileService.getByName(profileName));
+  public void selectContainer(String containerName) {
+    runAsSystem(() -> containerService.getByName(containerName));
     if (armadilloSession != null) armadilloSession.sessionCleanup();
-    ActiveProfileNameAccessor.setActiveProfileName(profileName);
+    ActiveContainerNameAccessor.setActiveContainerName(containerName);
     armadilloSession = new ArmadilloSession(connectionFactory, processService);
   }
 
   @Override
-  public List<String> listProfiles() {
-    return runAsSystem(() -> profileService.getAll().stream().map(ProfileConfig::getName).toList());
+  public List<String> listContainers() {
+    return runAsSystem(
+        () -> containerService.getAll().stream().map(ContainerConfig::getName).toList());
   }
 
   @Override

@@ -15,7 +15,7 @@ For the latest 4.x release check https://github.com/molgenis/molgenis-service-ar
 
 Make a note of the version as you will use this below.
 
-## 1. Check your profile types
+## 1. Check your profiles types
 
 Check if the new profiles are compatible with your needs, these profile names can be edited later on in the manual:
 
@@ -53,7 +53,7 @@ docker container list
 docker container stop <id>
 docker container rm <id>
 
-# remove unneeded images/profiles (ie. caravan, ...)
+# remove unneeded images/containers (ie. caravan, ...)
 docker image list
 docker image rm <id>
 ```
@@ -195,12 +195,12 @@ Go to your armadillo website. Is the version in the left top corner updated? Thi
 Login into the website and go to the profiles tab. Here two profiles should be listed: `default` and `xenon`.
 Any other profiles can be removed.
 
-1. Edit the default profile.
+1. Edit the default profiles.
 2. Change the "image" to `datashield/rock-base:latest` and save.
-3. Start the default profile.
-4. Edit the "xenon" profile.
+3. Start the default profiles.
+4. Edit the "xenon" profiles.
 5. Change the "image" to `datashield/rock-dolomite-xenon:latest` and save.
-6. Start the xenon profile.
+6. Start the xenon profiles.
 
 Everything should now be working correctly. You can try and login to your server via the central analysis server, using
 the `DSMolgenisArmadillo` (2.0.5 or up) package to test.

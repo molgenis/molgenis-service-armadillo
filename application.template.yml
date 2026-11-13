@@ -1,4 +1,16 @@
 armadillo:
+  # default settings for new containers
+  container:
+    defaults:
+      # type: 'ds' for DataSHIELD, 'vanilla' for generic docker container
+      type: ds
+      image: datashield/molgenis-rock-base:latest
+      datashield:
+        whitelist:
+          - dsBase
+          - dsTidyverse
+        blacklist: [ ]
+
   # set this false if you DON'T want Armadillo to create/edit/delete profile docker images via the user interface
   docker-management-enabled: true
 
@@ -7,7 +19,7 @@ armadillo:
   docker-run-in-container: false
 
   # when running the R containers from a docker-compose.yml they get prefixes based on the directory name of the
-  # docker-compose.yml file ie armadillo-dev-" + profileName + "-1". Same goes for Armadillo ie armadillo-dev-armadillo-1"
+  # docker-compose.yml file ie armadillo-dev-" + containerName + "-1". Same goes for Armadillo ie armadillo-dev-armadillo-1"
   container-prefix: ''
 
   # uncomment this to configure an oidc user as admin user
@@ -21,6 +33,12 @@ armadillo:
   # mode armadillo is running in (DEV/PROD). Used for updating/restarting/configuring capabilities. Default: PROD
   # armadillo-mode: DEV
 
+# uncomment and set this to Armadillo's own externally-reachable URL if you use Flower containers —
+# required for flower-superexec containers to call back into Armadillo (e.g. POST /flower/push-data).
+# Armadillo cannot share a docker network with the containers it manages, so this must be a real
+# network address, not a docker-internal hostname.
+#flower:
+#  armadillo-url: 'https://armadillo.yourdomain.org'
 # required settings:
 spring:
   security:

@@ -115,10 +115,10 @@ configure_test <- function() {
 
   auth_type <- get_auth_type(ADMIN_MODE)
 
-  profile <- Sys.getenv("PROFILE")
-  if (profile == "") {
-    cli_alert_warning("Profile not set, defaulting to default.")
-    profile <- "default"
+  container <- Sys.getenv("CONTAINER")
+  if (container == "") {
+    cli_alert_warning("Container not set, defaulting to default.")
+    container <- "default"
   }
 
   default_parquet_path <- file.path(service_location, "data", "shared-lifecycle")
@@ -146,7 +146,7 @@ configure_test <- function() {
   release_env$version <- version
   release_env$auth_type <- auth_type
   release_env$ADMIN_MODE <- ADMIN_MODE
-  release_env$profile <- profile
+  release_env$container <- container
   release_env$default_parquet_path <- default_parquet_path
   release_env$rda_dir <- rda_dir
   release_env$update_auto <- update_auto

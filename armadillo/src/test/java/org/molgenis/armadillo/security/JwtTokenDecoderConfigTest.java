@@ -96,7 +96,7 @@ class JwtDecoderConfigTest {
 
   @Test
   void testJwtDecoder_configurationThrowsException_inOfflineProfile() {
-    jwtDecoderConfig.activeProfile = "offline";
+    jwtDecoderConfig.activeContainer = "offline";
     when(mockExternalDecoder.decode(invalidToken)).thenThrow(JwtException.class);
     JwtDecoder jwtDecoder = jwtDecoderConfig.jwtDecoder(properties, resourceTokenService);
     UnsupportedOperationException exception =

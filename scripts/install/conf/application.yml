@@ -1,16 +1,45 @@
 armadillo:
-  # set this false if you DON'T want Armadillo to create/edit/delete profile docker images via the user interface
+  container:
+    defaults:
+      # type: 'ds' for DataSHIELD, 'vanilla' for generic docker container
+      type: ds
+      image: datashield/molgenis-rock-base:latest
+      datashield:
+        whitelist:
+          - dsBase
+          - dsTidyverse
+
+  # set this false if you DON'T want Armadillo to create/edit/delete container docker images via the user interface
   docker-management-enabled: true
 
   # uncomment this to configure a default admin user
   # oidc-admin-user: @ADMIN_EMAIL@
 
-  profiles:
+  containers:
     - name: default
       image: datashield/molgenis-rock-base:latest
       port: 6311
       package-whitelist:
         - dsBase
+        - dsTidyverse
+      function-blacklist: [ ]
+      options:
+        datashield:
+          # the seed can only be 9 digits
+          seed: @SEED@
+
+    - name: donkey
+      image: datashield/rock-tulip-donkey:latest
+      port: 6312
+      package-whitelist:
+        - dsBase
+        - dsMTLBase
+        - dsMediation
+        - dsOmics
+        - dsTidyverse
+        - resource
+        - dsSurvival
+        - dsExposome
       function-blacklist: [ ]
       options:
         datashield:
