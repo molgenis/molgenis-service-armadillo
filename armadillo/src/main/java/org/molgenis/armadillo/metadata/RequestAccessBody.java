@@ -8,10 +8,6 @@ import java.util.List;
 
 @AutoValue
 public abstract class RequestAccessBody {
-  @JsonProperty("requestId")
-  @NotEmpty
-  public abstract String getRequestId();
-
   @JsonProperty("data")
   @NotEmpty
   public abstract List<RequestData> getData();
@@ -22,9 +18,7 @@ public abstract class RequestAccessBody {
 
   @JsonCreator
   public static RequestAccessBody create(
-      @JsonProperty("requestId") String requestId,
-      @JsonProperty("user") String user,
-      @JsonProperty("data") List<RequestData> data) {
-    return new AutoValue_RequestAccessBody(requestId, data, user);
+      @JsonProperty("user") String user, @JsonProperty("data") List<RequestData> data) {
+    return new AutoValue_RequestAccessBody(data, user);
   }
 }

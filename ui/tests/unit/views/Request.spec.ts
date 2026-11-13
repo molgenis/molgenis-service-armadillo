@@ -129,10 +129,8 @@ describe("Request.vue", () => {
 
     expect(approveRequestMock).toHaveBeenCalledWith(
       "alice",
-      "req-123",
       (wrapper.vm as any).decodedRequestData
     );
-    expect((wrapper.vm as any).successMessage).toContain("req-123");
     expect((wrapper.vm as any).successMessage).toContain("alice");
     expect((wrapper.vm as any).errorMessage).toBe("");
   });

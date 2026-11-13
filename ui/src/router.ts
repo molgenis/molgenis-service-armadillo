@@ -60,7 +60,7 @@ const routes = [
     component: RemoteFiles,
   },
   {
-    path: "/r/:requestId/:user/:requestData",
+    path: "/r/:user/:requestData",
     name: "request",
     component: Request,
   },

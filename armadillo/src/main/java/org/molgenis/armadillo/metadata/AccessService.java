@@ -7,12 +7,7 @@ import static java.util.Objects.requireNonNull;
 import static org.molgenis.armadillo.security.RunAs.runAsSystem;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.jspecify.annotations.NonNull;
@@ -31,6 +26,7 @@ import org.springframework.web.server.ResponseStatusException;
 @PreAuthorize("hasRole('ROLE_SU')")
 public class AccessService {
 
+  private static final String REQUEST_PREFIX = "request-";
   private AccessMetadata settings;
   private final ArmadilloStorageService storage;
   private final AccessLoader loader;
@@ -329,7 +325,35 @@ public class AccessService {
         .forEach(this::projectsUpsert);
   }
 
-  public void approveAccessRequest(String requestId, List<RequestData> requestData, String user) {
+  String generateRandomString() {
+    String characters = "abcdefghijklmnopqrstuvwxyz1234567890";
+    StringBuilder builder = new StringBuilder();
+    Random rnd = new Random();
+    while (builder.length() < 18) { // length of the random string.
+      int index = (int) (rnd.nextFloat() * characters.length());
+      builder.append(characters.charAt(index));
+    }
+    return builder.toString();
+  }
+
+  String generateRequestId() {
+    boolean requestIdExists = true;
+    String requestId = "";
+
+    while (requestIdExists) {
+      requestId = REQUEST_PREFIX + generateRandomString();
+      if (!storage.hasProject(requestId)) {
+        requestIdExists = false;
+      }
+    }
+
+    return requestId;
+  }
+
+  public String approveAccessRequest(List<RequestData> requestData, String user) {
+    // generate request id
+    String requestId = generateRequestId();
+
     if (storage.hasProject(requestId)) {
       // This is deliberate. We don't want to approve a project that already exists, because
       // that is risking exposure of unrequested data to the requestee.
@@ -353,6 +377,7 @@ public class AccessService {
                     requestId, requestedTableData.getTable(), user, e));
           }
         });
+    return requestId;
   }
 
   private void addTableToRequest(String requestId, String user, RequestData requestData)

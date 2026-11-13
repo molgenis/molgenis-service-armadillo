@@ -5,6 +5,7 @@
         <FeedbackMessage
           :successMessage="successMessage"
           :errorMessage="errorMessage"
+          :doClearSuccess="false"
         ></FeedbackMessage>
         <ConfirmationDialog
           v-if="approved == true"
@@ -16,7 +17,7 @@
         ></ConfirmationDialog>
       </div>
     </div>
-    <h2>Request: {{ requestId }}</h2>
+    <h2>Request</h2>
     <div class="row">
       <div class="col-12">
         <div class="mb-3"><i class="bi bi-person-fill"></i> {{ user }}</div>
@@ -72,6 +73,7 @@
 import { approveRequest } from "@/api/api";
 import ConfirmationDialog from "@/components/ConfirmationDialog.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
+import { StringObject } from "@/types/types";
 import { defineComponent, onMounted, Ref, ref } from "vue";
 import { useRoute } from "vue-router";
 
@@ -83,17 +85,14 @@ export default defineComponent({
   },
   setup() {
     const route = useRoute();
-    const requestId: Ref<string> = ref("");
     const user: Ref<string> = ref("");
     const requestData: Ref<string> = ref("");
 
     onMounted(() => {
-      requestId.value = route.params.requestId as string;
       user.value = route.params.user as string;
       requestData.value = route.params.requestData as string;
     });
     return {
-      requestId,
       user,
       requestData,
     };
@@ -114,7 +113,7 @@ export default defineComponent({
   computed: {
     decodedRequestData() {
       const tables = atob(this.requestData).split(";");
-      let data = [];
+      let data = [] as StringObject[];
       let variableCount = 0;
       if (tables[0] !== "") {
         tables.forEach((table) => {
@@ -141,9 +140,11 @@ export default defineComponent({
       this.approved = false;
     },
     proceedApprove() {
-      approveRequest(this.user, this.requestId, this.decodedRequestData)
+      approveRequest(this.user, this.decodedRequestData)
         .then((response) => {
-          this.successMessage = `Successfully approved request [${this.requestId}] for user [${this.user}]. Requested variables are now availble in project [${this.requestId}]`;
+          response.text().then((requestId) => {
+            this.successMessage = `Successfully approved request [${requestId}] for user [${this.user}]. Requested variables are now available in project [${requestId}]`;
+          });
         })
         .catch((error) => {
           this.errorMessage = `Approval failed, because: ${error}`;

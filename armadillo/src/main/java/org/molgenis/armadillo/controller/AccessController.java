@@ -19,15 +19,7 @@ import java.security.Principal;
 import java.util.*;
 import org.molgenis.armadillo.audit.AuditEventPublisher;
 import org.molgenis.armadillo.metadata.*;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "access", description = "Access API to manage users, projects, and permissions")
 @RestController
@@ -308,24 +300,15 @@ public class AccessController {
         @ApiResponse(responseCode = "401", description = "Unauthorized")
       })
   @PostMapping(path = "request/approve", produces = TEXT_PLAIN_VALUE)
-  @ResponseStatus(NO_CONTENT)
-  public void requestAccess(
+  @ResponseBody
+  public String requestAccess(
       Principal principal, @Valid @RequestBody RequestAccessBody requestAccessBody) {
-    String requestId = requestAccessBody.getRequestId();
     List<RequestData> requestData = requestAccessBody.getData();
     String user = requestAccessBody.getUser();
-    auditor.audit(
-        () -> {
-          metadata.approveAccessRequest(requestId, requestData, user);
-        },
+    return auditor.audit(
+        () -> metadata.approveAccessRequest(requestData, user),
         principal,
         APPROVE_ACCESS_REQUEST,
-        Map.of(
-            "REQUEST_ID",
-            requestAccessBody.getRequestId(),
-            USER,
-            requestAccessBody.getUser(),
-            "REQUEST_DATA",
-            requestAccessBody.getData()));
+        Map.of(USER, requestAccessBody.getUser(), "REQUEST_DATA", requestAccessBody.getData()));
   }
 }

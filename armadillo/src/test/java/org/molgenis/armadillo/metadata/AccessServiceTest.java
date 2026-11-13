@@ -425,24 +425,9 @@ class AccessServiceTest {
 
   @Nested
   class ApproveAccessRequest {
-
-    @Test
-    void throwsWhenProjectForRequestAlreadyExists() {
-      AccessService service = newService(null);
-      when(storage.hasProject("request1")).thenReturn(true);
-
-      assertThatThrownBy(
-              () -> service.approveAccessRequest("request1", new ArrayList<>(), "user@example.com"))
-          .isInstanceOf(ResponseStatusException.class)
-          .hasMessageContaining("already exists");
-
-      verify(storage, never()).upsertProject("request1");
-    }
-
     @Test
     void createsLinkedObjectsAndGrantsPermissionOnSuccess() throws Exception {
       AccessService service = newService(null);
-      when(storage.hasProject("request1")).thenReturn(false);
 
       RequestData requestData =
           RequestData.create("sourceProject/folder/table1.parquet", "var1,var2");
@@ -450,19 +435,19 @@ class AccessServiceTest {
       ArrayList<RequestData> requests = new ArrayList<>();
       requests.add(requestData);
 
-      service.approveAccessRequest("request1", requests, "user@example.com");
+      String requesteId = service.approveAccessRequest(requests, "user@example.com");
 
-      verify(storage, times(1)).upsertProject("request1");
+      verify(storage, times(1)).upsertProject(requesteId);
       verify(storage, times(1))
           .createLinkedObject(
               eq("sourceProject"),
               eq("folder/table1"),
               eq("folder/table1"),
-              eq("request1"),
+              eq(requesteId),
               eq("var1,var2"));
       assertThat(service.permissionsList())
           .anyMatch(
-              p -> p.getEmail().equals("user@example.com") && p.getProject().equals("request1"));
+              p -> p.getEmail().equals("user@example.com") && p.getProject().equals(requesteId));
     }
 
     @Test
@@ -477,8 +462,7 @@ class AccessServiceTest {
       ArrayList<RequestData> requests = new ArrayList<>();
       requests.add(requestData);
 
-      assertThatThrownBy(
-              () -> service.approveAccessRequest("request1", requests, "user@example.com"))
+      assertThatThrownBy(() -> service.approveAccessRequest(requests, "user@example.com"))
           .isInstanceOf(ResponseStatusException.class)
           .hasMessageContaining("Cannot create and approve request");
     }
@@ -492,8 +476,7 @@ class AccessServiceTest {
       ArrayList<RequestData> requests = new ArrayList<>();
       requests.add(requestData);
 
-      assertThatThrownBy(
-              () -> service.approveAccessRequest("request1", requests, "user@example.com"))
+      assertThatThrownBy(() -> service.approveAccessRequest(requests, "user@example.com"))
           .isInstanceOf(ResponseStatusException.class);
     }
 
@@ -506,7 +489,7 @@ class AccessServiceTest {
       ArrayList<RequestData> requests = new ArrayList<>();
       requests.add(requestData);
 
-      service.approveAccessRequest("request1", requests, "user@example.com");
+      service.approveAccessRequest(requests, "user@example.com");
 
       verify(storage)
           .createLinkedObject(
