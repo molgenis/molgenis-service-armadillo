@@ -63,22 +63,6 @@ describe("ApplicationControl", () => {
       });
       expect(wrapper.vm.isUpdateAvailable).toBe(true);
     });
-
-    it("is false when versions match but latest has a 'v' prefix", () => {
-      const wrapper = createWrapper({
-        currentReleaseVersion: "5.0.0",
-        latestReleaseVersion: "v5.0.0",
-      });
-      expect(wrapper.vm.isUpdateAvailable).toBe(false);
-    });
-
-    it("is true when versions differ and latest has a 'v' prefix", () => {
-      const wrapper = createWrapper({
-        currentReleaseVersion: "5.0.0",
-        latestReleaseVersion: "v5.1.0",
-      });
-      expect(wrapper.vm.isUpdateAvailable).toBe(true);
-    });
   });
 
   // ── Update status alerts ────────────────────────────────────────────────

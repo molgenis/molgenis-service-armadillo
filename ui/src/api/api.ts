@@ -4,6 +4,7 @@ import {
   getVersionFromJar,
   objectDeepCopy,
   sanitizeObject,
+  stripVersionPrefix,
 } from "@/helpers/utils";
 import {
   Principal,
@@ -434,8 +435,8 @@ export async function getSupportEmail() {
 }
 
 export async function getLatestReleaseInfo() {
-  const version = await get("/manage/app/latest-release-info");
-  return version;
+  const release = await get("/manage/app/latest-release-info");
+  return { ...release, tag_name: stripVersionPrefix(release?.tag_name) };
 }
 
 export async function deleteApplicationJar(jar: string) {
