@@ -9,9 +9,6 @@ import jakarta.validation.constraints.NotEmpty;
 public abstract class RequestData {
   @JsonProperty("table")
   @NotEmpty
-  // TODO discuss: is table sufficient? This would then need to be a path to the table, e.g.
-  // uncan/data/table.parquet
-  // alternative: specify project and folder separately
   public abstract String getTable();
 
   @JsonProperty("variables")

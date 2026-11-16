@@ -300,7 +300,6 @@ public class AccessController {
         @ApiResponse(responseCode = "401", description = "Unauthorized")
       })
   @PostMapping(path = "request/approve", produces = TEXT_PLAIN_VALUE)
-  @ResponseBody
   public String requestAccess(
       Principal principal, @Valid @RequestBody RequestAccessBody requestAccessBody) {
     List<RequestData> requestData = requestAccessBody.getData();

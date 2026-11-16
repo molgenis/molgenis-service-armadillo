@@ -6,11 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -440,11 +436,7 @@ class AccessServiceTest {
       verify(storage, times(1)).upsertProject(requesteId);
       verify(storage, times(1))
           .createLinkedObject(
-              eq("sourceProject"),
-              eq("folder/table1"),
-              eq("folder/table1"),
-              eq(requesteId),
-              eq("var1,var2"));
+              "sourceProject", "folder/table1", "folder/table1", requesteId, "var1,var2");
       assertThat(service.permissionsList())
           .anyMatch(
               p -> p.getEmail().equals("user@example.com") && p.getProject().equals(requesteId));
@@ -454,7 +446,7 @@ class AccessServiceTest {
     void wrapsDownstreamFailurePerTableAsBadRequest() throws Exception {
       AccessService service = newService(null);
       when(storage.hasProject("request1")).thenReturn(false);
-      org.mockito.Mockito.doThrow(new IOException("boom"))
+      doThrow(new IOException("boom"))
           .when(storage)
           .createLinkedObject(anyString(), anyString(), anyString(), anyString(), anyString());
 

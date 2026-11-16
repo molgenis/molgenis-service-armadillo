@@ -24,12 +24,15 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @PreAuthorize("hasRole('ROLE_SU')")
+// Not an issue here, we don't use it for security, but more for convenience
+@java.lang.SuppressWarnings("java:S2245")
 public class AccessService {
 
   private static final String REQUEST_PREFIX = "request-";
   private AccessMetadata settings;
   private final ArmadilloStorageService storage;
   private final AccessLoader loader;
+  private final Random rnd = new Random();
 
   @Value("#{new Boolean('${spring.security.oauth2.client.registration.molgenis.client-id:false}')}")
   private boolean oidcPermissionsEnabled;
@@ -328,7 +331,6 @@ public class AccessService {
   String generateRandomString() {
     String characters = "abcdefghijklmnopqrstuvwxyz1234567890";
     StringBuilder builder = new StringBuilder();
-    Random rnd = new Random();
     while (builder.length() < 18) { // length of the random string.
       int index = (int) (rnd.nextFloat() * characters.length());
       builder.append(characters.charAt(index));
@@ -366,7 +368,7 @@ public class AccessService {
     storage.upsertProject(requestId);
 
     requestData.forEach(
-        (requestedTableData) -> {
+        requestedTableData -> {
           try {
             addTableToRequest(requestId, user, requestedTableData);
           } catch (Exception e) {
@@ -397,10 +399,10 @@ public class AccessService {
       throw new ResponseStatusException(
           HttpStatus.NOT_ACCEPTABLE,
           format(
-              "Cannot fulfill request [%s] because [%s] should consist of project, "
-                  + "folder, table in format:\n"
-                  + "projectId/folderId/tableId \n"
-                  + "Length of current table path is [%s], should be 3.",
+              """
+Cannot fulfill request [%s] because [%s] should consist of project, folder, table in format:\n
+projectId/folderId/tableId \n
+Length of current table path is [%s], should be 3.""",
               requestId, tablePath, projectFolderTable.length));
     } else {
       // remove parquet extension, if provided
