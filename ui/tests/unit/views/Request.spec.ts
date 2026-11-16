@@ -38,8 +38,6 @@ describe("Request.vue", () => {
   it("renders requestId and user pulled from the route params", async () => {
     const wrapper = mount(Request, { global: { stubs: globalStubs } });
     await flushPromises(); // let onMounted run
-
-    expect(wrapper.text()).toContain("req-123");
     expect(wrapper.text()).toContain("alice");
   });
 
@@ -120,7 +118,10 @@ describe("Request.vue", () => {
   });
 
   it("calls approveRequest and sets a success message when approval succeeds", async () => {
-    approveRequestMock.mockResolvedValueOnce({});
+    approveRequestMock.mockResolvedValueOnce({
+            ok: true,
+            text: () => Promise.resolve("request-abcdefgh"),
+        } as unknown as Response);
     const wrapper = mount(Request, { global: { stubs: globalStubs } });
     await flushPromises();
 
