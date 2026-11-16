@@ -313,12 +313,16 @@ export function toPercentage(amount: number, total: number) {
   return (100 * amount) / total;
 }
 
+export function stripVersionPrefix(version?: string): string | undefined {
+  return version?.replace(/^v/, "");
+}
+
 export function getVersionFromJar(jar: string) {
   return jar.replace("molgenis-armadillo-", "").replace(".jar", "");
 }
 
 export function getJarFromVersion(version: string) {
-  return "molgenis-armadillo-" + version.replace("v", "") + ".jar";
+  return "molgenis-armadillo-" + stripVersionPrefix(version) + ".jar";
 }
 
 export function useProfileStatus() {
