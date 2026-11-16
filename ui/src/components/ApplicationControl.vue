@@ -22,7 +22,7 @@
         </div>
       </Alert>
       <Alert v-else type="success" :dismissible="false">
-        <i class="bi bi-check-circle-fill"></i>Running latest version:
+        Running latest version:
         {{ latestReleaseVersion }}
       </Alert>
       <div class="row" v-if="downloadPercentage > 0">
