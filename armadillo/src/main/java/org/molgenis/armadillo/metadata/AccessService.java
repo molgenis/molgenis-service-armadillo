@@ -332,7 +332,7 @@ public class AccessService {
     String characters = "abcdefghijklmnopqrstuvwxyz1234567890";
     StringBuilder builder = new StringBuilder();
     while (builder.length() < 18) { // length of the random string.
-      int index = (int) (rnd.nextFloat() * characters.length());
+      int index = rnd.nextInt() * characters.length();
       builder.append(characters.charAt(index));
     }
     return builder.toString();
@@ -400,8 +400,8 @@ public class AccessService {
           HttpStatus.NOT_ACCEPTABLE,
           format(
               """
-Cannot fulfill request [%s] because [%s] should consist of project, folder, table in format:\n
-projectId/folderId/tableId \n
+Cannot fulfill request [%s] because [%s] should consist of project, folder, table in format:
+projectId/folderId/tableId
 Length of current table path is [%s], should be 3.""",
               requestId, tablePath, projectFolderTable.length));
     } else {
