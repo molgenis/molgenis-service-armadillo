@@ -68,7 +68,7 @@ type SpecificContainerOptions = {
   datashieldROptions?: Record<string, string>;
 };
 
-export type Profile = {
+export type Container = {
   name: string;
   image: string;
   versionId?: string;
@@ -90,12 +90,30 @@ export type Profile = {
   updateSchedule?: UpdateSchedule;
 };
 
+// creationDate:null
+// dockerArgs:Array[0]
+// dockerOptions:Object (empty)
+// dockerStatus:Object
+// host:localhost
+// image:datashield/rock-base:latest
+// imageSize:null
+// installDate:null
+// lastImageId:null
+// name:default
+// port:6311
+// specificContainerOptions:Object
+// datashieldROptions:Object
+// functionBlacklist:Array[0]
+// packageWhitelist:Array[3]
+// type:ds
+// versionId:null
 export type ContainerPayload = ObjectWithStringKey & {
   type: "ds" | "default";
   name: string;
   image: string;
   host: string;
-  port: number;
+  port?: number;
+  dockerStatus: { status: string };
   imageSize?: number;
   installDate?: string;
   lastImageId?: string;
@@ -108,9 +126,14 @@ export type ContainerPayload = ObjectWithStringKey & {
   autoUpdate?: boolean;
   updateSchedule?: UpdateSchedule;
   datashieldROptions: Record<string, string>;
+  specificContainerOptions: {
+    dataShieldROptions?: Object;
+    functionBlacklist: StringArray;
+    packageWhitelist: StringArray;
+  };
 };
 
-type FormattedProfile = Profile & {
+type FormattedProfile = Container & {
   formattedImageSize: string;
   formattedCreationDate: string;
   formattedInstallDate: string;
@@ -170,7 +193,7 @@ export type Workspace = {
   checked?: boolean;
 };
 
-export type ProfileStartStatus = {
+export type ContainerStartStatus = {
   status: string;
   completedLayers: number | null;
   totalLayers: number | null;

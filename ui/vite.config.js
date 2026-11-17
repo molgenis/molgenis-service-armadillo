@@ -39,6 +39,13 @@ export default defineConfig({
           port: 8080,
         },
       },
+      "^/containers": {
+        target: {
+          protocol: "http:",
+          host: "localhost",
+          port: 8080,
+        },
+      },
       "^/insight/.*": {
         target: {
           protocol: "http:",

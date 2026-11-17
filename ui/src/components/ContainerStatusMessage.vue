@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { computed, ref, unref, watch, type Ref } from "vue";
-import type { ProfileStartStatus } from "@/types/api";
+import type { ContainerStartStatus } from "@/types/api";
 
 const props = defineProps<{
-  status: ProfileStartStatus | null | Ref<ProfileStartStatus | null>;
-  profileName: string;
+  status: ContainerStartStatus | null | Ref<ContainerStartStatus | null>;
+  containerName: string;
 }>();
 
-const current = computed<ProfileStartStatus | null>(() => unref(props.status));
+const current = computed<ContainerStartStatus | null>(() =>
+  unref(props.status)
+);
 
 const serverPerc = computed(() => {
   const s = current.value;
@@ -15,11 +17,6 @@ const serverPerc = computed(() => {
   const total = s.totalLayers ?? 0;
   const completed = s.completedLayers ?? 0;
   return total > 0 ? Math.round((completed / total) * 100) : 0;
-});
-
-const isInstalling = computed(() => {
-  const statusText = current.value?.status;
-  return statusText?.toLowerCase().startsWith("installing") ?? false;
 });
 
 const smoothedPerc = ref(0);
@@ -44,11 +41,11 @@ watch(() => current.value, smoothServerPercentage, { immediate: true });
 
 <template>
   <div
-    v-if="isInstalling"
+    v-if="current?.status === 'Installing container'"
     class="alert alert-info mt-2"
     style="display: flex; align-items: center; gap: 0.5rem"
   >
-    {{ current?.status }} '{{ props.profileName }}'
+    {{ current?.status }} '{{ props.containerName }}'
 
     <div
       class="progress flex-grow-1"

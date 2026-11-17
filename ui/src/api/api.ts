@@ -7,7 +7,6 @@ import {
 } from "@/helpers/utils";
 import {
   Principal,
-  Profile,
   Project,
   User,
   Auth,
@@ -16,7 +15,7 @@ import {
   Metric,
   HalResponse,
   Metrics,
-  ContainerPayload,
+  Container,
   AuthServerConfig,
 } from "@/types/api";
 
@@ -248,23 +247,23 @@ export async function deleteObject(project: string, name: string) {
   );
 }
 
-export async function getProfiles(): Promise<Profile[]> {
+export async function getContainers(): Promise<Container[]> {
   return get("/containers");
 }
 
-export async function deleteProfile(name: string) {
+export async function deleteContainer(name: string) {
   return delete_("/containers", name);
 }
 
-export async function putProfile(profileJson: ContainerPayload) {
-  return put("/containers", profileJson);
+export async function putContainer(containerJson: Container) {
+  return put("/containers", containerJson);
 }
 
-export async function startProfile(name: string) {
+export async function startContainer(name: string) {
   return post(`/containers/${name}/start`);
 }
 
-export async function stopProfile(name: string) {
+export async function stopContainer(name: string) {
   return post(`/containers/${name}/stop`);
 }
 
@@ -406,7 +405,7 @@ export async function getMetaData(project: string, object: string) {
   );
 }
 
-export async function getProfileStatus(name: string) {
+export async function getContainerStatus(name: string) {
   return get(`/containers/${encodeURIComponent(name)}/status`);
 }
 
