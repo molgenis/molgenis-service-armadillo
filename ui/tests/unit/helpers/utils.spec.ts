@@ -23,7 +23,8 @@ import {
   convertStringToBytes,
   isDate,
   toPercentage, 
-  useProfileStatus
+  useProfileStatus,
+  stripVersionPrefix
 } from "@/helpers/utils";
 import { StringObject } from "@/types/types";
 import { defineComponent } from "vue";
@@ -31,6 +32,32 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import * as api from "@/api/api";
 
 describe("utils", () => {
+  describe("stripVersionPrefix", () => {
+    it("should strip a leading v from a release tag", () => {
+      expect(stripVersionPrefix("v5.1.0")).toBe("5.1.0");
+    });
+
+    it("should leave an unprefixed version unchanged", () => {
+      expect(stripVersionPrefix("5.1.0")).toBe("5.1.0");
+    });
+
+    it("should keep a SNAPSHOT qualifier", () => {
+      expect(stripVersionPrefix("v5.1.0-SNAPSHOT")).toBe("5.1.0-SNAPSHOT");
+    });
+
+    it("should not strip a v that is not at the start", () => {
+      expect(stripVersionPrefix("dev")).toBe("dev");
+    });
+
+    it("should return an empty string unchanged", () => {
+      expect(stripVersionPrefix("")).toBe("");
+    });
+
+    it("should return undefined when no version is given", () => {
+      expect(stripVersionPrefix(undefined)).toBeUndefined();
+    });
+  });
+
   describe("stringIncludesOtherString", () => {
     it("should return true for string and substring", () => {
       const actual = stringIncludesOtherString("string1", "ring");

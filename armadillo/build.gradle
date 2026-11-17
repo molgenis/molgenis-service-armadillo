@@ -50,8 +50,8 @@ dependencies {
     implementation 'io.swagger.core.v3:swagger-annotations:2.2.30'
     implementation("io.swagger.core.v3:swagger-core-jakarta:2.2.30")
     implementation 'com.google.auto.value:auto-value-annotations:1.11.1'
-    implementation 'org.obiba.datashield:ds4j-core:2.1.0'
-    implementation 'org.obiba.datashield:ds4j-r:2.1.0'
+    implementation 'org.obiba.datashield:ds4j-core:3.0.0'
+    implementation 'org.obiba.datashield:ds4j-r:3.0.0'
     implementation 'com.github.docker-java:docker-java:3.6.0'
     implementation 'com.github.docker-java:docker-java-transport-zerodep:3.6.0'
     implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
