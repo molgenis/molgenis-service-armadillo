@@ -332,7 +332,7 @@ public class AccessService {
     String characters = "abcdefghijklmnopqrstuvwxyz1234567890";
     StringBuilder builder = new StringBuilder();
     while (builder.length() < 18) { // length of the random string.
-      int index = rnd.nextInt() * characters.length();
+      int index = rnd.nextInt(characters.length());
       builder.append(characters.charAt(index));
     }
     return builder.toString();
