@@ -35,6 +35,7 @@ export default defineComponent({
     successMessage: String,
     errorMessage: String,
     warningMessage: String,
+    doClearSuccess: { type: Boolean, default: true },
   },
   data() {
     return {
@@ -59,9 +60,11 @@ export default defineComponent({
       this.successMsg = newVal;
     },
     successMsg: function () {
-      setTimeout(() => {
-        this.successMsg = "";
-      }, 5000);
+      if (this.doClearSuccess) {
+        setTimeout(() => {
+          this.successMsg = "";
+        }, 5000);
+      }
     },
     warningMessage: function (newVal) {
       window.scrollTo(0, 0);
