@@ -60,7 +60,12 @@ const routes = [
     component: RemoteFiles,
   },
   {
-    path: "/r/:user/:requestData",
+    path: "/r/:apiVersion?",
+    name: "invalid request",
+    component: Request,
+  },
+  {
+    path: "/r/:apiVersion/:user/:requestData?",
     name: "request",
     component: Request,
   },

@@ -523,3 +523,13 @@ export async function approveRequest(
   };
   return postJson("/access/request/approve", data);
 }
+
+export async function tableExists(project: string, object: string) {
+  const response = await fetch(
+    `/storage/projects/${project}/objects/${encodeURIComponent(object)}`,
+    {
+      method: "HEAD",
+    }
+  );
+  return handleResponse(response);
+}
