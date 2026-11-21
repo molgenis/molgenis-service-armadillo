@@ -123,8 +123,8 @@ do_skip_test <- function(test_name) {
 skip_if_no_package <- function(package_name) {
   testthat::skip_if(
     !package_name %in% release_env$installed_ds_packages,
-    sprintf("Package '%s' not installed in profile '%s'",
-            package_name, release_env$current_profile)
+    sprintf("Package '%s' not installed in container '%s'",
+            package_name, release_env$current_container)
   )
 }
 
@@ -136,14 +136,13 @@ skip_ds_test <- function(test_name) {
 skip_if_no_resources <- function(test_name, package = NULL) {
   do_skip_test(test_name)
   testthat::skip_if(release_env$ADMIN_MODE, "Cannot test resources as admin")
-  testthat::skip_if(!"resourcer" %in% release_env$profile_info$packageWhitelist,
-                    sprintf("resourcer not available for profile: %s", release_env$current_profile))
+  testthat::skip_if(!"resourcer" %in% release_env$container_info$specificContainerOptions$packageWhitelist,
+                    sprintf("resourcer not available for container: %s", release_env$current_container))
   if (!is.null(package)) skip_if_no_package(package)
 }
 
 skip_if_localhosts <- function(url, test_name) {
   do_skip_test(test_name)
-  # TODO: re-enable when version number can be reliably retrieved over localhost
   testthat::skip_if(grepl("localhost", url),
                     "Skipping test on localhost")
 }
@@ -268,7 +267,7 @@ create_dsi_builder <- function(server = "armadillo", table = "", resource = "") 
     builder$append(
       server = server,
       url = release_env$armadillo_url,
-      profile = release_env$current_profile,
+      profile = release_env$current_container,
       table = table,
       driver = "ArmadilloDriver",
       user = "admin",
@@ -279,7 +278,7 @@ create_dsi_builder <- function(server = "armadillo", table = "", resource = "") 
     builder$append(
       server = server,
       url = release_env$armadillo_url,
-      profile = release_env$current_profile,
+      profile = release_env$current_container,
       table = table,
       driver = "ArmadilloDriver",
       token = release_env$token,

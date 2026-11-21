@@ -11,13 +11,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.molgenis.armadillo.DataShieldOptions;
-import org.molgenis.armadillo.metadata.ProfileConfig;
-import org.molgenis.r.RConnectionFactory;
-import org.molgenis.r.RServerConnection;
-import org.molgenis.r.RServerException;
-import org.molgenis.r.exceptions.ConnectionCreationFailedException;
-import org.molgenis.r.rock.RockResult;
-import org.molgenis.r.service.PackageService;
+import org.molgenis.armadillo.container.DatashieldContainerConfig;
+import org.molgenis.connection.datashield.RConnectionFactory;
+import org.molgenis.connection.datashield.RServerConnection;
+import org.molgenis.connection.datashield.RServerException;
+import org.molgenis.connection.datashield.rock.RockResult;
+import org.molgenis.connection.datashield.service.PackageService;
+import org.molgenis.connection.exceptions.ConnectionCreationFailedException;
 import org.rosuda.REngine.REXPNull;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,7 +27,7 @@ class ArmadilloConnectionFactoryImplTest {
   @Mock RConnectionFactory rConnectionFactory;
   @Mock PackageService packageService;
   @Mock RServerConnection rConnection;
-  @Mock ProfileConfig profileConfig;
+  @Mock DatashieldContainerConfig datashieldContainerConfig;
 
   private ArmadilloConnectionFactoryImpl armadilloConnectionFactory;
 
@@ -36,7 +36,7 @@ class ArmadilloConnectionFactoryImplTest {
 
     armadilloConnectionFactory =
         new ArmadilloConnectionFactoryImpl(
-            packageService, profileConfig, dataShieldOptions, rConnectionFactory);
+            packageService, datashieldContainerConfig, dataShieldOptions, rConnectionFactory);
   }
 
   @Test

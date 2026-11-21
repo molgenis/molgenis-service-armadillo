@@ -35,12 +35,12 @@ tree ./build/docker
 In this directory [docker/ci](.) directory:
 
 - Check [ci.env](./ci.env) for correct values which are used by [release-test.R](../../scripts/release/release-test.R) script.
-- Check [application.yml](./application.yml) for the needed profiles matching those in [docker-compose.yml](./docker-compose.yml).
+- Check [application.yml](./application.yml) for the needed containers matching those in [docker-compose.yml](./docker-compose.yml).
 - Make sure to run the preparation steps again.
 
 If needed check available images defined in `application.yml` and `docker-compose.yml` match.
 
-## Run Armadillo and profiles
+## Run Armadillo and containers
 
 From within [build/docker/armadillo-compos](../../build/docker/armadillo-compose) run
 

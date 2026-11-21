@@ -1,0 +1,1 @@
+{"containers":{"default":{"type":"ds","name":"default","image":"datashield/rock-base:latest","host":"localhost","port":6311,"packageWhitelist":["dsBase"],"functionBlacklist":[],"datashieldROptions":{"datashield.seed":"342325352"}}}}
