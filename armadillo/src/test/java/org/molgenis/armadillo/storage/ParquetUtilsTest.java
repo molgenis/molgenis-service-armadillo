@@ -40,7 +40,7 @@ public class ParquetUtilsTest {
     List<Map<String, String>> preview = ParquetUtils.previewRecords(path, 20, 10, new String[0]);
     assertEquals("Patient1", preview.get(0).get("name"));
     // dataset has 11 rows, so preview with 20 requested rows, should show 11 rows
-    assertEquals(preview.size(), 11);
+    assertEquals(11, preview.size());
   }
 
   @Test
