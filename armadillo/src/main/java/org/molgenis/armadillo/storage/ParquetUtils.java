@@ -30,7 +30,9 @@ public class ParquetUtils {
       MessageType schema = getSchemaFromReader(reader);
       RecordReader<Group> recordReader = getRecordReader(schema, reader);
       List<String> columns = getColumnsFromSchema(schema);
-
+      if (reader.getRecordCount() < rowLimit) {
+        rowLimit = Math.toIntExact(reader.getRecordCount());
+      }
       for (int i = 0; i < rowLimit; i++) {
         result.add(getPreviewRow(recordReader, schema, columns, columnLimit, variables));
       }
