@@ -25,8 +25,8 @@
             numberOfLines != -1
               ? `${currentFocus + 1} / ${numberOfLines}`
               : filterValue
-              ? 'No results found'
-              : ''
+                ? 'No results found'
+                : ''
           "
           textValueColour="text-secondary"
           :icons="{

@@ -138,7 +138,7 @@ public class LocalStorageService implements StorageService {
   }
 
   /** Detects path traversal attacks. */
-  Path getObjectPathSafely(String bucketName, String objectName) {
+  public Path getObjectPathSafely(String bucketName, String objectName) {
     Path path = Paths.get(rootDir, bucketName, objectName).toAbsolutePath().normalize();
     Path rootPath = Paths.get(rootDir, bucketName).toAbsolutePath().normalize();
 

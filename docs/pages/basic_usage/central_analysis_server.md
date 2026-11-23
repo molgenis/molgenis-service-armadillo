@@ -5,3 +5,5 @@ Relevant for: :material-layers-search:{title="Researchers"}
 Most networks use the analysis environment instead of their locally installed R/Rstudio environment. The analysis environment is centralized. You will be using a web based RStudio which is available here: [https://lifecycle.analysis.molgenis.org/](https://lifecycle.analysis.molgenis.org/)
 
 The benefit of using a CAS server is a additional layer of security, only traffic from the CAS server is accepted by the Armadillo server.
+
+For more information about how we currently set up and operate the CAS at MOLGENIS, see [our CAS infrastructure documentation](../cas.md).

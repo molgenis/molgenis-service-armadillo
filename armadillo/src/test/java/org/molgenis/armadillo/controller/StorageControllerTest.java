@@ -33,7 +33,8 @@ import org.molgenis.armadillo.storage.FileInfo;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.*;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -504,6 +505,9 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
   void testDownloadObject() throws Exception {
     var content = "content".getBytes();
     var inputStream = new ByteArrayInputStream(content);
+    ResponseEntity<InputStreamResource> resourceResponseEntity = getResponse(inputStream);
+
+    when(storage.getObject("lifecycle", "test.parquet")).thenReturn(resourceResponseEntity);
     when(storage.loadObject("lifecycle", "test.parquet")).thenReturn(inputStream);
     when(storage.getFileSizeIfObjectExists("shared-lifecycle", "test.parquet")).thenReturn(12345L);
 
@@ -614,6 +618,9 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
     doThrow(new UnknownObjectException("lifecycle", "test.parquet"))
         .when(storage)
         .loadObject("lifecycle", "test.parquet");
+    doThrow(new UnknownObjectException("lifecycle", "test.parquet"))
+        .when(storage)
+        .getObject("lifecycle", "test.parquet");
 
     mockMvc
         .perform(get("/storage/projects/lifecycle/objects/test.parquet").session(session))
@@ -714,12 +721,22 @@ class StorageControllerTest extends ArmadilloControllerTestBase {
         new ByteArrayInputStream(contents));
   }
 
+  ResponseEntity<InputStreamResource> getResponse(InputStream inputStream) {
+    InputStreamResource inputStreamResource = new InputStreamResource(inputStream);
+    HttpHeaders httpHeaders = new HttpHeaders();
+    httpHeaders.setContentDisposition(mock(ContentDisposition.class));
+    httpHeaders.setContentLength(124421L);
+    httpHeaders.setContentType(APPLICATION_OCTET_STREAM);
+    return new ResponseEntity<>(inputStreamResource, httpHeaders, HttpStatus.OK);
+  }
+
   @Test
   void testDownloadRawfileWithResourceToken() throws Exception {
     var content = "content".getBytes();
     var inputStream = new ByteArrayInputStream(content);
-
+    ResponseEntity<InputStreamResource> resourceResponseEntity = getResponse(inputStream);
     when(storage.loadObject("lifecycle", "test.parquet")).thenReturn(inputStream);
+    when(storage.getObject("lifecycle", "test.parquet")).thenReturn(resourceResponseEntity);
     when(storage.getFileSizeIfObjectExists("shared-lifecycle", "test.parquet")).thenReturn(12345L);
     when(storage.getFilenameWithoutExtension("test.parquet")).thenReturn("test");
 

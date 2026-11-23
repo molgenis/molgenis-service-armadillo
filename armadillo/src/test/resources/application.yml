@@ -1,0 +1,33 @@
+spring:
+  security:
+    user:
+      name: "admin"
+      password: "password"
+    oauth2:
+      client:
+        provider:
+          molgenis:
+            issuer-uri: "http://auth-server"
+          static:
+            authorization-uri: "http://auth-server/authorize"
+            token-uri: "http://auth-server/token"
+            jwk-set-uri: "http://auth-server/jwks"
+            user-info-uri: "http://auth-server/userinfo"
+            user-name-attribute: "sub"
+        registration:
+          molgenis:
+            client-id: "client-id"
+            client-secret: "this-is-very-secret"
+            provider: "static"
+            authorization-grant-type: "authorization_code"
+            redirect-uri: "http://localhost/login/oauth2/code/molgenis"
+
+      resourceserver:
+        jwt.jwk-set-uri: "http://auth-server/jwks"
+        opaquetoken.client-id: "device-client-id"
+
+
+  # test-only c4-soft spring-addons auto-configuration; its nimbus-jose-jwt
+  # dependency conflicts with the version resolved on the test classpath and
+  # is never needed outside its own @WithMockJwtAuth-based tests
+  autoconfigure.exclude: "com.c4_soft.springaddons.security.oauth2.config.synchronised.ServletSecurityBeans"

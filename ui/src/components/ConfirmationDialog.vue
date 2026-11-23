@@ -6,8 +6,8 @@
       @clear="$emit('cancel')"
     >
       <div>
-        Are you sure you want to {{ action }} {{ recordType }} [{{ record }}]
-        {{ additionalMessage }}?
+        Are you sure you want to {{ action }} {{ recordType }}
+        {{ record ? `[${record}]` : "" }} {{ additionalMessage }}?
       </div>
       <div class="mb-1">
         <small>{{ extraInfo }}</small>
