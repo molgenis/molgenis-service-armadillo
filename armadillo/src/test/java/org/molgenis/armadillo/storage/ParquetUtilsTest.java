@@ -31,6 +31,19 @@ public class ParquetUtilsTest {
   }
 
   @Test
+  public void testParquetPreviewRowLimitBiggerThanRecordSize()
+      throws IOException, URISyntaxException {
+    Path path =
+        Path.of(
+            Objects.requireNonNull(this.getClass().getClassLoader().getResource("patient.parquet"))
+                .toURI());
+    List<Map<String, String>> preview = ParquetUtils.previewRecords(path, 20, 10, new String[0]);
+    assertEquals("Patient1", preview.get(0).get("name"));
+    // dataset has 11 rows, so preview with 20 requested rows, should show 11 rows
+    assertEquals(11, preview.size());
+  }
+
+  @Test
   void testRetrieveDimensions() throws URISyntaxException, FileNotFoundException {
     Path path =
         Path.of(
