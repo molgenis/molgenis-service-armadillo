@@ -48,12 +48,6 @@ Armadillo supports integration with different OpenID Connect (OIDC)–compatible
 
 ---
 
-### Example: Local Keycloak Setup
-
-If you want to run Armadillo locally or test your deployment, you can use the **Keycloak + Armadillo** quick setup provided in our Docker setup.
-
-You’ll find an example in our [documentation](https://molgenis.github.io/molgenis-service-armadillo/pages/install_management/armadillo_docker_install/), which starts both Keycloak and Armadillo and automatically configures OIDC integration.
-
 ### Registering with a consortium authentication server (DataSHIELD)
 
 If your organization is part of a consortium that offers a shared authentication server (for example the **DataSHIELD authentication server**), you can register your Armadillo domain with them. This delegates authentication and user management to the central server while your Data Manager continues to control authorization inside Armadillo.
