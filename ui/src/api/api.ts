@@ -512,3 +512,26 @@ export async function uploadWorkspace(
   formData.append("file", fileToUpload);
   return postFormData(`/workspaces/upload/${userId}/${workspaceId}`, formData);
 }
+
+export async function approveRequest(
+  user: string,
+  requestData: ListOfObjectsWithStringKey,
+  apiVersion
+) {
+  const data = {
+    user: user,
+    data: requestData,
+    apiVersion: apiVersion,
+  };
+  return postJson("/access/request/approve", data);
+}
+
+export async function tableExists(project: string, object: string) {
+  const response = await fetch(
+    `/storage/projects/${project}/objects/${encodeURIComponent(object)}`,
+    {
+      method: "HEAD",
+    }
+  );
+  return handleResponse(response);
+}
