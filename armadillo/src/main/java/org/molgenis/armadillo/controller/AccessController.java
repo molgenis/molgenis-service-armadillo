@@ -304,6 +304,8 @@ public class AccessController {
       Principal principal, @Valid @RequestBody RequestAccessBody requestAccessBody) {
     List<RequestData> requestData = requestAccessBody.getData();
     String user = requestAccessBody.getUser();
+    // Use this for migration if breaking changes are made
+    String version = requestAccessBody.getApiVersion();
     return auditor.audit(
         () -> metadata.approveAccessRequest(requestData, user),
         principal,

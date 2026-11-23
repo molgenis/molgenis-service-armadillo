@@ -16,9 +16,15 @@ public abstract class RequestAccessBody {
   @NotEmpty
   public abstract String getUser();
 
+  @JsonProperty("apiVersion")
+  @NotEmpty
+  public abstract String getApiVersion();
+
   @JsonCreator
   public static RequestAccessBody create(
-      @JsonProperty("user") String user, @JsonProperty("data") List<RequestData> data) {
-    return new AutoValue_RequestAccessBody(data, user);
+      @JsonProperty("user") String user,
+      @JsonProperty("data") List<RequestData> data,
+      @JsonProperty("apiVersion") String apiVersion) {
+    return new AutoValue_RequestAccessBody(data, user, apiVersion);
   }
 }

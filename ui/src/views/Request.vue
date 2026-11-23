@@ -226,7 +226,7 @@ export default defineComponent({
       this.approved = false;
     },
     proceedApprove() {
-      approveRequest(this.user, this.decodedRequestData)
+      approveRequest(this.user, this.decodedRequestData, this.apiVersion)
         .then((response) => {
           response.text().then((requestId) => {
             this.successMessage = `Successfully approved request [${requestId}] for user [${this.user}]. Requested variables are now available in project [${requestId}]`;

@@ -515,11 +515,13 @@ export async function uploadWorkspace(
 
 export async function approveRequest(
   user: string,
-  requestData: ListOfObjectsWithStringKey
+  requestData: ListOfObjectsWithStringKey,
+  apiVersion
 ) {
   const data = {
     user: user,
     data: requestData,
+    apiVersion: apiVersion,
   };
   return postJson("/access/request/approve", data);
 }

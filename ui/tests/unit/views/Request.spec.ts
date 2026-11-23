@@ -327,7 +327,8 @@ describe("Request.vue", () => {
 
       expect(mockApproveRequest).toHaveBeenCalledWith(
         validUser,
-        (wrapper.vm as any).decodedRequestData
+        (wrapper.vm as any).decodedRequestData,
+        "v1"
       );
       expect((wrapper.vm as any).successMessage).toContain(validUser);
       expect((wrapper.vm as any).successMessage).toContain("request-abcdefgh");

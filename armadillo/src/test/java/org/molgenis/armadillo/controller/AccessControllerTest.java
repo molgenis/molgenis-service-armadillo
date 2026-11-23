@@ -275,7 +275,7 @@ class AccessControllerTest {
     var requestData = new ArrayList<RequestData>();
     requestData.add(RequestData.create("sourceProject/folder1/table1", "var1,var2"));
     when(armadilloStorage.hasProject(anyString())).thenReturn(false);
-    var body = RequestAccessBody.create("petra@email.com", requestData);
+    var body = RequestAccessBody.create("petra@email.com", requestData, "v1");
 
     MvcResult result =
         mockMvc
@@ -309,7 +309,7 @@ class AccessControllerTest {
     var requestData = new ArrayList<RequestData>();
     // only 2 segments instead of the required 3 (project/folder/table)
     requestData.add(RequestData.create("sourceProject/table1", "var1"));
-    var body = RequestAccessBody.create("petra@email.com", requestData);
+    var body = RequestAccessBody.create("petra@email.com", requestData, "v1");
     mockMvc
         .perform(
             post("/access/request/approve")
@@ -328,7 +328,7 @@ class AccessControllerTest {
   void requestAccess_POST_StripsParquetExtension() throws Exception {
     var requestData = new ArrayList<RequestData>();
     requestData.add(RequestData.create("sourceProject/folder1/table1.parquet", "var1"));
-    var body = RequestAccessBody.create("petra@email.com", requestData);
+    var body = RequestAccessBody.create("petra@email.com", requestData, "v1");
 
     MvcResult result =
         mockMvc
