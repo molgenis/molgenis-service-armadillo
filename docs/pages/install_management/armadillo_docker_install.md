@@ -3,8 +3,8 @@
 Welcome! This guide shows how to run **Armadillo**, **RServer**, and **Keycloak** locally with Docker Compose.
 
 !!! Note 
-    The preferred way to install Armadillo in production is via [systemd](../armadillo_install). 
-    Feel free to use our docker setup.
+    The Docker quickstart is intended for a local demo of Armadillo, not for production. Running Armadillo via Docker lacks some features available when running it as a Linux service, notably the ability to manage algorithm containers via the UI.
+    For production, install Armadillo via [systemd](../armadillo_install).
 
 ---
 
