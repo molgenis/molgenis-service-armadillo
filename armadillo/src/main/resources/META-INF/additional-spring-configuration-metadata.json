@@ -1,0 +1,71 @@
+{
+  "properties": [
+    {
+      "name": "armadillo.armadillo-mode",
+      "type": "java.lang.String",
+      "description": "Mode Armadillo runs in (DEV or PROD).",
+      "defaultValue": "PROD"
+    },
+    {
+      "name": "armadillo.armadillo-home",
+      "type": "java.lang.String",
+      "description": "Path the application runs from.",
+      "defaultValue": "/usr/share/armadillo/application"
+    },
+    {
+      "name": "armadillo.armadillo-config-file",
+      "type": "java.lang.String",
+      "description": "Path of the application config file.",
+      "defaultValue": "/etc/armadillo/application.yml"
+    },
+    {
+      "name": "armadillo.api-key",
+      "type": "java.lang.String",
+      "description": "Key for retrieving prometheus information."
+    },
+    {
+      "name": "armadillo.oidc-admin-user",
+      "type": "java.lang.String",
+      "description": "OIDC user that is made admin."
+    },
+    {
+      "name": "armadillo.docker-management-enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether profile docker images can be managed through the user interface."
+    },
+    {
+      "name": "armadillo.docker-run-in-container",
+      "type": "java.lang.Boolean",
+      "description": "Whether Armadillo runs as a docker container.",
+      "defaultValue": false
+    },
+    {
+      "name": "armadillo.container-prefix",
+      "type": "java.lang.String",
+      "description": "Prefix of the names of containers started from a docker-compose.yml."
+    },
+    {
+      "name": "storage.root-dir",
+      "type": "java.lang.String",
+      "description": "Location of the data storage."
+    },
+    {
+      "name": "storage.resource-token-timeout",
+      "type": "java.lang.Long",
+      "description": "Seconds a resource token stays valid.",
+      "defaultValue": 300
+    },
+    {
+      "name": "audit.log.path",
+      "type": "java.lang.String",
+      "description": "Path of the audit log.",
+      "defaultValue": "./logs/audit.log"
+    },
+    {
+      "name": "stdout.log.path",
+      "type": "java.lang.String",
+      "description": "Path of the application log.",
+      "defaultValue": "./logs/armadillo.log"
+    }
+  ]
+}

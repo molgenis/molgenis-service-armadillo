@@ -159,6 +159,16 @@ ls /usr/share/armadillo/*
 ls /var/log/armadillo/*
 ```
 
+### Checking your configuration
+
+YAML uses indentation for structure, so a wrongly indented key is still valid YAML but is silently ignored. When Armadillo starts it logs a warning for most keys in `application.yml` that it does not recognise, with the file and line. It does not check keys inside `profiles` entries or beneath free-form settings such as `logging.level`. Check the log after editing the file.
+
+You can also lint the file before restarting, for example with [yamllint](https://yamllint.readthedocs.io/):
+
+```bash
+yamllint -d "{extends: default, rules: {indentation: {spaces: 2}, line-length: disable, document-start: disable, truthy: disable}}" /etc/armadillo/application.yml
+```
+
 ## Controlling the Armadillo service
 
 ```bash
