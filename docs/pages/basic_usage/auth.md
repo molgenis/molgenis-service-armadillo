@@ -11,6 +11,7 @@ application.yml:
 
 ```yml
 spring:
+  security:
     oauth2:
       client:
         provider:
@@ -20,12 +21,9 @@ spring:
           molgenis:
             client-id: the-client-id
             client-secret: the-client-secret
-            authorization-grant-type:
-              - authorization_code
-              - refresh_token
       resourceserver:
         jwt:
-          issuer-uri: https://the-auth-server # can be different one
+          issuer-uri: https://the-auth-server  # can be different one
         opaquetoken:
           client-id: the-device-flow-client-id
 ```
