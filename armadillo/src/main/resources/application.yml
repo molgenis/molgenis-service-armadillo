@@ -34,12 +34,12 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     enabled: true
+    operations-sorter: alpha
+    csrf:
+      enabled: true
   api-docs:
     enabled: true
     path: /v3/api-docs
-    operationsSorter: alpha
-    csrf:
-      enabled: true
 
 spring:
   servlet:
