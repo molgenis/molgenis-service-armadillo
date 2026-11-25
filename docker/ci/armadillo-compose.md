@@ -12,7 +12,7 @@ To use this zip content you need to
 When for the first time with **current** zip file extraction.
 
 When having done changes in some locations like
-- the `armadillo/` directory. If unsure remove `armadillo/data/system/profiles.json`.
+- the `armadillo/` directory. If unsure remove `armadillo/data/system/containers.json`.
 - the `docker-compose.yml file` like adding/removing new services next to armadillo.
 
 Build or rebuild the Armadillo server as a docker image using:

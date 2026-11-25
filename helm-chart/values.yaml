@@ -7,10 +7,13 @@ replicaCount: 1
 
 config:
   armadillo:
+    container:
+      defaults:
+        type: ds
     docker-management-enabled: false
     docker-run-in-container: true
     container-prefix: 'dev-'
-    profiles:
+    containers:
       - name: default 
       #  image: datashield/rock-base:latest
       #  #host: rock-molgenis-rock.armadillo-rock.svc
@@ -65,7 +68,7 @@ serviceAccount:
 
 
     # datashield:
-    #   profiles:
+    #   containers:
     #     - name: default
     #       environment: default
     #       whitelist:

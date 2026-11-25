@@ -4,7 +4,7 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
 import org.molgenis.armadillo.exceptions.StorageException;
-import org.molgenis.r.exceptions.ConnectionCreationFailedException;
+import org.molgenis.connection.exceptions.ConnectionCreationFailedException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;

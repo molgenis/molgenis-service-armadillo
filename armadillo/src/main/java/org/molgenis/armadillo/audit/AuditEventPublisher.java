@@ -20,6 +20,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class AuditEventPublisher implements ApplicationEventPublisherAware {
 
+  public static final String SELECT_CONTAINER = "SELECT_CONTAINER";
+  public static final String CONTAINERS = "CONTAINERS";
   public static final String TRIGGER_SOFT_RESTART = "TRIGGER_SOFT_RESTART";
   public static final String TRIGGER_HARD_RESTART = "TRIGGER_HARD_RESTART";
   public static final String UPDATE_ARMADILLO = "UPDATE_ARMADILLO";
@@ -30,8 +32,6 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String DOWNLOAD_UPDATE_SCRIPT = "DOWNLOAD_UPDATE_SCRIPT";
   public static final String UPDATE_OIDC_CONFIG = "UPDATE_OIDC_CONFIG";
   public static final String DELETE_JAR = "DELETE_JAR";
-  public static final String SELECT_PROFILE = "SELECT_PROFILE";
-  public static final String PROFILES = "PROFILES";
   public static final String GET_ASSIGNED_SYMBOLS = "GET_ASSIGNED_SYMBOLS";
   public static final String GET_PACKAGES = "GET_PACKAGES";
   public static final String LOAD_TABLE_FAILURE = "LOAD_TABLE_FAILURE";
@@ -39,6 +39,7 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String TABLE_EXISTS = "TABLE_EXISTS";
   public static final String LOAD_RESOURCE = "LOAD_RESOURCE";
   public static final String LOAD_RESOURCE_FAILURE = "LOAD_RESOURCE_FAILURE";
+  public static final String LOAD_DATA = "LOAD_DATA";
   public static final String REMOVE_SYMBOL = "REMOVE_SYMBOL";
   public static final String ASSIGN1 = "ASSIGN";
   public static final String ASSIGN_FAILURE = "ASSIGN_FAILURE";
@@ -71,13 +72,13 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String UPSERT_PROJECT = "UPSERT_PROJECT";
   public static final String DELETE_PROJECT = "DELETE_PROJECT";
   public static final String GET_PROJECT = "GET_PROJECT";
-  public static final String LIST_PROFILES = "LIST_PROFILES";
-  public static final String LIST_PROFILES_STATUS = "LIST_PROFILES_STATUS";
-  public static final String UPSERT_PROFILE = "UPSERT_PROFILE";
-  public static final String DELETE_PROFILE = "DELETE_PROFILE";
-  public static final String GET_PROFILE = "GET_PROFILE";
-  public static final String START_PROFILE = "START_PROFILE";
-  public static final String STOP_PROFILE = "STOP_PROFILE";
+  public static final String LIST_CONTAINERS = "LIST_CONTAINERS";
+  public static final String LIST_CONTAINERS_STATUS = "LIST_CONTAINERS_STATUS";
+  public static final String UPSERT_CONTAINER = "UPSERT_CONTAINER";
+  public static final String DELETE_CONTAINER = "DELETE_CONTAINER";
+  public static final String GET_CONTAINER = "GET_CONTAINER";
+  public static final String START_CONTAINER = "START_CONTAINER";
+  public static final String STOP_CONTAINER = "STOP_CONTAINER";
   public static final String LIST_OBJECTS = "LIST_OBJECTS";
   public static final String UPLOAD_OBJECT = "UPLOAD_OBJECT";
   public static final String COPY_OBJECT = "COPY_OBJECT";
@@ -98,13 +99,13 @@ public class AuditEventPublisher implements ApplicationEventPublisherAware {
   public static final String INSTALL_PACKAGES = "INSTALL_PACKAGES";
   public static final String INSTALL_PACKAGES_FAILURE = "INSTALL_PACKAGES_FAILURE";
   public static final String EXPRESSION = "expression";
-  public static final String SELECTED_PROFILE = "selectedProfile";
+  public static final String SELECTED_CONTAINER = "selectedContainer";
   public static final String TYPE = "type";
   public static final String FOLDER = "folder";
   public static final String RESOURCE = "resource";
   public static final String SYMBOL = "symbol";
   public static final String PROJECT = "project";
-  public static final String PROFILE = "profile";
+  public static final String CONTAINER = "container";
   public static final String OBJECT = "object";
   public static final String EMAIL = "email";
   public static final String MESSAGE = "message";

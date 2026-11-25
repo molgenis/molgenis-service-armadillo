@@ -49,16 +49,16 @@ if (release_env$ADMIN_MODE) {
 }
 cli_progress_done()
 
-# Get available profiles
+# Get available containers
 cat("\n")
-cli_h2("Profiles")
-source("lib/setup-profiles.R")
+cli_h2("Containers")
+source("lib/setup-containers.R")
 source("lib/release-test-info.R")
-cli_progress_step("Fetching available profiles")
-profiles <- get_from_api_with_header("profiles", release_env$token, release_env$auth_type, release_env$armadillo_url, release_env$user)
+cli_progress_step("Fetching available containers")
+containers <- get_from_api_with_header("containers", release_env$token, release_env$auth_type, release_env$armadillo_url, release_env$user)
 cli_progress_done()
-cli_alert_info(sprintf("Available: %s", paste(profiles$available, collapse = ", ")))
-release_env$available_profiles <- profiles$available
+cli_alert_info(sprintf("Available: %s", paste(containers$available, collapse = ", ")))
+release_env$available_containers <- containers$available
 
 # Download and prepare test data
 cli_h2("Preparing test data")

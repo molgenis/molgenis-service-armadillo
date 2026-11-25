@@ -1,0 +1,566 @@
+package org.molgenis.armadillo.container;
+
+import static java.lang.Boolean.TRUE;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toMap;
+import static org.molgenis.armadillo.controller.ContainerDockerController.DOCKER_MANAGEMENT_ENABLED;
+
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.CreateContainerCmd;
+import com.github.dockerjava.api.command.CreateNetworkCmd;
+import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.command.InspectImageResponse;
+import com.github.dockerjava.api.command.PullImageResultCallback;
+import com.github.dockerjava.api.exception.DockerException;
+import com.github.dockerjava.api.exception.NotFoundException;
+import com.github.dockerjava.api.model.*;
+import com.github.dockerjava.api.model.PullResponseItem;
+import jakarta.ws.rs.ProcessingException;
+import java.io.IOException;
+import java.net.SocketException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.molgenis.armadillo.exceptions.*;
+import org.molgenis.armadillo.metadata.ContainerService;
+import org.molgenis.armadillo.metadata.ContainerStatus;
+import org.molgenis.armadillo.model.DockerImageInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+
+@Service
+@PreAuthorize("hasRole('ROLE_SU')")
+@ConditionalOnProperty(DOCKER_MANAGEMENT_ENABLED)
+public class DockerService {
+
+  private static final Logger LOG = LoggerFactory.getLogger(DockerService.class);
+
+  private static final String CONTAINER_CA_CERT = "/app/ca.crt";
+  private static final String CONTAINER_CREDENTIALS = "/app/credentials";
+  private static final String CONTAINER_FAB_WHITELIST = "/app/fab-whitelist.yaml";
+  private static final String CONTAINER_APPIO_ADDRESS = "0.0.0.0:9094";
+  // Overrides the image's own entrypoint, so only an image shipping the FAB-whitelist-enforcing
+  // SuperExec can run as a clientapp container; the stock flower-superexec fails to start.
+  private static final String SUPEREXEC_ENTRYPOINT = "armadillo-flwr-superexec";
+  private static final String FLOWER_NETWORK_NAME = "flower-network";
+
+  private final DockerClient dockerClient;
+  private final ContainerService containerService;
+  private final ContainerStatusService containerStatusService;
+
+  @Value("${armadillo.docker-run-in-container:false}")
+  private boolean inContainer;
+
+  @Value("${armadillo.container-prefix:''}")
+  private String containerPrefix;
+
+  @Value("${flower.armadillo-url:}")
+  private String flowerArmadilloUrl;
+
+  public DockerService(
+      DockerClient dockerClient,
+      ContainerService containerService,
+      ContainerStatusService containerStatusService) {
+    this.dockerClient = dockerClient;
+    this.containerService = containerService;
+    this.containerStatusService = containerStatusService;
+  }
+
+  public Map<String, ContainerInfo> getAllContainerStatuses() {
+    var names = containerService.getAll().stream().map(ContainerConfig::getName).toList();
+
+    var statuses =
+        names.stream()
+            .collect(toMap(name -> name, name -> ContainerInfo.create(ContainerStatus.NOT_FOUND)));
+
+    try {
+      dockerClient
+          .listContainersCmd()
+          .withShowAll(true)
+          .withNameFilter(names)
+          .exec()
+          .forEach(
+              container ->
+                  statuses.replace(
+                      container.getNames()[0].substring(1),
+                      ContainerInfo.create(
+                          getImageTags(container.getImageId()),
+                          ContainerStatus.of(container.getState()))));
+    } catch (ProcessingException e) {
+      if (e.getCause() instanceof SocketException) {
+        statuses.replaceAll((key, value) -> ContainerInfo.create(ContainerStatus.DOCKER_OFFLINE));
+      } else {
+        throw e;
+      }
+    }
+    return statuses;
+  }
+
+  // `docker container ps` show these name structure
+
+  /**
+   * The container can run in its own network/compose.
+   *
+   * <p>Both the containers and/or Armadillo can be part of a docker-compose.yml. You can check with
+   * `docker container ps` to see this name structure.
+   *
+   * @param containerName the container name set by DataManager.
+   * @return adjusted container name if applicable
+   */
+  String asContainerName(String containerName) {
+    if (!inContainer) {
+      LOG.warn("Image not running in docker container: " + containerName);
+      return containerName;
+    }
+
+    if (containerPrefix.isEmpty()) {
+      LOG.error("Running in container without prefix: " + containerName);
+      return containerName;
+    }
+
+    LOG.warn("Image running in docker container: " + containerName);
+    return containerPrefix + containerName + "-1";
+  }
+
+  public String[] getContainerEnvironmentConfig(String containerName) {
+    containerService.getByName(containerName);
+    String dockerContainerName = asContainerName(containerName);
+    InspectContainerResponse containerInfo =
+        dockerClient.inspectContainerCmd(dockerContainerName).exec();
+    return containerInfo.getConfig().getEnv();
+  }
+
+  public ContainerInfo getContainerStatus(String containerName) {
+    // check container exists
+    containerService.getByName(containerName);
+
+    String dockerContainerName = asContainerName(containerName);
+    try {
+      InspectContainerResponse containerInfo =
+          dockerClient.inspectContainerCmd(dockerContainerName).exec();
+      var tags = getImageTags(containerInfo.getName());
+      return ContainerInfo.create(tags, ContainerStatus.of(containerInfo.getState()));
+    } catch (ProcessingException e) {
+      if (e.getCause() instanceof SocketException) {
+        return ContainerInfo.create(ContainerStatus.DOCKER_OFFLINE);
+      } else {
+        throw e;
+      }
+    } catch (NotFoundException e) {
+      return ContainerInfo.create(ContainerStatus.NOT_FOUND);
+    }
+  }
+
+  public void pullImageStartContainer(String containerName) {
+    String dockerContainerName = asContainerName(containerName);
+    LOG.info(containerName + " : " + dockerContainerName);
+
+    var containerConfig = containerService.getByName(containerName);
+    containerStatusService.updateStatus(containerName, null, null, null);
+    pullImage(containerConfig);
+    containerStatusService.updateStatus(containerName, "Container installed", null, null);
+    stopContainer(dockerContainerName);
+    removeContainer(dockerContainerName);
+    if (containerConfig instanceof FlowerContainer) {
+      createNetworkIfNotExists(FLOWER_NETWORK_NAME);
+    }
+    installImage(containerConfig);
+    startContainer(dockerContainerName, containerConfig);
+
+    String previousImageId = containerConfig.getLastImageId();
+    String currentImageId =
+        dockerClient.inspectContainerCmd(asContainerName(containerName)).exec().getImageId();
+
+    if (previousImageId == null) {
+      LOG.info(
+          "No previous image ID recorded for {}. This may be the first run or from before image tracking was added.",
+          containerName);
+    } else if (hasImageIdChanged(containerName, previousImageId, currentImageId)) {
+      try {
+        deleteImageIfUnused(previousImageId);
+      } catch (ImageRemoveFailedException e) {
+        LOG.info(e.getMessage());
+      }
+    }
+
+    updateImageMetaData(containerName, previousImageId, currentImageId);
+  }
+
+  void updateImageMetaData(String containerName, String previousImageId, String currentImageId) {
+    String openContainersId = getOpenContainersImageVersion(currentImageId);
+    Long imageSize = getImageSize(currentImageId);
+    String creationDate = getImageCreationDate(currentImageId);
+
+    String installDate;
+    if ((previousImageId == null && currentImageId != null)
+        || hasImageIdChanged(containerName, previousImageId, currentImageId)) {
+      installDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
+    } else {
+      installDate = null;
+    }
+    containerService.updateImageMetaData(
+        containerName, currentImageId, openContainersId, imageSize, creationDate, installDate);
+  }
+
+  String getImageCreationDate(String imageId) {
+    try {
+      return dockerClient
+          .inspectImageCmd(imageId)
+          .exec()
+          .getConfig()
+          .getLabels()
+          .get("org.opencontainers.image.created");
+    } catch (Exception e) {
+      LOG.error("Error retrieving creation date of image: {}", imageId, e);
+      return null;
+    }
+  }
+
+  Long getImageSize(String imageId) {
+    try {
+      return dockerClient.inspectImageCmd(imageId).exec().getSize();
+    } catch (Exception e) {
+      LOG.error("Error retrieving size of image: {}", imageId, e);
+      return null;
+    }
+  }
+
+  public String getOpenContainersImageVersion(String imageName) {
+    try {
+      // Inspect the image using the provided image name
+      InspectImageResponse image = dockerClient.inspectImageCmd(imageName).exec();
+
+      // Retrieve the OpenContainers image version (org.opencontainers.image.version)
+      String imageVersion = image.getConfig().getLabels().get("org.opencontainers.image.version");
+
+      // Return the version if available, or null if not found
+      return imageVersion != null ? imageVersion : "Unknown Version";
+    } catch (Exception e) {
+      // Log the error and return null if the image couldn't be inspected
+      LOG.error("Error retrieving OpenContainers version for image: {}", imageName, e);
+      return null;
+    }
+  }
+
+  boolean hasImageIdChanged(String containerName, String previousImageId, String currentImageId) {
+    if (previousImageId != null && !previousImageId.equals(currentImageId)) {
+      LOG.info( // NOSONAR - container/image names are admin-controlled, not user input
+          "Image ID for container '{}' changed from '{}' to '{}'",
+          containerName,
+          previousImageId,
+          currentImageId);
+      return true;
+    } else {
+      LOG.info( // NOSONAR - container/image names are admin-controlled, not user input
+          "Image ID for container '{}' unchanged (still '{}')", containerName, currentImageId);
+      return false;
+    }
+  }
+
+  void installImage(ContainerConfig config) {
+    if (config.getImage() == null) {
+      throw new MissingImageException(config.getImage());
+    }
+
+    try (CreateContainerCmd cmd = dockerClient.createContainerCmd(config.getImage())) {
+      HostConfig hostConfig =
+          new HostConfig().withRestartPolicy(RestartPolicy.unlessStoppedRestart());
+
+      configurePortBindings(cmd, hostConfig, config);
+      configureNetworkMode(hostConfig, config);
+      configureBindMounts(hostConfig, config);
+
+      cmd.withHostConfig(hostConfig).withName(config.getName());
+      configureEnv(cmd, config);
+      configureDockerCmd(cmd, config);
+
+      cmd.exec();
+    } catch (DockerException e) {
+      throw new ImageStartFailedException(config.getImage(), e);
+    }
+  }
+
+  /** Binds container port to host. Skipped when port is null (e.g. flower containers). */
+  private void configurePortBindings(
+      CreateContainerCmd cmd, HostConfig hostConfig, ContainerConfig config) {
+    if (config.getPort() == null) return;
+
+    int imageExposed = config.getImage().contains("rock") ? 8085 : 6311;
+    ExposedPort exposed = ExposedPort.tcp(imageExposed);
+    Ports portBindings = new Ports();
+    portBindings.bind(exposed, Ports.Binding.bindPort(config.getPort()));
+    hostConfig.withPortBindings(portBindings);
+    cmd.withExposedPorts(exposed);
+  }
+
+  private void configureNetworkMode(HostConfig hostConfig, ContainerConfig config) {
+    if (config instanceof FlowerContainer) {
+      hostConfig.withNetworkMode(FLOWER_NETWORK_NAME);
+    }
+  }
+
+  private void configureEnv(CreateContainerCmd cmd, ContainerConfig config) {
+    if (config instanceof FlowerSuperExecContainerConfig) {
+      if (flowerArmadilloUrl == null || flowerArmadilloUrl.isEmpty()) {
+        throw new IllegalStateException(
+            "flower.armadillo-url is not configured — required so Flower clientapp containers"
+                + " can reach Armadillo, please set it in application.yml");
+      }
+      var env =
+          new java.util.ArrayList<>(
+              List.of(
+                  "DEBUG=FALSE",
+                  "ARMADILLO_CONTAINER_NAME=" + config.getName(),
+                  "ARMADILLO_URL=" + flowerArmadilloUrl));
+      cmd.withEnv(env);
+    } else {
+      cmd.withEnv("DEBUG=FALSE");
+    }
+  }
+
+  /** Mounts certificate/credential files or the FAB whitelist into flower containers. */
+  private void configureBindMounts(HostConfig hostConfig, ContainerConfig config) {
+    List<Bind> binds = new java.util.ArrayList<>();
+
+    if (config instanceof FlowerSuperNodeContainerConfig supernode) {
+      addBindMount(binds, supernode.getCaCertPath(), CONTAINER_CA_CERT, false);
+      addBindMount(binds, supernode.getAuthPrivateKeyPath(), CONTAINER_CREDENTIALS, false);
+    } else if (config instanceof FlowerSuperExecContainerConfig superexec) {
+      addBindMount(binds, superexec.getFabWhitelistPath(), CONTAINER_FAB_WHITELIST, true);
+    }
+
+    if (!binds.isEmpty()) {
+      hostConfig.withBinds(binds);
+    }
+  }
+
+  /**
+   * Adds a read-only bind mount, failing closed on a missing file. An empty file is rejected unless
+   * {@code allowEmpty} — certs/keys are always a misconfiguration when empty, but an empty FAB
+   * whitelist is a legitimate "nothing approved yet" state.
+   */
+  private void addBindMount(
+      List<Bind> binds, String hostPath, String containerPath, boolean allowEmpty) {
+    if (hostPath == null) return;
+    Path path = Path.of(hostPath).toAbsolutePath();
+    if (!Files.exists(path)) {
+      throw new IllegalStateException(String.format("Required file not found: %s", path));
+    }
+    try {
+      if (!allowEmpty && Files.size(path) == 0) {
+        throw new IllegalStateException(
+            String.format(
+                "Required file is empty: %s — please replace with valid certificate/key", path));
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to read file: " + path, e);
+    }
+    binds.add(new Bind(path.toString(), new Volume(containerPath), AccessMode.ro));
+  }
+
+  private void configureDockerCmd(CreateContainerCmd cmd, ContainerConfig config) {
+    List<String> args = new java.util.ArrayList<>();
+
+    if (config instanceof FlowerSuperNodeContainerConfig) {
+      args.addAll(
+          List.of(
+              "--root-certificates", CONTAINER_CA_CERT,
+              "--auth-supernode-private-key", CONTAINER_CREDENTIALS,
+              "--clientappio-api-address", CONTAINER_APPIO_ADDRESS,
+              "--isolation", "process"));
+    } else if (config instanceof FlowerSuperExecContainerConfig) {
+      cmd.withEntrypoint(SUPEREXEC_ENTRYPOINT);
+      args.addAll(List.of("--fab-whitelist", CONTAINER_FAB_WHITELIST));
+    }
+
+    if (config.getDockerArgs() != null) {
+      args.addAll(config.getDockerArgs());
+    }
+
+    if (!args.isEmpty()) {
+      cmd.withCmd(args.toArray(new String[0]));
+    }
+  }
+
+  private void createNetworkIfNotExists(String networkName) {
+    List<Network> networks = dockerClient.listNetworksCmd().withNameFilter(networkName).exec();
+    if (networks.isEmpty()) {
+      LOG.info("Creating docker network '{}'", networkName);
+      try (CreateNetworkCmd cmd = dockerClient.createNetworkCmd()) {
+        cmd.withName(networkName).withDriver("bridge").exec();
+      }
+    }
+  }
+
+  private void startContainer(String containerName, ContainerConfig config) {
+    try {
+      dockerClient.startContainerCmd(containerName).exec();
+    } catch (DockerException e) {
+      if (config instanceof FlowerSuperExecContainerConfig
+          && e.getMessage() != null
+          && e.getMessage().contains("executable file not found")) {
+        throw new SuperExecEntrypointMissingException(config.getImage(), SUPEREXEC_ENTRYPOINT, e);
+      }
+      throw new ImageStartFailedException(containerName, e);
+    }
+  }
+
+  private void stopContainer(String dockerContainerName) {
+    try {
+      dockerClient.stopContainerCmd(dockerContainerName).exec();
+    } catch (DockerException e) {
+      try {
+        InspectContainerResponse containerInfo =
+            dockerClient.inspectContainerCmd(dockerContainerName).exec();
+        // should not be a problem if not running
+        if (TRUE.equals(containerInfo.getState().getRunning())) {
+          throw new ImageStopFailedException(dockerContainerName, e);
+        }
+      } catch (NotFoundException nfe) {
+        LOG.info("Failed to stop container '{}' because it doesn't exist", dockerContainerName);
+        // not a problem, its gone
+      } catch (Exception e2) {
+        throw new ImageStopFailedException(dockerContainerName, e);
+      }
+    } catch (Exception e) {
+      throw new ImageStopFailedException(dockerContainerName, e);
+    }
+  }
+
+  private void pullImage(ContainerConfig containerConfig) {
+    if (containerConfig.getImage() == null) {
+      throw new MissingImageException(containerConfig.getName());
+    }
+
+    try {
+      dockerClient
+          .pullImageCmd(containerConfig.getImage())
+          .exec(getPullProgress(containerConfig))
+          .awaitCompletion(10, TimeUnit.MINUTES);
+
+    } catch (NotFoundException e) {
+      throw new ImagePullFailedException(containerConfig.getImage(), e);
+    } catch (RuntimeException e) {
+      LOG.warn("Couldn't pull image", e);
+      // Typically, network offline; for local use we can continue.
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ImagePullFailedException(containerConfig.getImage(), e);
+    }
+  }
+
+  private PullImageResultCallback getPullProgress(ContainerConfig containerConfig) {
+    final Set<String> seen = ConcurrentHashMap.newKeySet();
+    final Set<String> done = ConcurrentHashMap.newKeySet();
+    final AtomicInteger lastPct = new AtomicInteger(0);
+
+    return new PullImageResultCallback() {
+      @Override
+      public void onNext(PullResponseItem item) {
+        final String id = item.getId();
+        if (id == null) {
+          super.onNext(item);
+          return;
+        }
+
+        seen.add(id);
+        final String status = String.valueOf(item.getStatus());
+
+        if ("Pull complete".equalsIgnoreCase(status) || "Already exists".equalsIgnoreCase(status)) {
+          done.add(id);
+        }
+
+        int completed = done.size();
+        int total = Math.max(1, seen.size());
+
+        containerStatusService.updateStatus(
+            containerConfig.getName(), "Installing container", completed, total);
+
+        super.onNext(item);
+      }
+    };
+  }
+
+  public void stopAndRemoveContainer(String containerName) {
+    // check container exists
+    containerService.getByName(containerName);
+    stopContainer(containerName);
+    removeContainer(containerName);
+  }
+
+  public void removeContainerDeleteImage(String containerName) {
+    stopAndRemoveContainer(containerName);
+    String imageId = containerService.getByName(containerName).getLastImageId();
+    try {
+      deleteImageIfUnused(imageId);
+    } catch (ImageRemoveFailedException e) {
+      LOG.info(e.getMessage());
+    }
+  }
+
+  private void removeContainer(String containerName) {
+    try {
+      dockerClient.removeContainerCmd(containerName).exec();
+    } catch (NotFoundException nfe) {
+      LOG.info("Couldn't remove container '{}' because it doesn't exist", containerName);
+      // not a problem, wanted to remove anyway
+    } catch (DockerException e) {
+      throw new ContainerRemoveFailedException(containerName, e);
+    }
+  }
+
+  List<String> getImageTags(String imageId) {
+    try {
+      return dockerClient.inspectImageCmd(imageId).exec().getRepoTags();
+    } catch (DockerException e) {
+      if (e instanceof NotFoundException) {
+        LOG.warn("Couldn't inspect image, because: " + e.getMessage());
+      } else {
+        LOG.warn("Couldn't inspect image", e);
+        // getting image tags is non-essential, don't throw error
+      }
+    }
+    return emptyList();
+  }
+
+  public List<DockerImageInfo> getDockerImages() {
+    return dockerClient.listImagesCmd().withShowAll(TRUE).exec().stream()
+        .map(DockerImageInfo::create)
+        .toList();
+  }
+
+  public void deleteImageIfUnused(String imageId) {
+    if (imageId == null) {
+      LOG.info("No image ID provided; skipping image removal");
+      return;
+    }
+
+    try {
+      boolean isInUse =
+          dockerClient.listContainersCmd().exec().stream()
+              .anyMatch(container -> Objects.equals(container.getImageId(), imageId));
+
+      if (isInUse) {
+        LOG.info("Image ID '{}' is still in use — skipping removal", imageId); // NOSONAR
+        throw new ImageRemoveFailedException(
+            imageId, "Image ID is still in use — skipping removal");
+      }
+      dockerClient.removeImageCmd(imageId).withForce(true).exec();
+      LOG.info("Removed image ID '{}' from local Docker cache", imageId); // NOSONAR
+    } catch (NotFoundException e) {
+      throw new ImageRemoveFailedException(imageId, "Image ID not found — skipping removal");
+    }
+  }
+}

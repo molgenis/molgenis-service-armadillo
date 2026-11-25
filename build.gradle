@@ -171,16 +171,16 @@ tasks.register('dockerClean', Delete) {
 //merge test reports
 tasks.register('jacocoMergedReport', org.gradle.testing.jacoco.tasks.JacocoReport) {
     dependsOn project.getTasksByName(":armadillo:test", true)
-    dependsOn project.getTasksByName(":r:test", true)
+    dependsOn project.getTasksByName(":connection:test", true)
     dependsOn project.getTasksByName("jacocoTestReport", true)
     dependsOn project.getTasksByName("jacocoTestReport", true)
     dependsOn project.getTasksByName("bootStartScripts", true)
     dependsOn project.getTasksByName("startScripts", true)
     dependsOn project.getTasksByName(":armadillo:spotlessJava", true)
-    dependsOn project.getTasksByName(":r:spotlessJava", true)
+    dependsOn project.getTasksByName(":connection:spotlessJava", true)
 
     mustRunAfter(":armadillo:spotlessJava")
-    mustRunAfter(":r:spotlessJava")
+    mustRunAfter(":connection:spotlessJava")
     additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     classDirectories.setFrom files(subprojects.sourceSets.main.output)

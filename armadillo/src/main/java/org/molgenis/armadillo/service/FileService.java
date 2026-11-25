@@ -5,12 +5,12 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Collectors;
+import org.molgenis.armadillo.container.annotation.ContainerScope;
 import org.molgenis.armadillo.metadata.TextBlockReader;
-import org.molgenis.armadillo.profile.annotation.ProfileScope;
 import org.springframework.stereotype.Service;
 
 @Service
-@ProfileScope
+@ContainerScope
 public class FileService {
 
   public static int pageNumFromDirection(int pageNum, String direction) {
