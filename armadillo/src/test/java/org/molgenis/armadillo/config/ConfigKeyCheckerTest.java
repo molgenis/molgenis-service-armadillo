@@ -17,22 +17,35 @@ import org.springframework.core.io.Resource;
 
 class ConfigKeyCheckerTest {
 
-  static ConfigKeyChecker checkerFor(Resource yaml) throws IOException {
-    ConfigurableEnvironment environment = new StandardEnvironment();
-    new YamlPropertySourceLoader()
-        .load("test-application.yml", yaml)
-        .forEach(environment.getPropertySources()::addLast);
-    return new ConfigKeyChecker(environment);
+  static ConfigKeyChecker checkerFor(Resource... yamlFiles) throws IOException {
+    return new ConfigKeyChecker(environmentWith(yamlFiles));
   }
 
-  private static List<String> findProblems(String yaml) throws IOException {
-    return checkerFor(new ByteArrayResource(yaml.getBytes(UTF_8), "test-application.yml"))
-        .findProblems();
+  private static ConfigurableEnvironment environmentWith(Resource... yamlFiles) throws IOException {
+    ConfigurableEnvironment environment = new StandardEnvironment();
+    for (Resource file : yamlFiles) {
+      new YamlPropertySourceLoader()
+          .load(file.getDescription(), file)
+          .forEach(environment.getPropertySources()::addLast);
+    }
+    return environment;
+  }
+
+  private static Resource yamlFile(String name, String content) {
+    return new ByteArrayResource(content.getBytes(UTF_8), name);
+  }
+
+  private static List<String> findConfigKeyProblems(String yaml) throws IOException {
+    return checkerFor(yamlFile("test-application.yml", yaml)).findConfigKeyProblems();
   }
 
   private static void assertSingleProblemAbout(String key, List<String> problems) {
     assertEquals(1, problems.size(), problems.toString());
     assertTrue(problems.get(0).contains(key), problems.get(0));
+  }
+
+  private static void assertAnyProblemContains(String text, List<String> problems) {
+    assertTrue(problems.stream().anyMatch(p -> p.contains(text)), problems.toString());
   }
 
   @Test
@@ -46,7 +59,7 @@ class ConfigKeyCheckerTest {
         storage:
           root-dir: data
         """;
-    assertEquals(List.of(), findProblems(yaml));
+    assertEquals(List.of(), findConfigKeyProblems(yaml));
   }
 
   @Test
@@ -59,7 +72,8 @@ class ConfigKeyCheckerTest {
               multipart:
                 max-file-size: 1MB
         """;
-    assertSingleProblemAbout("spring.security.servlet.multipart.max-file-size", findProblems(yaml));
+    assertSingleProblemAbout(
+        "spring.security.servlet.multipart.max-file-size", findConfigKeyProblems(yaml));
   }
 
   @Test
@@ -68,7 +82,7 @@ class ConfigKeyCheckerTest {
         storage:
           root-dri: data
         """;
-    assertSingleProblemAbout("storage.root-dri", findProblems(yaml));
+    assertSingleProblemAbout("storage.root-dri", findConfigKeyProblems(yaml));
   }
 
   @Test
@@ -80,7 +94,7 @@ class ConfigKeyCheckerTest {
         armadillo:
           docker-managment-enabled: false
         """;
-    List<String> problems = findProblems(yaml);
+    List<String> problems = findConfigKeyProblems(yaml);
     assertSingleProblemAbout("armadillo.docker-managment-enabled", problems);
     assertTrue(problems.get(0).contains("test-application.yml"), problems.get(0));
     assertTrue(problems.get(0).contains("4:"), problems.get(0));
@@ -92,7 +106,7 @@ class ConfigKeyCheckerTest {
     environment
         .getPropertySources()
         .addLast(new MapPropertySource("other", Map.of("bogus.key", "x")));
-    assertEquals(List.of(), new ConfigKeyChecker(environment).findProblems());
+    assertEquals(List.of(), new ConfigKeyChecker(environment).findConfigKeyProblems());
   }
 
   @Test
@@ -116,7 +130,7 @@ class ConfigKeyCheckerTest {
                 opaquetoken:
                   client-id: id
         """;
-    assertEquals(List.of(), findProblems(yaml));
+    assertEquals(List.of(), findConfigKeyProblems(yaml));
   }
 
   @Test
@@ -133,26 +147,8 @@ class ConfigKeyCheckerTest {
                     clientt-secret: secret
         """;
     assertSingleProblemAbout(
-        "spring.security.oauth2.client.registration.molgenis.clientt-secret", findProblems(yaml));
-  }
-
-  @Test
-  void acceptsCompleteProfile() throws IOException {
-    String yaml =
-        """
-        armadillo:
-          profiles:
-            - name: default
-              image: datashield/rock-base:latest
-              port: 6311
-              package-whitelist:
-                - dsBase
-              function-blacklist: [ ]
-              options:
-                datashield:
-                  seed: 342325352
-        """;
-    assertEquals(List.of(), findProblems(yaml));
+        "spring.security.oauth2.client.registration.molgenis.clientt-secret",
+        findConfigKeyProblems(yaml));
   }
 
   @Test
@@ -167,11 +163,80 @@ class ConfigKeyCheckerTest {
               client:
                 registration: not-a-map
         """;
-    List<String> problems = findProblems(yaml);
+    List<String> problems = findConfigKeyProblems(yaml);
     assertEquals(2, problems.size(), problems.toString());
-    assertTrue(
-        problems.stream().anyMatch(p -> p.contains("storage.root-dri")), problems.toString());
-    assertTrue(
-        problems.stream().anyMatch(p -> p.startsWith("Could not check")), problems.toString());
+    assertAnyProblemContains("storage.root-dri", problems);
+    assertAnyProblemContains("Could not check", problems);
+  }
+
+  @Test
+  void reportsMisspeltProfileFields() throws IOException {
+    String yaml =
+        """
+        armadillo:
+          profiles:
+            - name: default
+              imgae: datashield/rock-base:latest
+              prot: 6311
+        """;
+    List<String> problems = findConfigKeyProblems(yaml);
+    assertEquals(2, problems.size(), problems.toString());
+    assertAnyProblemContains("armadillo.profiles[0].imgae", problems);
+    assertAnyProblemContains("armadillo.profiles[0].prot", problems);
+  }
+
+  @Test
+  void acceptsAnyProfileOptionAndAlternativeSpellings() throws IOException {
+    String yaml =
+        """
+        armadillo:
+          profiles:
+            - name: default
+              autoUpdate: true
+              packageWhitelist:
+                - dsBase
+              options:
+                anything-at-all: x
+                datashield:
+                  seed: 342325352
+        """;
+    assertEquals(List.of(), findConfigKeyProblems(yaml));
+  }
+
+  @Test
+  void acceptsProfilesListedInTwoFiles() throws IOException {
+    ConfigKeyChecker checker =
+        checkerFor(
+            yamlFile("first.yml", "armadillo.profiles:\n  - name: one\n"),
+            yamlFile("second.yml", "armadillo.profiles:\n  - name: two\n  - name: three\n"));
+    assertEquals(List.of(), checker.findConfigKeyProblems());
+  }
+
+  @Test
+  void acceptsPlaceholderValueDefinedElsewhere() throws IOException {
+    ConfigurableEnvironment environment =
+        environmentWith(
+            yamlFile(
+                "test-application.yml",
+                "armadillo.profiles:\n  - name: one\n    port: ${PROFILE_PORT}\n"));
+    environment
+        .getPropertySources()
+        .addLast(new MapPropertySource("other", Map.of("PROFILE_PORT", "6311")));
+    assertEquals(List.of(), new ConfigKeyChecker(environment).findConfigKeyProblems());
+  }
+
+  @Test
+  void reportsKeyFoundByTwoChecksOnlyOnce() throws IOException {
+    String yaml =
+        """
+        spring:
+          security:
+            oauth2:
+              client:
+                registraton:
+                  molgenis:
+                    client-id: id
+        """;
+    assertSingleProblemAbout("registraton.molgenis.client-id", findConfigKeyProblems(yaml));
   }
 }

@@ -30,12 +30,13 @@ class ConfigKeysRegressionTest {
 
   @Test
   void bundledApplicationYmlHasNoUnknownKeys() throws IOException {
-    assertEquals(List.of(), checkerFor("src/main/resources/application.yml").findProblems());
+    assertEquals(
+        List.of(), checkerFor("src/main/resources/application.yml").findConfigKeyProblems());
   }
 
   @Test
   void applicationTemplateHasNoUnknownKeys() throws IOException {
-    assertEquals(List.of(), checkerFor("../application.template.yml").findProblems());
+    assertEquals(List.of(), checkerFor("../application.template.yml").findConfigKeyProblems());
   }
 
   @Test
