@@ -3,20 +3,17 @@
     {
       "name": "armadillo.armadillo-mode",
       "type": "java.lang.String",
-      "description": "Mode Armadillo runs in (DEV or PROD).",
-      "defaultValue": "PROD"
+      "description": "Mode Armadillo runs in (DEV or PROD)."
     },
     {
       "name": "armadillo.armadillo-home",
       "type": "java.lang.String",
-      "description": "Path the application runs from.",
-      "defaultValue": "/usr/share/armadillo/application"
+      "description": "Path the application runs from."
     },
     {
       "name": "armadillo.armadillo-config-file",
       "type": "java.lang.String",
-      "description": "Path of the application config file.",
-      "defaultValue": "/etc/armadillo/application.yml"
+      "description": "Path of the application config file."
     },
     {
       "name": "armadillo.api-key",
@@ -36,8 +33,7 @@
     {
       "name": "armadillo.docker-run-in-container",
       "type": "java.lang.Boolean",
-      "description": "Whether Armadillo runs as a docker container.",
-      "defaultValue": false
+      "description": "Whether Armadillo runs as a docker container."
     },
     {
       "name": "armadillo.container-prefix",
@@ -52,20 +48,17 @@
     {
       "name": "storage.resource-token-timeout",
       "type": "java.lang.Long",
-      "description": "Seconds a resource token stays valid.",
-      "defaultValue": 300
+      "description": "Seconds a resource token stays valid."
     },
     {
       "name": "audit.log.path",
       "type": "java.lang.String",
-      "description": "Path of the audit log.",
-      "defaultValue": "./logs/audit.log"
+      "description": "Path of the audit log."
     },
     {
       "name": "stdout.log.path",
       "type": "java.lang.String",
-      "description": "Path of the application log.",
-      "defaultValue": "./logs/armadillo.log"
+      "description": "Path of the application log."
     }
   ]
 }

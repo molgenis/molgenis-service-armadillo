@@ -14,10 +14,7 @@ import org.springframework.boot.context.properties.source.ConfigurationPropertyN
 /** The configuration keys published in the Spring metadata files on the classpath. */
 class KnownConfigKeys {
 
-  private static final List<String> METADATA_FILES =
-      List.of(
-          "META-INF/spring-configuration-metadata.json",
-          "META-INF/additional-spring-configuration-metadata.json");
+  private static final String METADATA_FILE = "META-INF/spring-configuration-metadata.json";
 
   private static final List<String> MAP_TYPES = List.of("java.util.Map", "java.util.Properties");
 
@@ -43,11 +40,9 @@ class KnownConfigKeys {
     ObjectMapper mapper = new ObjectMapper();
     List<KnownKey> keys = new ArrayList<>();
     try {
-      for (String file : METADATA_FILES) {
-        Enumeration<URL> urls = loader.getResources(file);
-        while (urls.hasMoreElements()) {
-          keys.addAll(readKeys(mapper, urls.nextElement()));
-        }
+      Enumeration<URL> urls = loader.getResources(METADATA_FILE);
+      while (urls.hasMoreElements()) {
+        keys.addAll(readKeys(mapper, urls.nextElement()));
       }
     } catch (IOException e) {
       throw new UncheckedIOException("Could not read configuration metadata", e);
