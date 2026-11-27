@@ -24,26 +24,26 @@ armadillo:
 # required settings:
 spring:
   security:
+    ## uncomment oauth2 settings below to enable oidc
+    #oauth2:
+    #  client:
+    #    provider:
+    #      molgenis:
+    #        issuer-uri: 'http://auth.molgenis.org'
+    #    registration:
+    #      molgenis:
+    #        client-id: '...'
+    #        client-secret: '...'
+    #  resourceserver:
+    #    jwt:
+    #      issuer-uri: 'http://auth.molgenis.org'
+    #    opaquetoken:
+    #      client-id: '...'
     user:
       # please change this admin password!
       password: admin
-    ## uncomment oauth2 settings below to enable oidc
-#    oauth2:
-#      client:
-#        provider:
-#          molgenis:
-#            issuer-uri: 'http://auth.molgenis.org'
-#        registration:
-#          molgenis:
-#            client-id: '...'
-#            client-secret: '...'
-#      resourceserver:
-#        jwt:
-#          issuer-uri: 'http://auth.molgenis.org'
-#        opaquetoken:
-#          client-id: '...'
 
-# optional settings (review spring handbook to find more):
+  # optional settings (review spring handbook to find more):
   servlet:
     multipart:
       ## change this if your files are bigger
